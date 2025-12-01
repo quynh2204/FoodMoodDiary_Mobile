@@ -1,0 +1,16 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run FoodMoodDiary",
+      "type": "shell",
+      "command": "./gradlew installDebug && adb shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

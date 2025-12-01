@@ -1,0 +1,22 @@
+{
+  // Use Temurin Java 17 for VS Code
+  "java.home": "/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home",
+
+  // Configure Java 17 runtime
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-17",
+      "path": "/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home",
+      "default": true
+    }
+  ],
+
+  // Android SDK path
+  "android.sdkPath": "/Users/haphuongquynh/Library/Android/sdk",
+
+  // Gradle uses Java 17
+  "gradle.java.home": "/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home",
+
+  // Gradle JVM arguments
+  "gradle.jvm.arguments": "-Dfile.encoding=UTF-8 -Xmx2g"
+}
