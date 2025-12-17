@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "694088836256",
+    "firebase_url": "https://foodmooddiary-mobile-default-rtdb.firebaseio.com",
+    "project_id": "foodmooddiary-mobile",
+    "storage_bucket": "foodmooddiary-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:694088836256:android:6d03e078e332434c5495c5",
+        "android_client_info": {
+          "package_name": "com.haphuongquynh.foodmooddiary"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "694088836256-cb3s35o7i2m7gnnn3b2vmokh2428944p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAq_ffAWsbftVcoYy8Ycp0Nc8GhMJau50g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "694088836256-cb3s35o7i2m7gnnn3b2vmokh2428944p.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
