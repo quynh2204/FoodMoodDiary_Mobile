@@ -71,7 +71,9 @@ fun FoodMoodDiaryNavigation() {
         }
 
         composable(route = Screen.Settings.route) {
-            // SettingsScreen(navController = navController)
+            com.haphuongquynh.foodmooddiary.presentation.screens.settings.SettingsScreen(
+                onNavigateBack = { navController.navigateUp() }
+            )
         }
 
         composable(route = Screen.Discovery.route) {

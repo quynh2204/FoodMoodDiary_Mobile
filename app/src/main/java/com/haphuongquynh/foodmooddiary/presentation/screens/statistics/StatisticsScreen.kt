@@ -10,6 +10,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,29 +39,37 @@ fun StatisticsScreen(
 
     var showDateRangePicker by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Statistics") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    // Date Range Picker
-                    IconButton(onClick = { showDateRangePicker = true }) {
-                        Icon(Icons.Default.DateRange, contentDescription = "Date Range")
-                    }
-                    
-                    // Export Data
-                    IconButton(onClick = { /* TODO: Export to CSV */ }) {
-                        Icon(Icons.Default.FileDownload, contentDescription = "Export")
-                    }
-                }
-            )
-        }
-    ) { padding ->
+    Surface(color = Color(0xFF1C1C1E)) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = { Text("Statistics", color = Color.White) },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        }
+                    },
+                    actions = {
+                        // Date Range Picker
+                        IconButton(onClick = { showDateRangePicker = true }) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Date Range", tint = Color.White)
+                        }
+                        
+                        // Export Data
+                        IconButton(onClick = { /* TODO: Export to CSV */ }) {
+                            Icon(Icons.Default.FileDownload, contentDescription = "Export", tint = Color.White)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xFF1C1C1E),
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White,
+                        actionIconContentColor = Color.White
+                    )
+                )
+            }
+        ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -76,17 +86,20 @@ fun StatisticsScreen(
             // Tab Row
             TabRow(
                 selectedTabIndex = selectedTabIndex,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = Color(0xFF1C1C1E),
+                contentColor = Color(0xFFFFD700)
             ) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTabIndex == index,
                         onClick = { selectedTabIndex = index },
-                        text = { Text(title) },
+                        text = { Text(title, color = if (selectedTabIndex == index) Color(0xFFFFD700) else Color(0xFFA8A8A8)) },
                         icon = {
                             Icon(
                                 imageVector = if (index == 0) Icons.Default.BarChart else Icons.Default.Psychology,
-                                contentDescription = null
+                                contentDescription = null,
+                                tint = if (selectedTabIndex == index) Color(0xFFFFD700) else Color(0xFFA8A8A8)
                             )
                         }
                     )
@@ -109,15 +122,16 @@ fun StatisticsScreen(
             }
         }
 
-        // Date Range Picker Dialog
-        if (showDateRangePicker) {
-            DateRangePickerDialog(
-                onDismiss = { showDateRangePicker = false },
-                onSelectRange = { range ->
-                    viewModel.setDateRange(range)
-                    showDateRangePicker = false
-                }
-            )
+            // Date Range Picker Dialog
+            if (showDateRangePicker) {
+                DateRangePickerDialog(
+                    onDismiss = { showDateRangePicker = false },
+                    onSelectRange = { range ->
+                        viewModel.setDateRange(range)
+                        showDateRangePicker = false
+                    }
+                )
+            }
         }
     }
 }
@@ -171,10 +185,11 @@ fun ChartSection(
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFFFFD700)
         )
         Surface(
-            color = MaterialTheme.colorScheme.surface,
+            color = Color(0xFF2C2C2E),
             shape = MaterialTheme.shapes.medium,
             tonalElevation = 1.dp
         ) {
@@ -193,7 +208,7 @@ fun WeeklySummaryCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = Color(0xFF2C2C2E)
         )
     ) {
         Column(
@@ -203,7 +218,8 @@ fun WeeklySummaryCard(
             Text(
                 text = "This Week",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFFFD700)
             )
 
             Row(
@@ -228,7 +244,7 @@ fun WeeklySummaryCard(
             }
 
             if (!summary.mostFrequentFood.isNullOrBlank()) {
-                Divider()
+                HorizontalDivider(color = Color(0xFF3C3C3E))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -236,12 +252,12 @@ fun WeeklySummaryCard(
                     Icon(
                         imageVector = Icons.Default.Star,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.tertiary
+                        tint = Color(0xFFFFD700)
                     )
                     Text(
                         text = "Top food: ${summary.mostFrequentFood}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        color = Color.White
                     )
                 }
             }
@@ -265,17 +281,18 @@ fun SummaryItem(
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.primary
+            tint = Color(0xFFFFD700)
         )
         Text(
             text = value,
             style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
+            fontWeight = FontWeight.Bold,
+            color = Color.White
         )
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
+            color = Color(0xFFA8A8A8)
         )
     }
 }

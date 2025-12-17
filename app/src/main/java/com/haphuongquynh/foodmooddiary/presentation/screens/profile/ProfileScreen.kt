@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
@@ -46,18 +47,25 @@ fun ProfileScreen(
     var showClearDataDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Profile") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
-                    }
-                }
-            )
-        }
-    ) { padding ->
+    Surface(color = Color(0xFF1C1C1E)) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = { Text("Profile & Settings", color = Color.White) },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Color.White)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xFF1C1C1E),
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White
+                    )
+                )
+            }
+        ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -130,6 +138,7 @@ fun ProfileScreen(
                 onDismiss = { showExportDialog = false }
             )
         }
+        }
     }
 }
 
@@ -143,7 +152,7 @@ fun ProfileHeader(
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = Color(0xFF2C2C2E)
         )
     ) {
         Column(
@@ -158,14 +167,14 @@ fun ProfileHeader(
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary),
+                    .background(Color(0xFFFFD700)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     Icons.Default.Person,
                     contentDescription = null,
                     modifier = Modifier.size(48.dp),
-                    tint = Color.White
+                    tint = Color.Black
                 )
             }
 
@@ -174,25 +183,26 @@ fun ProfileHeader(
                 text = userName,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = Color.White
             )
 
             Text(
                 text = userEmail,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = Color(0xFFA8A8A8)
             )
 
             // Total Entries Badge
             Surface(
-                color = MaterialTheme.colorScheme.primary,
+                color = Color(0xFFFFD700),
                 shape = MaterialTheme.shapes.small
             ) {
                 Text(
-                    text = "$totalEntries Entries",
+                    text = "🔥 $totalEntries days in a row",
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.labelLarge,
-                    color = Color.White
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
                 )
             }
         }
@@ -212,7 +222,8 @@ fun StatsSummarySection(
         Text(
             text = "Statistics",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFFFFD700)
         )
 
         Row(
@@ -247,7 +258,7 @@ fun StatCard(
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = Color(0xFF2C2C2E)
         )
     ) {
         Column(
@@ -259,17 +270,18 @@ fun StatCard(
                 icon,
                 contentDescription = null,
                 modifier = Modifier.size(32.dp),
-                tint = color
+                tint = Color(0xFFFFD700)
             )
             Text(
                 text = value,
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color(0xFFA8A8A8)
             )
         }
     }
@@ -294,10 +306,15 @@ fun SettingsSection(
         Text(
             text = "Settings",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFFFFD700)
         )
 
-        Card {
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFF2C2C2E)
+            )
+        ) {
             Column {
                 // Notifications
                 SettingItem(
@@ -385,8 +402,8 @@ fun SettingItem(
         Icon(
             icon,
             contentDescription = null,
-            tint = if (destructive) MaterialTheme.colorScheme.error 
-                  else MaterialTheme.colorScheme.onSurface
+            tint = if (destructive) Color(0xFFFF5252)
+                  else Color(0xFFFFD700)
         )
 
         Column(
@@ -396,13 +413,13 @@ fun SettingItem(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = if (destructive) MaterialTheme.colorScheme.error
-                       else MaterialTheme.colorScheme.onSurface
+                color = if (destructive) Color(0xFFFF5252)
+                       else Color.White
             )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color(0xFFA8A8A8)
             )
         }
 

@@ -32,6 +32,7 @@ fun SplashScreen(
 ) {
     val alpha = remember { Animatable(0f) }
     val currentUser by viewModel.currentUser.collectAsState()
+    val authState by viewModel.authState.collectAsState()
 
     LaunchedEffect(key1 = true) {
         alpha.animateTo(
@@ -40,7 +41,7 @@ fun SplashScreen(
         )
         delay(2000)
         
-        // Check authentication state
+        // Check authentication state and navigate
         val destination = if (currentUser != null) {
             Screen.Home.route
         } else {

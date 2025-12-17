@@ -1,6 +1,10 @@
 package com.haphuongquynh.foodmooddiary.presentation.screens.entry
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -15,8 +19,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.haphuongquynh.foodmooddiary.presentation.screens.camera.CameraScreen
@@ -30,9 +36,11 @@ fun AddEntryScreen(
     navController: NavController,
     viewModel: FoodEntryViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     var foodName by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     var showCamera by remember { mutableStateOf(false) }
+    var showPhotoSourceDialog by remember { mutableStateOf(false) }
     var showColorPicker by remember { mutableStateOf(false) }
     var selectedColor by remember { mutableStateOf(android.graphics.Color.parseColor("#4CAF50")) }
     
@@ -40,6 +48,30 @@ fun AddEntryScreen(
     val location by viewModel.currentLocation.collectAsState()
     val entryState by viewModel.entryState.collectAsState()
     val scrollState = rememberScrollState()
+
+    // Gallery launcher
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            try {
+                val inputStream = context.contentResolver.openInputStream(it)
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+                inputStream?.close()
+                
+                // Save to temp file
+                val tempFile = File(context.cacheDir, "gallery_${System.currentTimeMillis()}.jpg")
+                tempFile.outputStream().use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                }
+                
+                viewModel.processPhoto(tempFile, bitmap)
+                photoData?.let { selectedColor = it.dominantColor }
+            } catch (e: Exception) {
+                android.util.Log.e("AddEntry", "Failed to load gallery image", e)
+            }
+        }
+    }
 
     // Fetch location on screen load
     LaunchedEffect(Unit) {
@@ -71,15 +103,23 @@ fun AddEntryScreen(
         return
     }
 
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Color(0xFF1C1C1E)
+    ) {
     Scaffold(
+        containerColor = Color(0xFF1C1C1E),
         topBar = {
             TopAppBar(
-                title = { Text("Add Food Entry") },
+                title = { Text("Add Entry", color = Color.White, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, "Back")
+                        Icon(Icons.Default.ArrowBack, "Back", tint = Color.White)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF1C1C1E)
+                )
             )
         },
         floatingActionButton = {
@@ -92,9 +132,10 @@ fun AddEntryScreen(
                         photoFile = photoData?.file
                     )
                 },
-                icon = { Icon(Icons.Default.Check, "Save") },
-                text = { Text("Save Entry") },
-                expanded = scrollState.value == 0
+                icon = { Icon(Icons.Default.Check, "Save", tint = Color.Black) },
+                text = { Text("Save Entry", color = Color.Black, fontWeight = FontWeight.Bold) },
+                expanded = scrollState.value == 0,
+                containerColor = Color(0xFFFFD700)
             )
         }
     ) { paddingValues ->
@@ -111,8 +152,11 @@ fun AddEntryScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
-                    .clickable { showCamera = true },
-                shape = RoundedCornerShape(12.dp)
+                    .clickable { showPhotoSourceDialog = true },
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFF2C2C2E)
+                )
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -131,47 +175,112 @@ fun AddEntryScreen(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Icon(
-                                Icons.Default.CameraAlt,
+                                Icons.Default.AddAPhoto,
                                 contentDescription = null,
                                 modifier = Modifier.size(48.dp),
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = Color(0xFFFFD700)
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                "Tap to take photo",
+                                "Change photo",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = Color(0xFFFFD700),
+                                fontWeight = FontWeight.Medium
                             )
                         }
                     }
                 }
             }
+            
+            // Photo Source Dialog
+            if (showPhotoSourceDialog) {
+                AlertDialog(
+                    onDismissRequest = { showPhotoSourceDialog = false },
+                    containerColor = Color(0xFF2C2C2E),
+                    title = { Text("Choose Photo", color = Color.White, fontWeight = FontWeight.Bold) },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = {
+                                    showPhotoSourceDialog = false
+                                    showCamera = true
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700))
+                            ) {
+                                Icon(Icons.Default.CameraAlt, null, tint = Color.Black)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Take Photo", color = Color.Black)
+                            }
+                            Button(
+                                onClick = {
+                                    showPhotoSourceDialog = false
+                                    galleryLauncher.launch("image/*")
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3C3C3E))
+                            ) {
+                                Icon(Icons.Default.PhotoLibrary, null, tint = Color.White)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Choose from Gallery", color = Color.White)
+                            }
+                        }
+                    },
+                    confirmButton = {},
+                    dismissButton = {
+                        TextButton(onClick = { showPhotoSourceDialog = false }) {
+                            Text("Cancel", color = Color(0xFFFFD700))
+                        }
+                    }
+                )
+            }
 
             // Food Name Field
-            OutlinedTextField(
+            Text("Food Name", color = Color.White, fontSize = 14.sp)
+            TextField(
                 value = foodName,
                 onValueChange = { foodName = it },
-                label = { Text("Food Name *") },
-                leadingIcon = { Icon(Icons.Default.Restaurant, "Food") },
+                placeholder = { Text("Enter food name", color = Color.Gray) },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFFA8A8A8),
+                    unfocusedContainerColor = Color(0xFFA8A8A8),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                )
             )
 
             // Notes Field
-            OutlinedTextField(
+            Text("Notes", color = Color.White, fontSize = 14.sp)
+            TextField(
                 value = notes,
                 onValueChange = { notes = it },
-                label = { Text("Notes (optional)") },
-                leadingIcon = { Icon(Icons.Default.Notes, "Notes") },
+                placeholder = { Text("Write something...", color = Color.Gray) },
                 minLines = 3,
                 maxLines = 5,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFFA8A8A8),
+                    unfocusedContainerColor = Color(0xFFA8A8A8),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                )
             )
 
             // Mood Color Section
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFF2C2C2E)
+                )
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp)
@@ -180,12 +289,13 @@ fun AddEntryScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(Icons.Default.Palette, "Color")
+                        Icon(Icons.Default.Palette, "Color", tint = Color(0xFFFFD700))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             "Mood Color",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
                         )
                         Spacer(modifier = Modifier.weight(1f))
                         Box(
@@ -193,7 +303,7 @@ fun AddEntryScreen(
                                 .size(40.dp)
                                 .clip(CircleShape)
                                 .background(Color(selectedColor))
-                                .border(2.dp, MaterialTheme.colorScheme.outline, CircleShape)
+                                .border(2.dp, Color(0xFFFFD700), CircleShape)
                         )
                     }
 
@@ -202,16 +312,19 @@ fun AddEntryScreen(
                         Text(
                             "Color extracted from photo",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color.Gray
                         )
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
                     Button(
                         onClick = { showColorPicker = true },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFFFD700)
+                        )
                     ) {
-                        Text("Choose Custom Color")
+                        Text("Choose Custom Color", color = Color.Black, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -220,24 +333,28 @@ fun AddEntryScreen(
             if (location != null) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF2C2C2E)
+                    )
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.LocationOn, "Location")
+                        Icon(Icons.Default.LocationOn, "Location", tint = Color(0xFFFFD700))
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Text(
                                 "Location",
                                 style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
                             )
                             Text(
                                 location!!.address ?: "${location!!.latitude}, ${location!!.longitude}",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = Color.Gray
                             )
                         }
                     }
@@ -255,7 +372,7 @@ fun AddEntryScreen(
             if (entryState is EntryState.Error) {
                 Text(
                     text = (entryState as EntryState.Error).message,
-                    color = MaterialTheme.colorScheme.error,
+                    color = Color(0xFFFF5252),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -263,6 +380,7 @@ fun AddEntryScreen(
             // Bottom spacing for FAB
             Spacer(modifier = Modifier.height(80.dp))
         }
+    }
     }
 
     // Color Picker Dialog
@@ -305,7 +423,8 @@ fun ColorPickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Choose Mood Color") },
+        containerColor = Color(0xFF2C2C2E),
+        title = { Text("Choose Mood Color", color = Color.White, fontWeight = FontWeight.Bold) },
         text = {
             Column {
                 predefinedColors.chunked(4).forEach { rowColors ->
@@ -323,9 +442,9 @@ fun ColorPickerDialog(
                                     .border(
                                         width = if (color == currentColor) 3.dp else 1.dp,
                                         color = if (color == currentColor)
-                                            MaterialTheme.colorScheme.primary
+                                            Color(0xFFFFD700)
                                         else
-                                            MaterialTheme.colorScheme.outline,
+                                            Color.Gray,
                                         shape = CircleShape
                                     )
                                     .clickable { onColorSelected(color) }
@@ -337,7 +456,7 @@ fun ColorPickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text("Cancel", color = Color(0xFFFFD700))
             }
         }
     )

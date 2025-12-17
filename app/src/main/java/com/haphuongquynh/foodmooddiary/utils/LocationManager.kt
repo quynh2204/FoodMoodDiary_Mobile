@@ -107,20 +107,32 @@ class LocationManager @Inject constructor(
     @Suppress("DEPRECATION")
     private fun getAddressFromLocation(latitude: Double, longitude: Double): String? {
         return try {
-            val geocoder = Geocoder(context)
+            val geocoder = Geocoder(context, java.util.Locale.getDefault())
             val addresses = geocoder.getFromLocation(latitude, longitude, 1)
             
             if (!addresses.isNullOrEmpty()) {
                 val address = addresses[0]
                 buildString {
-                    address.getAddressLine(0)?.let { append(it) }
+                    // Try to build readable address
+                    val parts = mutableListOf<String>()
+                    address.thoroughfare?.let { parts.add(it) } // Street
+                    address.subAdminArea?.let { parts.add(it) } // District
+                    address.locality?.let { parts.add(it) } // City
+                    address.countryName?.let { parts.add(it) } // Country
+                    
+                    if (parts.isNotEmpty()) {
+                        append(parts.joinToString(", "))
+                    } else {
+                        // Fallback to full address line
+                        address.getAddressLine(0)?.let { append(it) }
+                    }
                 }
             } else {
-                null
+                "Lat: ${String.format("%.4f", latitude)}, Lng: ${String.format("%.4f", longitude)}"
             }
         } catch (e: IOException) {
             android.util.Log.e("LocationManager", "Geocoder failed", e)
-            null
+            "Lat: ${String.format("%.4f", latitude)}, Lng: ${String.format("%.4f", longitude)}"
         }
     }
 }

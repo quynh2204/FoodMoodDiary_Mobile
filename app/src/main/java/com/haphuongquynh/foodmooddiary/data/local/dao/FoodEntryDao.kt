@@ -54,4 +54,11 @@ interface FoodEntryDao {
     
     @Query("SELECT COUNT(*) FROM food_entries WHERE userId = :userId")
     suspend fun getEntryCount(userId: String): Int
+    
+    // Content Provider support
+    @Query("SELECT * FROM food_entries ORDER BY timestamp DESC")
+    fun getAllEntriesCursor(): android.database.Cursor
+    
+    @Query("SELECT * FROM food_entries WHERE id = :entryId LIMIT 1")
+    fun getEntryByIdCursor(entryId: String): android.database.Cursor
 }

@@ -8,8 +8,12 @@ import com.haphuongquynh.foodmooddiary.data.local.entity.UserEntity
 import com.haphuongquynh.foodmooddiary.domain.model.User
 import com.haphuongquynh.foodmooddiary.domain.repository.AuthRepository
 import com.haphuongquynh.foodmooddiary.utils.Resource
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,6 +29,31 @@ class AuthRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val userDao: UserDao
 ) : AuthRepository {
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    init {
+        // Sync Firebase Auth user to Room DB immediately on startup
+        scope.launch {
+            syncFirebaseUserToRoom()
+        }
+    }
+
+    private suspend fun syncFirebaseUserToRoom() {
+        val firebaseUser = firebaseAuth.currentUser
+        if (firebaseUser != null) {
+            val user = User(
+                uid = firebaseUser.uid,
+                email = firebaseUser.email ?: "",
+                displayName = firebaseUser.displayName ?: firebaseUser.email?.substringBefore("@") ?: "User",
+                photoUrl = firebaseUser.photoUrl?.toString(),
+                createdAt = firebaseUser.metadata?.creationTimestamp ?: System.currentTimeMillis(),
+                lastLoginAt = System.currentTimeMillis()
+            )
+            userDao.insertUser(UserEntity.fromDomain(user))
+            android.util.Log.d("AuthRepo", "Synced Firebase user to Room: ${user.email}")
+        }
+    }
 
     override fun getCurrentUser(): Flow<User?> {
         return userDao.getCurrentUser().map { it?.toDomain() }

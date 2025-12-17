@@ -171,7 +171,10 @@ fun DiscoveryScreen(
                     if (searchResults.isNotEmpty()) {
                         SearchResultsList(
                             meals = searchResults,
-                            onMealClick = { viewModel.loadMealById(it.id) },
+                            onMealClick = { 
+                                viewModel.loadMealById(it.id)
+                                selectedTab = 0
+                            },
                             onFavoriteClick = { viewModel.toggleFavorite(it) }
                         )
                     } else {
@@ -188,7 +191,10 @@ fun DiscoveryScreen(
                 selectedTab == 1 -> {
                     FavoritesTab(
                         favorites = favorites,
-                        onMealClick = { viewModel.loadMealById(it.id) },
+                        onMealClick = { 
+                            viewModel.loadMealById(it.id)
+                            selectedTab = 0
+                        },
                         onFavoriteClick = { viewModel.toggleFavorite(it) }
                     )
                 }

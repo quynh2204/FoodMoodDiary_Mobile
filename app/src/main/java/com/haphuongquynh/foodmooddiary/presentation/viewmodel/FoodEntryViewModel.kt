@@ -101,9 +101,11 @@ class FoodEntryViewModel @Inject constructor(
      */
     fun addEntry(
         foodName: String,
-        notes: String,
+        notes: String = "",
         moodColor: Int,
-        photoFile: File? = null
+        photoFile: File? = null,
+        mealType: String = "Dinner",
+        rating: Int = 0
     ) {
         viewModelScope.launch {
             _entryState.value = EntryState.Loading
@@ -119,7 +121,7 @@ class FoodEntryViewModel @Inject constructor(
                 foodName = foodName,
                 notes = notes,
                 moodColor = moodColor,
-                localPhotoPath = photoFile?.absolutePath,
+                localPhotoPath = _currentPhoto.value?.file?.absolutePath,
                 location = _currentLocation.value,
                 timestamp = System.currentTimeMillis()
             )
