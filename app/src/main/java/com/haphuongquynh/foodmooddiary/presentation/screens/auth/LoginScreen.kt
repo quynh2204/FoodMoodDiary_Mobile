@@ -4,9 +4,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -71,47 +73,48 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(80.dp))
+            Spacer(modifier = Modifier.height(40.dp))
             
             // Logo and title
             Text(
                 text = "FoodMoodDiary",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = "Track your meals. Understand your emotions.",
-                fontSize = 14.sp,
-                color = Color(0xFFFFB800),
-                textAlign = TextAlign.Center
-            )
-            
-            Spacer(modifier = Modifier.height(60.dp))
-            
-            // Welcome back text
-            Text(
-                text = "Welcome back",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
+            
+            Text(
+                text = "Track your meals. Understand your emotions.",
+                fontSize = 13.sp,
+                color = Color(0xFFFFB800),
+                textAlign = TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            // Welcome back text
+            Text(
+                text = "Welcome back",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            
+            Spacer(modifier = Modifier.height(6.dp))
             
             Text(
                 text = "Please enter your details",
-                fontSize = 14.sp,
+                fontSize = 13.sp,
                 color = Color(0xFFAAAAAA)
             )
             
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Email address field
             Column(
@@ -154,7 +157,7 @@ fun LoginScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Password field
             Column(
@@ -250,12 +253,12 @@ fun LoginScreen(
                     color = Color(0xFFE91E8C),
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.clickable {
-                        // Navigate to forgot password
+                        navController.navigate("new_password")
                     }
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Error message
             if (errorMessage != null) {
@@ -301,7 +304,7 @@ fun LoginScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Sign in with Google
             Button(
@@ -338,7 +341,7 @@ fun LoginScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Sign up link
             Row(
@@ -361,6 +364,25 @@ fun LoginScreen(
                     }
                 )
             }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Test/Skip button
+            TextButton(
+                onClick = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            ) {
+                Text(
+                    text = "[DEV] Skip to Home",
+                    fontSize = 12.sp,
+                    color = Color(0xFF666666)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

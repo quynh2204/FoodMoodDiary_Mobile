@@ -30,6 +30,10 @@ fun FoodMoodDiaryNavigation() {
             com.haphuongquynh.foodmooddiary.presentation.screens.auth.RegisterScreen(navController = navController)
         }
 
+        composable(route = Screen.NewPassword.route) {
+            com.haphuongquynh.foodmooddiary.presentation.screens.auth.NewPasswordScreen(navController = navController)
+        }
+
         // Main Flow
         composable(route = Screen.Home.route) {
             com.haphuongquynh.foodmooddiary.presentation.screens.home.HomeScreen(navController = navController)
@@ -86,6 +90,7 @@ sealed class Screen(val route: String) {
     data object Splash : Screen("splash")
     data object Login : Screen("login")
     data object Register : Screen("register")
+    data object NewPassword : Screen("new_password")
     data object Home : Screen("home")
     data object AddEntry : Screen("add_entry")
     data object EditEntry : Screen("edit_entry/{entryId}") {
