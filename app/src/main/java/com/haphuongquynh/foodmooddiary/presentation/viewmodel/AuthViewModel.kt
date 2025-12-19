@@ -91,6 +91,19 @@ class AuthViewModel @Inject constructor(
     }
 
     /**
+     * Sign in with Google
+     */
+    fun signInWithGoogle() {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            
+            // TODO: Implement Google Sign-In
+            // This is a placeholder for Google Sign-In implementation
+            _authState.value = AuthState.Error("Google Sign-In not implemented yet")
+        }
+    }
+
+    /**
      * Logout current user
      */
     fun logout() {

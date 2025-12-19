@@ -13,3 +13,26 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Android SDK (should not be committed)
+android-sdk/
+commandlinetools-win-13114758_latest/
+
+# Kotlin known packages
+.knownPackages
+
+# APK files
+*.apk
+*.aab
+
+# Generated files
+/app/build/
+/app/release/
+/app/debug/
+
+# Gradle files
+.gradle/
+build/
+
+# AVD files
+.android/
