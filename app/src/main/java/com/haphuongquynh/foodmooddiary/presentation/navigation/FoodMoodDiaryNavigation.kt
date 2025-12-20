@@ -44,6 +44,17 @@ fun FoodMoodDiaryNavigation() {
         }
 
         composable(
+            route = Screen.EntryDetail.route,
+            arguments = listOf(navArgument("entryId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
+            com.haphuongquynh.foodmooddiary.presentation.screens.detail.EntryDetailScreen(
+                entryId = entryId,
+                navController = navController
+            )
+        }
+
+        composable(
             route = Screen.EditEntry.route,
             arguments = listOf(navArgument("entryId") { type = NavType.StringType })
         ) { backStackEntry ->
@@ -93,6 +104,9 @@ sealed class Screen(val route: String) {
     data object NewPassword : Screen("new_password")
     data object Home : Screen("home")
     data object AddEntry : Screen("add_entry")
+    data object EntryDetail : Screen("entry_detail/{entryId}") {
+        fun createRoute(entryId: String) = "entry_detail/$entryId"
+    }
     data object EditEntry : Screen("edit_entry/{entryId}") {
         fun createRoute(entryId: String) = "edit_entry/$entryId"
     }

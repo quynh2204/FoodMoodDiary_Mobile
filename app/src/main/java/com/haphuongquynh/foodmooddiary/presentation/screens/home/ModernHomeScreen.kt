@@ -17,12 +17,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.haphuongquynh.foodmooddiary.domain.model.FoodEntry
 import com.haphuongquynh.foodmooddiary.presentation.navigation.Screen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.FoodEntryViewModel
@@ -178,7 +180,7 @@ private fun GridItemCard(entry: FoodEntry, navController: NavController) {
     Card(
         modifier = Modifier
             .aspectRatio(1f)
-            .clickable { /* navigate to detail */ },
+            .clickable { navController.navigate(Screen.EntryDetail.createRoute(entry.id)) },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF2C2C2E)
@@ -215,16 +217,17 @@ private fun ListView(entries: List<FoodEntry>, navController: NavController) {
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(3) { index ->
-            ModernListItemCard(
-                onClick = { /* navigate to detail */ }
+        items(entries) { entry ->
+            ListItemCard(
+                entry = entry,
+                onClick = { navController.navigate(Screen.EntryDetail.createRoute(entry.id)) }
             )
         }
     }
 }
 
 @Composable
-private fun ModernListItemCard(onClick: () -> Unit) {
+private fun ListItemCard(entry: FoodEntry, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -241,15 +244,30 @@ private fun ModernListItemCard(onClick: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Image placeholder
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .background(
-                        color = Color(0xFFD9D9D9),
-                        shape = RoundedCornerShape(12.dp)
+            // Image or colored box
+            if (entry.localPhotoPath != null || entry.photoUrl != null) {
+                AsyncImage(
+                    model = entry.localPhotoPath ?: entry.photoUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(entry.moodColor)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        getMoodEmoji(entry.moodColor),
+                        fontSize = 32.sp
                     )
-            )
+                }
+            }
             
             // Text content
             Column(
@@ -257,7 +275,7 @@ private fun ModernListItemCard(onClick: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = "Bánh kem Giáng sinh",
+                    text = entry.foodName,
                     color = Color.White,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
@@ -267,15 +285,15 @@ private fun ModernListItemCard(onClick: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "😊", fontSize = 18.sp)
+                    Text(text = getMoodEmoji(entry.moodColor), fontSize = 18.sp)
                     Text(
-                        text = "Happy",
+                        text = getMoodLabel(entry.moodColor),
                         color = Color(0xFFFFB800),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "• 12 Dec 2025 - 8:30 PM",
+                        text = "• ${formatDate(entry.timestamp)}",
                         color = Color(0xFF8E8E93),
                         fontSize = 12.sp
                     )
