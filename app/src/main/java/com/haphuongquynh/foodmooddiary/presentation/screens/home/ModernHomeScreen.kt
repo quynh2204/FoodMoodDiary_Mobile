@@ -127,19 +127,49 @@ fun ModernHomeScreen(
 
 @Composable
 private fun GridView(entries: List<FoodEntry>, navController: NavController) {
-    if (entries.isEmpty()) {
-        EmptyState()
-    } else {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(entries) { entry ->
-                GridItemCard(entry, navController)
-            }
+    // Sample mood data for demo
+    val moodEmojis = listOf(
+        "😊", "😌", "🎉", "😊", "😌", "😊",
+        "👍", "😊", "😌", "😊", "🎉", "😊",
+        "😊", "🎉", "😊", "😊", "👍", "😊"
+    )
+    
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        contentPadding = PaddingValues(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(15) { index ->
+            ModernGridItemCard(
+                emoji = moodEmojis.getOrElse(index) { "😊" },
+                onClick = { navController.navigate(Screen.AddEntry.route) }
+            )
         }
+    }
+}
+
+@Composable
+private fun ModernGridItemCard(
+    emoji: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .aspectRatio(1f)
+            .background(
+                color = Color(0xFFD9D9D9),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .clickable { onClick() }
+    ) {
+        Text(
+            text = emoji,
+            fontSize = 32.sp,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(8.dp)
+        )
     }
 }
 
@@ -181,15 +211,75 @@ private fun GridItemCard(entry: FoodEntry, navController: NavController) {
 
 @Composable
 private fun ListView(entries: List<FoodEntry>, navController: NavController) {
-    if (entries.isEmpty()) {
-        EmptyState()
-    } else {
-        LazyColumn(
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(3) { index ->
+            ModernListItemCard(
+                onClick = { /* navigate to detail */ }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ModernListItemCard(onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF2C2C2E)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            items(entries) { entry ->
-                ListItemCard(entry, navController)
+            // Image placeholder
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(
+                        color = Color(0xFFD9D9D9),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+            )
+            
+            // Text content
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "Bánh kem Giáng sinh",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "😊", fontSize = 18.sp)
+                    Text(
+                        text = "Happy",
+                        color = Color(0xFFFFB800),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "• 12 Dec 2025 - 8:30 PM",
+                        color = Color(0xFF8E8E93),
+                        fontSize = 12.sp
+                    )
+                }
             }
         }
     }

@@ -36,7 +36,7 @@ fun FoodMoodDiaryNavigation() {
 
         // Main Flow
         composable(route = Screen.Home.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.home.HomeScreen(navController = navController)
+            com.haphuongquynh.foodmooddiary.presentation.screens.home.ModernHomeScreen(navController = navController)
         }
 
         composable(route = Screen.AddEntry.route) {
