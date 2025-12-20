@@ -127,19 +127,49 @@ fun ModernHomeScreen(
 
 @Composable
 private fun GridView(entries: List<FoodEntry>, navController: NavController) {
-    if (entries.isEmpty()) {
-        EmptyState()
-    } else {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(entries) { entry ->
-                GridItemCard(entry, navController)
-            }
+    // Sample mood data for demo
+    val moodEmojis = listOf(
+        "😊", "😌", "🎉", "😊", "😌", "😊",
+        "👍", "😊", "😌", "😊", "🎉", "😊",
+        "😊", "🎉", "😊", "😊", "👍", "😊"
+    )
+    
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        contentPadding = PaddingValues(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(15) { index ->
+            ModernGridItemCard(
+                emoji = moodEmojis.getOrElse(index) { "😊" },
+                onClick = { navController.navigate(Screen.AddEntry.route) }
+            )
         }
+    }
+}
+
+@Composable
+private fun ModernGridItemCard(
+    emoji: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .aspectRatio(1f)
+            .background(
+                color = Color(0xFFD9D9D9),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .clickable { onClick() }
+    ) {
+        Text(
+            text = emoji,
+            fontSize = 32.sp,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(8.dp)
+        )
     }
 }
 
@@ -181,15 +211,75 @@ private fun GridItemCard(entry: FoodEntry, navController: NavController) {
 
 @Composable
 private fun ListView(entries: List<FoodEntry>, navController: NavController) {
-    if (entries.isEmpty()) {
-        EmptyState()
-    } else {
-        LazyColumn(
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(3) { index ->
+            ModernListItemCard(
+                onClick = { /* navigate to detail */ }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ModernListItemCard(onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF2C2C2E)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            items(entries) { entry ->
-                ListItemCard(entry, navController)
+            // Image placeholder
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(
+                        color = Color(0xFFD9D9D9),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+            )
+            
+            // Text content
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "Bánh kem Giáng sinh",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "😊", fontSize = 18.sp)
+                    Text(
+                        text = "Happy",
+                        color = Color(0xFFFFB800),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "• 12 Dec 2025 - 8:30 PM",
+                        color = Color(0xFF8E8E93),
+                        fontSize = 12.sp
+                    )
+                }
             }
         }
     }
@@ -250,74 +340,164 @@ private fun ListItemCard(entry: FoodEntry, navController: NavController) {
 
 @Composable
 private fun CalendarView(entries: List<FoodEntry>, navController: NavController) {
+    var selectedDate by remember { mutableStateOf("12/12/2025") }
+    val scrollState = rememberScrollState()
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        // Month/Year Header
+        // Month/Year Header with navigation
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { /* previous month */ }) {
-                Icon(Icons.Default.ChevronLeft, "Previous", tint = Color.White)
-            }
             Text(
-                "December 2025",
+                text = "<",
+                color = Color.White,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .clickable { /* previous month */ }
+                    .padding(8.dp)
+            )
+            Text(
+                text = "December 2025",
                 color = Color.White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
-            IconButton(onClick = { /* next month */ }) {
-                Icon(Icons.Default.ChevronRight, "Next", tint = Color.White)
-            }
+            Text(
+                text = ">",
+                color = Color.White,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .clickable { /* next month */ }
+                    .padding(8.dp)
+            )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Calendar Grid
-        MonthCalendarGrid(entries)
+        MonthCalendarGrid(
+            entries = entries,
+            selectedDate = selectedDate,
+            onDateSelected = { selectedDate = it }
+        )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Legend
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            LegendItem(Color(0xFF4CAF50), "calm")
-            LegendItem(Color(0xFFFFD700), "happy")
-            LegendItem(Color.Gray, "sad")
-            LegendItem(Color(0xFFFF5252), "stress")
+            LegendItem(Color(0xFF6BCF7F), "calm")
+            LegendItem(Color(0xFFFFC857), "happy")
+            LegendItem(Color(0xFF8E8E93), "sad")
+            LegendItem(Color(0xFFFF6B9D), "stress")
             LegendItem(Color.White, "blank")
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Selected date entries
+        // Selected date text
         Text(
-            "Bạn đã chọn ngày 12/12/2025",
-            color = Color(0xFFFFD700),
-            fontSize = 14.sp
+            text = "Bạn đã chọn ngày $selectedDate",
+            color = Color(0xFFFFC857),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        // Entry cards for selected date
+        entries.take(2).forEach { entry ->
+            CalendarEntryCard(entry)
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Add button
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+            contentAlignment = Alignment.Center
         ) {
-            items(entries.take(3)) { entry ->
-                DayEntryCard(entry)
+            FloatingActionButton(
+                onClick = { navController.navigate(Screen.AddEntry.route) },
+                containerColor = Color.White,
+                contentColor = Color.Black,
+                modifier = Modifier.size(56.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add",
+                    modifier = Modifier.size(32.dp)
+                )
             }
         }
     }
 }
 
 @Composable
-private fun MonthCalendarGrid(entries: List<FoodEntry>) {
+private fun MonthCalendarGrid(
+    entries: List<FoodEntry>,
+    selectedDate: String,
+    onDateSelected: (String) -> Unit
+) {
     val daysOfWeek = listOf("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")
+    
+    // Sample data for December 2025 (starts on Monday)
+    val calendarDays = listOf(
+        // Week 1
+        CalendarDayData(1, Color(0xFF6BCF7F)),
+        CalendarDayData(2, Color(0xFFFFC857)),
+        CalendarDayData(3, Color(0xFFFFC857)),
+        CalendarDayData(4, Color(0xFF8E8E93)),
+        CalendarDayData(5, Color(0xFF6BCF7F)),
+        CalendarDayData(6, Color(0xFF8E8E93)),
+        CalendarDayData(7, Color(0xFFFFC857)),
+        // Week 2
+        CalendarDayData(8, Color(0xFF6BCF7F)),
+        CalendarDayData(9, Color(0xFFFFC857)),
+        CalendarDayData(10, Color(0xFFFFC857)),
+        CalendarDayData(11, Color(0xFF8E8E93)),
+        CalendarDayData(12, Color(0xFF6BCF7F)),
+        CalendarDayData(13, Color(0xFF8E8E93)),
+        CalendarDayData(14, Color(0xFFFFC857)),
+        // Week 3
+        CalendarDayData(15, Color(0xFF6BCF7F)),
+        CalendarDayData(16, Color(0xFFFFC857)),
+        CalendarDayData(17, Color(0xFFFFC857)),
+        CalendarDayData(18, Color(0xFF8E8E93)),
+        CalendarDayData(19, Color(0xFF6BCF7F)),
+        CalendarDayData(20, Color(0xFF8E8E93)),
+        CalendarDayData(21, Color(0xFFFFC857)),
+        // Week 4
+        CalendarDayData(22, Color(0xFF6BCF7F)),
+        CalendarDayData(23, Color(0xFFFFC857)),
+        CalendarDayData(24, Color(0xFFFFC857)),
+        CalendarDayData(25, Color(0xFF8E8E93)),
+        CalendarDayData(26, Color(0xFF6BCF7F)),
+        CalendarDayData(27, Color(0xFF8E8E93)),
+        CalendarDayData(28, Color(0xFFFFC857)),
+        // Week 5
+        CalendarDayData(29, Color(0xFF6BCF7F)),
+        CalendarDayData(30, Color(0xFFFFC857)),
+        CalendarDayData(31, Color(0xFFFFC857)),
+        CalendarDayData(0, Color.Transparent), // Empty
+        CalendarDayData(0, Color(0xFF6BCF7F)),
+        CalendarDayData(0, Color.Transparent), // Empty
+        CalendarDayData(0, Color.Transparent)  // Empty
+    )
     
     Column {
         // Days of week header
@@ -327,32 +507,34 @@ private fun MonthCalendarGrid(entries: List<FoodEntry>) {
         ) {
             daysOfWeek.forEach { day ->
                 Text(
-                    day,
+                    text = day,
                     modifier = Modifier.weight(1f),
-                    color = Color.Gray,
-                    fontSize = 12.sp,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // Calendar days (5 weeks)
-        repeat(5) { week ->
+        // Calendar days grid (5 weeks)
+        calendarDays.chunked(7).forEach { week ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                repeat(7) { day ->
-                    CalendarDay(
-                        color = when ((week * 7 + day) % 4) {
-                            0 -> Color(0xFF4CAF50)
-                            1 -> Color(0xFFFFD700)
-                            2 -> Color.Gray
-                            else -> Color(0xFFFF5252)
+                week.forEach { dayData ->
+                    CalendarDayCell(
+                        dayData = dayData,
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            if (dayData.day > 0) {
+                                onDateSelected("${dayData.day}/12/2025")
+                            }
                         }
                     )
                 }
@@ -361,31 +543,121 @@ private fun MonthCalendarGrid(entries: List<FoodEntry>) {
     }
 }
 
+data class CalendarDayData(
+    val day: Int,
+    val moodColor: Color
+)
+
 @Composable
-private fun CalendarDay(color: Color) {
+private fun CalendarDayCell(
+    dayData: CalendarDayData,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     Box(
-        modifier = Modifier
-            .size(40.dp)
-            .background(color, RoundedCornerShape(4.dp))
-    )
+        modifier = modifier
+            .aspectRatio(1f)
+            .background(
+                color = if (dayData.day > 0) dayData.moodColor else Color.Transparent,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .clickable(enabled = dayData.day > 0) { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        if (dayData.day > 0) {
+            Text(
+                text = dayData.day.toString(),
+                color = if (dayData.moodColor == Color(0xFFFFC857)) Color.Black else Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
 }
 
 @Composable
 private fun LegendItem(color: Color, label: String) {
     Row(
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(12.dp)
-                .background(color, CircleShape)
+                .size(16.dp)
+                .background(color, RoundedCornerShape(2.dp))
         )
-        Spacer(modifier = Modifier.width(4.dp))
         Text(
-            label,
+            text = label,
             color = Color.White,
-            fontSize = 10.sp
+            fontSize = 12.sp
         )
+    }
+}
+
+@Composable
+private fun CalendarEntryCard(entry: FoodEntry) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = Color(0xFF2C2C2E)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // Date header
+            Text(
+                text = "12 Dec 2025",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Entry 1
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(text = "🍰", fontSize = 20.sp)
+                Text(
+                    text = "Bánh kem Giáng Sinh",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(text = "-", color = Color(0xFF8E8E93), fontSize = 14.sp)
+                Text(text = "😊", fontSize = 20.sp)
+                Text(
+                    text = "Happy",
+                    color = Color.White,
+                    fontSize = 14.sp
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Entry 2
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(text = "🍵", fontSize = 20.sp)
+                Text(
+                    text = "Trà sữa",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(text = "-", color = Color(0xFF8E8E93), fontSize = 14.sp)
+                Text(text = "😌", fontSize = 20.sp)
+                Text(
+                    text = "Calm",
+                    color = Color.White,
+                    fontSize = 14.sp
+                )
+            }
+        }
     }
 }
 

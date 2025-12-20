@@ -1,44 +1,46 @@
 package com.haphuongquynh.foodmooddiary.presentation.screens.auth
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.haphuongquynh.foodmooddiary.presentation.navigation.Screen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthState
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     navController: NavController,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
-    var displayName by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-    var confirmPasswordVisible by remember { mutableStateOf(false) }
-    var acceptTerms by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     
     val authState by viewModel.authState.collectAsState()
@@ -60,65 +62,107 @@ fun RegisterScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Create Account") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, "Back")
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF1A1A1A))
+            .padding(horizontal = 24.dp)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(24.dp)
+                .padding(top = 32.dp)
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // App Title
             Text(
-                text = "Join FoodMoodDiary",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                text = "FoodMoodDiary",
+                color = Color.White,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Spacer(modifier = Modifier.height(6.dp))
+            
+            // Tagline
+            Text(
+                text = "Track your meals. Understand your emotions.",
+                color = Color(0xFFFFB800),
+                fontSize = 13.sp,
+                textAlign = TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(28.dp))
+            
+            // Page Title
+            Text(
+                text = "Sign up",
+                color = Color.White,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
             )
             
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                text = "Start tracking your food and mood journey",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = "Please enter your details",
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 14.sp
             )
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // Display Name field
+            // Username label
+            Text(
+                text = "Username",
+                color = Color.White,
+                fontSize = 14.sp,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Username field
             OutlinedTextField(
-                value = displayName,
+                value = username,
                 onValueChange = { 
-                    displayName = it
+                    username = it
                     errorMessage = null
                 },
-                label = { Text("Display Name") },
-                leadingIcon = { Icon(Icons.Default.Person, "Name") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = Color.White,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color(0xFFE91E8C),
+                    cursorColor = Color(0xFFE91E8C)
+                ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                ),
-                modifier = Modifier.fillMaxWidth()
+                    onNext = { focusManager.clearFocus() }
+                )
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Email label
+            Text(
+                text = "Email",
+                color = Color.White,
+                fontSize = 14.sp,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
             // Email field
             OutlinedTextField(
                 value = email,
@@ -126,21 +170,39 @@ fun RegisterScreen(
                     email = it
                     errorMessage = null
                 },
-                label = { Text("Email") },
-                leadingIcon = { Icon(Icons.Default.Email, "Email") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = Color.White,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color(0xFFE91E8C),
+                    cursorColor = Color(0xFFE91E8C)
+                ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                ),
-                modifier = Modifier.fillMaxWidth()
+                    onNext = { focusManager.clearFocus() }
+                )
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Password label
+            Text(
+                text = "Password",
+                color = Color.White,
+                fontSize = 14.sp,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
             // Password field
             OutlinedTextField(
                 value = password,
@@ -148,38 +210,40 @@ fun RegisterScreen(
                     password = it
                     errorMessage = null
                 },
-                label = { Text("Password") },
-                leadingIcon = { Icon(Icons.Default.Lock, "Password") },
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            if (passwordVisible) Icons.Default.Visibility 
-                            else Icons.Default.VisibilityOff,
-                            "Toggle password visibility"
-                        )
-                    }
-                },
-                visualTransformation = if (passwordVisible) 
-                    VisualTransformation.None 
-                else 
-                    PasswordVisualTransformation(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                visualTransformation = PasswordVisualTransformation(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = Color.White,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color(0xFFE91E8C),
+                    cursorColor = Color(0xFFE91E8C)
+                ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                ),
-                supportingText = { 
-                    Text("At least 6 characters with 1 number", 
-                        style = MaterialTheme.typography.bodySmall) 
-                },
-                modifier = Modifier.fillMaxWidth()
+                    onNext = { focusManager.clearFocus() }
+                )
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Confirm Password label
+            Text(
+                text = "Confirm password",
+                color = Color.White,
+                fontSize = 14.sp,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
             // Confirm Password field
             OutlinedTextField(
                 value = confirmPassword,
@@ -187,113 +251,165 @@ fun RegisterScreen(
                     confirmPassword = it
                     errorMessage = null
                 },
-                label = { Text("Confirm Password") },
-                leadingIcon = { Icon(Icons.Default.Lock, "Confirm Password") },
-                trailingIcon = {
-                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                        Icon(
-                            if (confirmPasswordVisible) Icons.Default.Visibility 
-                            else Icons.Default.VisibilityOff,
-                            "Toggle password visibility"
-                        )
-                    }
-                },
-                visualTransformation = if (confirmPasswordVisible) 
-                    VisualTransformation.None 
-                else 
-                    PasswordVisualTransformation(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                visualTransformation = PasswordVisualTransformation(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = Color.White,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color(0xFFE91E8C),
+                    cursorColor = Color(0xFFE91E8C)
+                ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
-                    onDone = { focusManager.clearFocus() }
-                ),
-                modifier = Modifier.fillMaxWidth()
+                    onDone = { 
+                        focusManager.clearFocus()
+                        if (username.isNotBlank() && email.isNotBlank() && 
+                            password.isNotBlank() && confirmPassword.isNotBlank()) {
+                            viewModel.register(email, password, confirmPassword, username)
+                        }
+                    }
+                )
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Terms and conditions
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(
-                    checked = acceptTerms,
-                    onCheckedChange = { acceptTerms = it }
-                )
-                Text(
-                    text = "I agree to Terms and Conditions",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.clickable { acceptTerms = !acceptTerms }
-                )
-            }
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Error message
             if (errorMessage != null) {
-                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFFE91E8C),
+                    fontSize = 14.sp,
                     modifier = Modifier.fillMaxWidth()
                 )
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Register button
+            // Sign up button
             Button(
                 onClick = { 
-                    if (!acceptTerms) {
-                        errorMessage = "Please accept terms and conditions"
+                    if (username.isBlank() || email.isBlank() || 
+                        password.isBlank() || confirmPassword.isBlank()) {
+                        errorMessage = "Please fill all fields"
                     } else {
-                        viewModel.register(email, password, confirmPassword, displayName)
+                        viewModel.register(email, password, confirmPassword, username)
                     }
                 },
-                enabled = authState !is AuthState.Loading && 
-                         displayName.isNotBlank() &&
-                         email.isNotBlank() && 
-                         password.isNotBlank() &&
-                         confirmPassword.isNotBlank() &&
-                         acceptTerms,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFE91E8C),
+                    contentColor = Color.White
+                ),
+                enabled = authState !is AuthState.Loading
             ) {
                 if (authState is AuthState.Loading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color = Color.White
                     )
                 } else {
-                    Text("Create Account", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        text = "Sign up",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Login link
+            // Divider with OR
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Already have an account? ",
-                    style = MaterialTheme.typography.bodyMedium
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = Color.White.copy(alpha = 0.3f)
                 )
                 Text(
-                    text = "Login",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    text = "OR",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = Color.White.copy(alpha = 0.3f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Google Sign up button
+            Button(
+                onClick = { 
+                    viewModel.signInWithGoogle()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Color.Black
+                )
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Google logo would go here
+                    Text(
+                        text = "G",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFE91E8C)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Sign up with Google",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Already have account link
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Already have an account?  ",
+                    fontSize = 14.sp,
+                    color = Color.White
+                )
+                Text(
+                    text = "Sign in",
+                    fontSize = 14.sp,
+                    color = Color(0xFFE91E8C),
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable {
                         navController.navigateUp()
                     }
                 )
             }
+            
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }

@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,6 +37,20 @@ fun AddEntryScreen(
     navController: NavController,
     viewModel: FoodEntryViewModel = hiltViewModel()
 ) {
+    var caption by remember { mutableStateOf("Cung hỉ Christmas, Merry phát tài") }
+    var showDetailForm by remember { mutableStateOf(false) }
+    
+    // Simple photo capture view
+    if (!showDetailForm) {
+        SimplePhotoCapture(
+            caption = caption,
+            onContinue = { showDetailForm = true },
+            onBack = { navController.navigateUp() }
+        )
+        return
+    }
+    
+    // Original detailed form
     val context = LocalContext.current
     var foodName by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
@@ -460,4 +475,137 @@ fun ColorPickerDialog(
             }
         }
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SimplePhotoCapture(
+    caption: String,
+    onContinue: () -> Unit,
+    onBack: () -> Unit
+) {
+    Scaffold(
+        containerColor = Color(0xFF1C1C1E),
+        topBar = {
+            TopAppBar(
+                title = { 
+                    Text(
+                        "Add Entry",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    ) 
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF1C1C1E)
+                )
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Spacer(modifier = Modifier.weight(0.5f))
+            
+            // Image with caption overlay
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(0.75f)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color(0xFF3C3C3E))
+            ) {
+                // Placeholder for captured image
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF4A4A4A)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "🎂",
+                            fontSize = 64.sp
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Christmas Cake",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+                
+                // Caption overlay at bottom
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White.copy(alpha = 0.95f)
+                ) {
+                    Text(
+                        text = caption,
+                        modifier = Modifier.padding(16.dp),
+                        color = Color.Black,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.weight(0.5f))
+            
+            // Continue button
+            Button(
+                onClick = onContinue,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFFFC857),
+                    contentColor = Color.Black
+                )
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Continue",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "→",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(48.dp))
+        }
+    }
 }
