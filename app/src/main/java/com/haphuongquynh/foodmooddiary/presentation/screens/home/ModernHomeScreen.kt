@@ -760,9 +760,25 @@ private fun EmptyState() {
 }
 
 private fun getMoodEmoji(color: Int): String {
+    val red = android.graphics.Color.red(color)
+    val green = android.graphics.Color.green(color)
+    val blue = android.graphics.Color.blue(color)
+    
+    // Analyze color to determine mood
     return when {
-        color == android.graphics.Color.parseColor("#4CAF50") -> "😊"
-        color == android.graphics.Color.parseColor("#FFD700") -> "😌"
+        // Red tones - Stress/Angry
+        red > 200 && green < 100 && blue < 100 -> "😫"
+        // Orange tones - Happy/Energetic  
+        red > 200 && green > 150 && blue < 100 -> "😊"
+        // Yellow tones - Happy/Joyful
+        red > 200 && green > 200 && blue < 150 -> "😄"
+        // Green tones - Calm/Peaceful
+        red < 150 && green > 150 && blue < 150 -> "😌"
+        // Blue tones - Sad/Melancholy
+        red < 100 && green < 150 && blue > 150 -> "😔"
+        // Purple tones - Excited/Party
+        red > 150 && green < 150 && blue > 150 -> "🎉"
+        // Default
         else -> "😊"
     }
 }
@@ -802,9 +818,25 @@ private fun QuickAccessButton(
 }
 
 private fun getMoodLabel(color: Int): String {
+    val red = android.graphics.Color.red(color)
+    val green = android.graphics.Color.green(color)
+    val blue = android.graphics.Color.blue(color)
+    
+    // Analyze color to determine mood label
     return when {
-        color == android.graphics.Color.parseColor("#4CAF50") -> "Happy"
-        color == android.graphics.Color.parseColor("#FFD700") -> "Calm"
+        // Red tones - Stress/Angry
+        red > 200 && green < 100 && blue < 100 -> "Stress"
+        // Orange tones - Happy/Energetic  
+        red > 200 && green > 150 && blue < 100 -> "Happy"
+        // Yellow tones - Happy/Joyful
+        red > 200 && green > 200 && blue < 150 -> "Energetic"
+        // Green tones - Calm/Peaceful
+        red < 150 && green > 150 && blue < 150 -> "Calm"
+        // Blue tones - Sad/Melancholy
+        red < 100 && green < 150 && blue > 150 -> "Sad"
+        // Purple tones - Excited/Party
+        red > 150 && green < 150 && blue > 150 -> "Excited"
+        // Default
         else -> "Happy"
     }
 }
