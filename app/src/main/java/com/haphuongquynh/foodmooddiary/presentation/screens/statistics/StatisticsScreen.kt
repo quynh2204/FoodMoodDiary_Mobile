@@ -1,7 +1,9 @@
 package com.haphuongquynh.foodmooddiary.presentation.screens.statistics
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -13,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.StatisticsViewModel
@@ -27,311 +30,281 @@ fun StatisticsScreen(
     onNavigateBack: () -> Unit,
     viewModel: StatisticsViewModel = hiltViewModel()
 ) {
-    val moodTrend by viewModel.moodTrend.collectAsStateWithLifecycle()
-    val topFoods by viewModel.topFoods.collectAsStateWithLifecycle()
-    val mealDistribution by viewModel.mealDistribution.collectAsStateWithLifecycle()
-    val colorDistribution by viewModel.colorDistribution.collectAsStateWithLifecycle()
-    val insights by viewModel.insights.collectAsStateWithLifecycle()
-    val weeklySummary by viewModel.weeklySummary.collectAsStateWithLifecycle()
-
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Charts", "Insights")
+    val tabs = listOf("Overview", "Charts", "Insights")
 
-    var showDateRangePicker by remember { mutableStateOf(false) }
-
-    Surface(color = Color(0xFF1C1C1E)) {
-        Scaffold(
-            containerColor = Color.Transparent,
-            topBar = {
-                TopAppBar(
-                    title = { Text("Statistics", color = Color.White) },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
-                        }
-                    },
-                    actions = {
-                        // Date Range Picker
-                        IconButton(onClick = { showDateRangePicker = true }) {
-                            Icon(Icons.Default.DateRange, contentDescription = "Date Range", tint = Color.White)
-                        }
-                        
-                        // Export Data
-                        IconButton(onClick = { /* TODO: Export to CSV */ }) {
-                            Icon(Icons.Default.FileDownload, contentDescription = "Export", tint = Color.White)
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF1C1C1E),
-                        titleContentColor = Color.White,
-                        navigationIconContentColor = Color.White,
-                        actionIconContentColor = Color.White
-                    )
+    Scaffold(
+        containerColor = Color(0xFF1C1C1E),
+        topBar = {
+            TopAppBar(
+                title = { 
+                    Text(
+                        "Statistics", 
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    ) 
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack, 
+                            contentDescription = "Back", 
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF1C1C1E)
                 )
-            }
-        ) { padding ->
+            )
+        }
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Weekly Summary Card
-            weeklySummary?.let { summary ->
-                WeeklySummaryCard(
-                    summary = summary,
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
-
             // Tab Row
             TabRow(
                 selectedTabIndex = selectedTabIndex,
                 modifier = Modifier.fillMaxWidth(),
-                containerColor = Color(0xFF1C1C1E),
-                contentColor = Color(0xFFFFD700)
+                containerColor = Color(0xFF2C2C2E),
+                contentColor = Color.White
             ) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTabIndex == index,
                         onClick = { selectedTabIndex = index },
-                        text = { Text(title, color = if (selectedTabIndex == index) Color(0xFFFFD700) else Color(0xFFA8A8A8)) },
-                        icon = {
-                            Icon(
-                                imageVector = if (index == 0) Icons.Default.BarChart else Icons.Default.Psychology,
-                                contentDescription = null,
-                                tint = if (selectedTabIndex == index) Color(0xFFFFD700) else Color(0xFFA8A8A8)
-                            )
+                        text = { 
+                            Text(
+                                title, 
+                                color = if (selectedTabIndex == index) Color.White else Color(0xFF8E8E93),
+                                fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
+                            ) 
                         }
                     )
                 }
             }
 
-            // Tab Content
+            // Content based on selected tab
             when (selectedTabIndex) {
-                0 -> ChartsTab(
-                    moodTrend = moodTrend,
-                    topFoods = topFoods,
-                    mealDistribution = mealDistribution,
-                    colorDistribution = colorDistribution,
-                    modifier = Modifier.fillMaxSize()
-                )
-                1 -> InsightsTab(
-                    insights = insights,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-        }
-
-            // Date Range Picker Dialog
-            if (showDateRangePicker) {
-                DateRangePickerDialog(
-                    onDismiss = { showDateRangePicker = false },
-                    onSelectRange = { range ->
-                        viewModel.setDateRange(range)
-                        showDateRangePicker = false
-                    }
-                )
+                0 -> OverviewTab()
+                1 -> ChartsTab()
+                2 -> InsightsTab()
             }
         }
     }
 }
 
+// Tab 1: Overview - Monthly mood calendar + summary
 @Composable
-fun ChartsTab(
-    moodTrend: List<com.haphuongquynh.foodmooddiary.domain.model.MoodTrendPoint>,
-    topFoods: List<com.haphuongquynh.foodmooddiary.domain.model.FoodFrequency>,
-    mealDistribution: List<com.haphuongquynh.foodmooddiary.domain.model.MealDistribution>,
-    colorDistribution: List<com.haphuongquynh.foodmooddiary.domain.model.ColorDistribution>,
-    modifier: Modifier = Modifier
-) {
+fun OverviewTab() {
     Column(
-        modifier = modifier
+        modifier = Modifier
+            .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // Mood Trend Chart
-        ChartSection(title = "Mood Trend") {
-            MoodTrendChart(data = moodTrend)
-        }
-
-        // Top Foods Chart
-        ChartSection(title = "Top Foods by Frequency") {
-            TopFoodsChart(data = topFoods)
-        }
-
-        // Meal Distribution Chart
-        ChartSection(title = "Meal Type Distribution") {
-            MealDistributionChart(data = mealDistribution)
-        }
-
-        // Color Distribution Chart
-        ChartSection(title = "Color Palette Distribution") {
-            ColorDistributionChart(data = colorDistribution)
-        }
-    }
-}
-
-@Composable
-fun ChartSection(
-    title: String,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+        // Title
         Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFFFFD700)
+            text = "Mood Calendar (Monthly)",
+            color = Color(0xFFFFC857),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
         )
-        Surface(
-            color = Color(0xFF2C2C2E),
-            shape = MaterialTheme.shapes.medium,
-            tonalElevation = 1.dp
-        ) {
-            Box(modifier = Modifier.padding(16.dp)) {
-                content()
+        
+        // Calendar Grid (7x5)
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            repeat(5) { week ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    repeat(7) { day ->
+                        val colors = listOf(
+                            Color(0xFF6BCF7F), Color(0xFFFFC857), Color(0xFFFFC857),
+                            Color(0xFF8E8E93), Color(0xFF6BCF7F), Color(0xFF8E8E93),
+                            Color(0xFFFFC857), Color(0xFFFF6B9D), Color(0xFFFFC857),
+                            Color(0xFF6BCF7F), Color(0xFFFFC857), Color(0xFFFFC857),
+                            Color(0xFFFF6B9D), Color(0xFF8E8E93), Color(0xFFFFC857),
+                            Color(0xFF6BCF7F), Color(0xFF6BCF7F), Color(0xFFFFC857),
+                            Color(0xFFFF6B9D), Color(0xFFFFC857), Color(0xFFFFC857),
+                            Color(0xFF6BCF7F), Color(0xFF6BCF7F), Color(0xFFFFC857),
+                            Color(0xFFFF6B9D), Color(0xFF8E8E93), Color(0xFF8E8E93),
+                            Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0xFFFFFFFF),
+                            Color(0xFFFFFFFF)
+                        )
+                        val colorIndex = week * 7 + day
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(1f)
+                                .background(
+                                    color = colors.getOrElse(colorIndex) { Color(0xFF3C3C3E) },
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                        )
+                    }
+                }
             }
         }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Today Summary
+        Text(
+            text = "Today Summary",
+            color = Color(0xFFFFC857),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
+        )
+        
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(text = "😊", fontSize = 24.sp)
+                Text(
+                    text = "Today: Happy",
+                    color = Color.White,
+                    fontSize = 16.sp
+                )
+            }
+            
+            Text(
+                text = "• 2 entries today",
+                color = Color.White,
+                fontSize = 14.sp
+            )
+            
+            Text(
+                text = "• Most common mood this week: Happy",
+                color = Color.White,
+                fontSize = 14.sp
+            )
+        }
+    }
+}
+
+// Tab 2: Charts - Line, Bar, Pie charts
+@Composable
+fun ChartsTab() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(32.dp)
+    ) {
+        // Mood Overtime Chart
+        ChartSection(
+            title = "Mood Overtime (Week)",
+            chartType = "Line Chart"
+        )
+        
+        // Food vs Mood Frequency
+        ChartSection(
+            title = "Food vs Mood Frequency",
+            chartType = "Bar Chart"
+        )
+        
+        // Color Palette Distribution
+        ChartSection(
+            title = "Color Palette Distribution",
+            chartType = "Pie Chart"
+        )
     }
 }
 
 @Composable
-fun WeeklySummaryCard(
-    summary: com.haphuongquynh.foodmooddiary.domain.model.WeeklySummary,
-    modifier: Modifier = Modifier
-) {
+fun ChartSection(title: String, chartType: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = title,
+            color = Color(0xFFFFC857),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
+        )
+        
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .background(
+                    color = Color(0xFF2C2C2E),
+                    shape = RoundedCornerShape(12.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = chartType,
+                color = Color(0xFF8E8E93),
+                fontSize = 16.sp
+            )
+        }
+    }
+}
+
+// Tab 3: Insights - AI generated insights
+@Composable
+fun InsightsTab() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "Insights generated from your meals",
+            color = Color(0xFFFFC857),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium
+        )
+        
+        // Insight items
+        val insights = listOf(
+            "💡 Bạn thường ăn đồ ngọt khi buồn." to "\"70% mood SAD entries liên quan đến bánh, trà sữa hoặc món tráng miệng.\"",
+            "💡 Mood Happy xuất hiện nhiều nhất vào buổi trưa." to "\"Giữa 11AM-1PM là khoảng thời gian bạn ghi nhận nhiều cảm xúc tích cực nhất.\"",
+            "💡 Món có màu đỏ thường đi kèm mood Happy hoặc Energy." to "\"Ảnh có tone đỏ xuất hiện rất nhiều trong các entry vui vẻ.\"",
+            "💡 Bạn ăn tối hơi muộn so với mức trung bình." to "\"Hơn 60% bữa Dinner được ghi sau 8:30 PM.\"",
+            "💡 Color palette của bạn thiên về tone ấm." to "\"Điều này liên quan tới mood Happy và Energy cao hơn.\""
+        )
+        
+        insights.forEach { (title, description) ->
+            InsightItem(title = title, description = description)
+        }
+    }
+}
+
+@Composable
+fun InsightItem(title: String, description: String) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF2C2C2E)
         )
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "This Week",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFFFFD700)
+                text = title,
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
             )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                SummaryItem(
-                    label = "Entries",
-                    value = summary.totalEntries.toString(),
-                    icon = Icons.Default.Restaurant
-                )
-                SummaryItem(
-                    label = "Avg Mood",
-                    value = String.format("%.1f", summary.averageMoodScore),
-                    icon = Icons.Default.SentimentSatisfied
-                )
-                SummaryItem(
-                    label = "Streak",
-                    value = "${summary.streak} days",
-                    icon = Icons.Default.LocalFireDepartment
-                )
-            }
-
-            if (!summary.mostFrequentFood.isNullOrBlank()) {
-                HorizontalDivider(color = Color(0xFF3C3C3E))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = null,
-                        tint = Color(0xFFFFD700)
-                    )
-                    Text(
-                        text = "Top food: ${summary.mostFrequentFood}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White
-                    )
-                }
-            }
+            
+            Text(
+                text = description,
+                color = Color(0xFFAAAAAA),
+                fontSize = 14.sp,
+                lineHeight = 20.sp
+            )
         }
     }
-}
-
-@Composable
-fun SummaryItem(
-    label: String,
-    value: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = Color(0xFFFFD700)
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFFA8A8A8)
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DateRangePickerDialog(
-    onDismiss: () -> Unit,
-    onSelectRange: (com.haphuongquynh.foodmooddiary.presentation.viewmodel.DateRange) -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Select Date Range") },
-        text = {
-            Column {
-                com.haphuongquynh.foodmooddiary.presentation.viewmodel.DateRange.entries.forEach { range ->
-                    TextButton(
-                        onClick = { onSelectRange(range) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = when (range) {
-                                com.haphuongquynh.foodmooddiary.presentation.viewmodel.DateRange.LAST_7_DAYS -> "Last 7 Days"
-                                com.haphuongquynh.foodmooddiary.presentation.viewmodel.DateRange.LAST_30_DAYS -> "Last 30 Days"
-                                com.haphuongquynh.foodmooddiary.presentation.viewmodel.DateRange.LAST_90_DAYS -> "Last 90 Days"
-                                com.haphuongquynh.foodmooddiary.presentation.viewmodel.DateRange.LAST_YEAR -> "Last Year"
-                                com.haphuongquynh.foodmooddiary.presentation.viewmodel.DateRange.ALL_TIME -> "All Time"
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
 }

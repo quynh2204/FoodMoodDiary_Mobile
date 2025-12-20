@@ -37,120 +37,95 @@ fun AddEntryScreen(
     navController: NavController,
     viewModel: FoodEntryViewModel = hiltViewModel()
 ) {
+    var screenState by remember { mutableStateOf(0) } // 0: Photo, 1: Detail, 2: Form
     var caption by remember { mutableStateOf("Cung hỉ Christmas, Merry phát tài") }
-    var showDetailForm by remember { mutableStateOf(false) }
     
-    // Simple photo capture view
-    if (!showDetailForm) {
+    // Screen 1: Simple photo capture view
+    if (screenState == 0) {
         SimplePhotoCapture(
             caption = caption,
-            onContinue = { showDetailForm = true },
+            onContinue = { screenState = 1 },
             onBack = { navController.navigateUp() }
         )
         return
     }
     
-    // Original detailed form
+    // Screen 2: Entry Detail view
+    if (screenState == 1) {
+        EntryDetailScreen(
+            caption = caption,
+            onEdit = { screenState = 2 },
+            onBack = { screenState = 0 }
+        )
+        return
+    }
+    
+    // Screen 3: Full form for editing
+    AddEntryFormScreen(
+        navController = navController,
+        viewModel = viewModel,
+        onBack = { screenState = 1 }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddEntryFormScreen(
+    navController: NavController,
+    viewModel: FoodEntryViewModel,
+    onBack: () -> Unit
+) {
     val context = LocalContext.current
-    var foodName by remember { mutableStateOf("") }
+    var foodName by remember { mutableStateOf("Bánh kem dâu Giáng sinh đáng yêu") }
+    var selectedMood by remember { mutableStateOf("😊") }
     var notes by remember { mutableStateOf("") }
+    var rating by remember { mutableStateOf(3) }
+    var mealType by remember { mutableStateOf("Dinner") }
     var showCamera by remember { mutableStateOf(false) }
-    var showPhotoSourceDialog by remember { mutableStateOf(false) }
-    var showColorPicker by remember { mutableStateOf(false) }
-    var selectedColor by remember { mutableStateOf(android.graphics.Color.parseColor("#4CAF50")) }
     
     val photoData by viewModel.currentPhoto.collectAsState()
     val location by viewModel.currentLocation.collectAsState()
-    val entryState by viewModel.entryState.collectAsState()
     val scrollState = rememberScrollState()
-
-    // Gallery launcher
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            try {
-                val inputStream = context.contentResolver.openInputStream(it)
-                val bitmap = BitmapFactory.decodeStream(inputStream)
-                inputStream?.close()
-                
-                // Save to temp file
-                val tempFile = File(context.cacheDir, "gallery_${System.currentTimeMillis()}.jpg")
-                tempFile.outputStream().use { out ->
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
-                }
-                
-                viewModel.processPhoto(tempFile, bitmap)
-                photoData?.let { selectedColor = it.dominantColor }
-            } catch (e: Exception) {
-                android.util.Log.e("AddEntry", "Failed to load gallery image", e)
-            }
-        }
-    }
-
-    // Fetch location on screen load
-    LaunchedEffect(Unit) {
-        viewModel.fetchCurrentLocation()
-    }
-
-    // Handle entry state
-    LaunchedEffect(entryState) {
-        when (entryState) {
-            is EntryState.Success -> {
-                navController.navigateUp()
-                viewModel.resetEntryState()
-            }
-            else -> {}
-        }
-    }
-
+    
+    // Mood emojis
+    val moods = listOf("😊", "😌", "😔", "😫", "🎉", "💪")
+    
     // Show camera if requested
     if (showCamera) {
         CameraScreen(
             onPhotoCaptured = { file, bitmap ->
                 viewModel.processPhoto(file, bitmap)
-                // Use dominant color from photo
-                photoData?.let { selectedColor = it.dominantColor }
                 showCamera = false
             },
             onDismiss = { showCamera = false }
         )
         return
     }
-
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color(0xFF1C1C1E)
-    ) {
+    
     Scaffold(
         containerColor = Color(0xFF1C1C1E),
         topBar = {
             TopAppBar(
-                title = { Text("Add Entry", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = { 
+                    Text(
+                        "Add Entry",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    ) 
+                },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, "Back", tint = Color.White)
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFF1C1C1E)
                 )
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = {
-                    viewModel.addEntry(
-                        foodName = foodName,
-                        notes = notes,
-                        moodColor = selectedColor,
-                        photoFile = photoData?.file
-                    )
-                },
-                icon = { Icon(Icons.Default.Check, "Save", tint = Color.Black) },
-                text = { Text("Save Entry", color = Color.Black, fontWeight = FontWeight.Bold) },
-                expanded = scrollState.value == 0,
-                containerColor = Color(0xFFFFD700)
             )
         }
     ) { paddingValues ->
@@ -158,323 +133,360 @@ fun AddEntryScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
-                .verticalScroll(scrollState),
+                .verticalScroll(scrollState)
+                .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Photo Section
-            Card(
+            // Photo with "Change photo" text
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .clickable { showPhotoSourceDialog = true },
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF2C2C2E)
-                )
+                    .aspectRatio(1.5f)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xFF3C3C3E))
+                    .clickable { showCamera = true }
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (photoData != null) {
-                        Image(
-                            bitmap = photoData!!.bitmap.asImageBitmap(),
-                            contentDescription = "Food Photo",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+                if (photoData != null) {
+                    Image(
+                        bitmap = photoData!!.bitmap.asImageBitmap(),
+                        contentDescription = "Food Photo",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "🎂",
+                            fontSize = 60.sp
                         )
-                    } else {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                Icons.Default.AddAPhoto,
-                                contentDescription = null,
-                                modifier = Modifier.size(48.dp),
-                                tint = Color(0xFFFFD700)
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+                
+                // "Change photo" text overlay
+                Text(
+                    text = "Change photo",
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp),
+                    color = Color(0xFFFFC857),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
+            // Food Name
+            Column {
+                Text(
+                    text = "Food Name",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TextField(
+                    value = foodName,
+                    onValueChange = { foodName = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFFA8A8A8),
+                        unfocusedContainerColor = Color(0xFFA8A8A8),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
+                    )
+                )
+            }
+            
+            // Mood
+            Column {
+                Text(
+                    text = "Mood",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFFA8A8A8)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        moods.forEach { mood ->
                             Text(
-                                "Change photo",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color(0xFFFFD700),
-                                fontWeight = FontWeight.Medium
+                                text = mood,
+                                fontSize = 32.sp,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (mood == selectedMood) Color(0xFFFFD700)
+                                        else Color.Transparent
+                                    )
+                                    .clickable { selectedMood = mood }
+                                    .padding(8.dp)
                             )
                         }
                     }
                 }
             }
             
-            // Photo Source Dialog
-            if (showPhotoSourceDialog) {
-                AlertDialog(
-                    onDismissRequest = { showPhotoSourceDialog = false },
-                    containerColor = Color(0xFF2C2C2E),
-                    title = { Text("Choose Photo", color = Color.White, fontWeight = FontWeight.Bold) },
-                    text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(
-                                onClick = {
-                                    showPhotoSourceDialog = false
-                                    showCamera = true
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700))
-                            ) {
-                                Icon(Icons.Default.CameraAlt, null, tint = Color.Black)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Take Photo", color = Color.Black)
-                            }
-                            Button(
-                                onClick = {
-                                    showPhotoSourceDialog = false
-                                    galleryLauncher.launch("image/*")
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3C3C3E))
-                            ) {
-                                Icon(Icons.Default.PhotoLibrary, null, tint = Color.White)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Choose from Gallery", color = Color.White)
-                            }
-                        }
-                    },
-                    confirmButton = {},
-                    dismissButton = {
-                        TextButton(onClick = { showPhotoSourceDialog = false }) {
-                            Text("Cancel", color = Color(0xFFFFD700))
-                        }
-                    }
-                )
-            }
-
-            // Food Name Field
-            Text("Food Name", color = Color.White, fontSize = 14.sp)
-            TextField(
-                value = foodName,
-                onValueChange = { foodName = it },
-                placeholder = { Text("Enter food name", color = Color.Gray) },
-                singleLine = true,
+            // Date & Time and Location row
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFA8A8A8),
-                    unfocusedContainerColor = Color(0xFFA8A8A8),
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
-                )
-            )
-
-            // Notes Field
-            Text("Notes", color = Color.White, fontSize = 14.sp)
-            TextField(
-                value = notes,
-                onValueChange = { notes = it },
-                placeholder = { Text("Write something...", color = Color.Gray) },
-                minLines = 3,
-                maxLines = 5,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFA8A8A8),
-                    unfocusedContainerColor = Color(0xFFA8A8A8),
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
-                )
-            )
-
-            // Mood Color Section
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF2C2C2E)
-                )
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.Palette, "Color", tint = Color(0xFFFFD700))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "Mood Color",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.weight(1f))
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(Color(selectedColor))
-                                .border(2.dp, Color(0xFFFFD700), CircleShape)
-                        )
-                    }
-
-                    if (photoData != null) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            "Color extracted from photo",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Button(
-                        onClick = { showColorPicker = true },
+                    Text(
+                        text = "Date & Time",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFFFD700)
-                        )
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFFA8A8A8)
                     ) {
-                        Text("Choose Custom Color", color = Color.Black, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "Now (tap to change)",
+                            modifier = Modifier.padding(12.dp),
+                            color = Color.Black,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+                
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Location",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFFA8A8A8)
+                    ) {
+                        Text(
+                            text = location?.address ?: "",
+                            modifier = Modifier.padding(12.dp),
+                            color = Color.Black,
+                            fontSize = 12.sp
+                        )
                     }
                 }
             }
-
-            // Location Section
-            if (location != null) {
-                Card(
+            
+            // Meal Type
+            Column {
+                Text(
+                    text = "Meal Type",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF2C2C2E)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf("Breakfast", "Lunch", "Dinner", "Snack").forEach { type ->
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { mealType = type },
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (mealType == type) Color(0xFF6C6C6C) else Color(0xFFA8A8A8)
+                        ) {
+                            Text(
+                                text = type,
+                                modifier = Modifier.padding(vertical = 12.dp),
+                                color = Color.Black,
+                                fontSize = 12.sp,
+                                textAlign = TextAlign.Center,
+                                fontWeight = if (mealType == type) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+                    }
+                }
+            }
+            
+            // Notes and Rating row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Column(
+                    modifier = Modifier.weight(1.2f)
+                ) {
+                    Text(
+                        text = "Notes",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextField(
+                        value = notes,
+                        onValueChange = { notes = it },
+                        placeholder = { 
+                            Text(
+                                "Write something...",
+                                color = Color.Gray,
+                                fontSize = 12.sp
+                            ) 
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color(0xFFA8A8A8),
+                            unfocusedContainerColor = Color(0xFFA8A8A8),
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
+                        )
+                    )
+                }
+                
+                Column(
+                    modifier = Modifier.weight(0.8f)
+                ) {
+                    Text(
+                        text = "Rating",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFFA8A8A8)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(8.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                repeat(5) { index ->
+                                    Text(
+                                        text = if (index < rating) "⭐" else "☆",
+                                        fontSize = 20.sp,
+                                        modifier = Modifier.clickable { rating = index + 1 }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // AI Suggestion button
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { /* AI action */ },
+                shape = RoundedCornerShape(12.dp),
+                color = Color(0xFF2C2C2E)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Gợi ý AI 🧠",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Bánh màu đỏ → Happy",
+                        color = Color(0xFFFFC857),
+                        fontSize = 12.sp
+                    )
+                }
+            }
+            
+            // Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = {
+                        viewModel.addEntry(
+                            foodName = foodName,
+                            notes = notes,
+                            moodColor = android.graphics.Color.parseColor("#FFC857"),
+                            photoFile = photoData?.file
+                        )
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(25.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFFC857),
+                        contentColor = Color.Black
                     )
                 ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.LocationOn, "Location", tint = Color(0xFFFFD700))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column {
-                            Text(
-                                "Location",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                location!!.address ?: "${location!!.latitude}, ${location!!.longitude}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
-                            )
-                        }
-                    }
+                    Text(
+                        text = "Save",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                
+                Button(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(25.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    )
+                ) {
+                    Text(
+                        text = "Cancel",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
-
-            // Loading indicator
-            if (entryState is EntryState.Loading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-            }
-
-            // Error message
-            if (entryState is EntryState.Error) {
-                Text(
-                    text = (entryState as EntryState.Error).message,
-                    color = Color(0xFFFF5252),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
-            // Bottom spacing for FAB
-            Spacer(modifier = Modifier.height(80.dp))
+            
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
-    }
-
-    // Color Picker Dialog
-    if (showColorPicker) {
-        ColorPickerDialog(
-            currentColor = selectedColor,
-            onColorSelected = { color ->
-                selectedColor = color
-                showColorPicker = false
-            },
-            onDismiss = { showColorPicker = false }
-        )
-    }
-}
-
-@Composable
-fun ColorPickerDialog(
-    currentColor: Int,
-    onColorSelected: (Int) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val predefinedColors = listOf(
-        android.graphics.Color.parseColor("#F44336"), // Red
-        android.graphics.Color.parseColor("#E91E63"), // Pink
-        android.graphics.Color.parseColor("#9C27B0"), // Purple
-        android.graphics.Color.parseColor("#673AB7"), // Deep Purple
-        android.graphics.Color.parseColor("#3F51B5"), // Indigo
-        android.graphics.Color.parseColor("#2196F3"), // Blue
-        android.graphics.Color.parseColor("#03A9F4"), // Light Blue
-        android.graphics.Color.parseColor("#00BCD4"), // Cyan
-        android.graphics.Color.parseColor("#009688"), // Teal
-        android.graphics.Color.parseColor("#4CAF50"), // Green
-        android.graphics.Color.parseColor("#8BC34A"), // Light Green
-        android.graphics.Color.parseColor("#CDDC39"), // Lime
-        android.graphics.Color.parseColor("#FFEB3B"), // Yellow
-        android.graphics.Color.parseColor("#FFC107"), // Amber
-        android.graphics.Color.parseColor("#FF9800"), // Orange
-        android.graphics.Color.parseColor("#FF5722"), // Deep Orange
-    )
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Color(0xFF2C2C2E),
-        title = { Text("Choose Mood Color", color = Color.White, fontWeight = FontWeight.Bold) },
-        text = {
-            Column {
-                predefinedColors.chunked(4).forEach { rowColors ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        rowColors.forEach { color ->
-                            Box(
-                                modifier = Modifier
-                                    .size(60.dp)
-                                    .padding(4.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(color))
-                                    .border(
-                                        width = if (color == currentColor) 3.dp else 1.dp,
-                                        color = if (color == currentColor)
-                                            Color(0xFFFFD700)
-                                        else
-                                            Color.Gray,
-                                        shape = CircleShape
-                                    )
-                                    .clickable { onColorSelected(color) }
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel", color = Color(0xFFFFD700))
-            }
-        }
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -606,6 +618,287 @@ fun SimplePhotoCapture(
             }
             
             Spacer(modifier = Modifier.height(48.dp))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EntryDetailScreen(
+    caption: String,
+    onEdit: () -> Unit,
+    onBack: () -> Unit
+) {
+    Scaffold(
+        containerColor = Color(0xFF1C1C1E),
+        topBar = {
+            TopAppBar(
+                title = { 
+                    Text(
+                        "Entry Detail",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    ) 
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onEdit) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "Edit",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF1C1C1E)
+                )
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            // Image
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color(0xFF3C3C3E))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF4A4A4A)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "🎂",
+                        fontSize = 80.sp
+                    )
+                }
+            }
+            
+            // Food name with emoji
+            Text(
+                text = "Bánh kem dâu Giáng sinh đáng yêu 😋",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            
+            // Date & Time and Location row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Date & Time",
+                        color = Color(0xFFFFC857),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "12 Dec 2025 - 8:30 PM",
+                        color = Color.White,
+                        fontSize = 14.sp
+                    )
+                }
+                
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Location",
+                        color = Color(0xFFFFC857),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Thành phố biển",
+                        color = Color.White,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+            
+            // Meal Type and Rating row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Meal Type",
+                        color = Color(0xFFFFC857),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Dinner",
+                        color = Color.White,
+                        fontSize = 14.sp
+                    )
+                }
+                
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Rating",
+                        color = Color(0xFFFFC857),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        repeat(5) {
+                            Text(
+                                text = "⭐",
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
+                }
+            }
+            
+            // Notes
+            Column {
+                Text(
+                    text = "Notes",
+                    color = Color(0xFFFFC857),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Cảm giác Giáng sinh quá, ngon xỉu 😋🎄",
+                    color = Color.White,
+                    fontSize = 14.sp
+                )
+            }
+            
+            // AI Palette Extracted
+            Column {
+                Text(
+                    text = "AI Palette Extracted",
+                    color = Color(0xFFFFC857),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFFF6B6B))
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFFFC857))
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFA67B5B))
+                    )
+                }
+            }
+            
+            // AI Suggestion
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0xFF2C2C2E)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "AI Suggestion",
+                        color = Color(0xFFFFC857),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Ảnh có nhiều màu đỏ → Gợi ý mood Happy hoặc Energy",
+                        color = Color.White,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+            
+            // Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = { /* Save action */ },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(25.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFFC857),
+                        contentColor = Color.Black
+                    )
+                ) {
+                    Text(
+                        text = "Save",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                
+                Button(
+                    onClick = { /* Share action */ },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(25.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    )
+                ) {
+                    Text(
+                        text = "Share",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
     }
 }

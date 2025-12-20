@@ -58,6 +58,9 @@ fun ModernHomeScreen(
                         ) 
                     },
                     actions = {
+                        IconButton(onClick = { navController.navigate(Screen.Statistics.route) }) {
+                            Icon(Icons.Default.BarChart, "Statistics", tint = Color.White)
+                        }
                         IconButton(onClick = { navController.navigate(Screen.Profile.route) }) {
                             Icon(Icons.Default.Settings, "Settings", tint = Color.White)
                         }
