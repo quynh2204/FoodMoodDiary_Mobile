@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
+import com.google.firebase.auth.FirebaseAuth
 
 /**
  * ViewModel for Food Entry operations
@@ -31,7 +32,8 @@ class FoodEntryViewModel @Inject constructor(
     private val deleteEntryUseCase: DeleteEntryUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val colorAnalyzer: ColorAnalyzer,
-    private val locationManager: LocationManager
+    private val locationManager: LocationManager,
+    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
 
     // All entries list
@@ -110,7 +112,8 @@ class FoodEntryViewModel @Inject constructor(
         viewModelScope.launch {
             _entryState.value = EntryState.Loading
 
-            val userId = currentUser.value?.uid
+            // Get userId directly from FirebaseAuth to avoid StateFlow delay issues
+            val userId = firebaseAuth.currentUser?.uid
             if (userId == null) {
                 _entryState.value = EntryState.Error("User not authenticated")
                 return@launch
