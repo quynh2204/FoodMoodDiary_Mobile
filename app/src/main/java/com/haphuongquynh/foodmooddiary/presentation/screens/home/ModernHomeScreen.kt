@@ -116,6 +116,33 @@ fun ModernHomeScreen(
                     }
                 }
 
+                // Quick Access Buttons
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    QuickAccessButton(
+                        icon = Icons.Default.BarChart,
+                        label = "Statistics",
+                        onClick = { navController.navigate(Screen.Statistics.route) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    QuickAccessButton(
+                        icon = Icons.Default.Map,
+                        label = "Map",
+                        onClick = { navController.navigate(Screen.Map.route) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    QuickAccessButton(
+                        icon = Icons.Default.Search,
+                        label = "Discovery",
+                        onClick = { navController.navigate(Screen.Discovery.route) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
                 // Content based on selected view
                 when (selectedView) {
                     0 -> GridView(entries, navController)
@@ -129,12 +156,10 @@ fun ModernHomeScreen(
 
 @Composable
 private fun GridView(entries: List<FoodEntry>, navController: NavController) {
-    // Sample mood data for demo
-    val moodEmojis = listOf(
-        "😊", "😌", "🎉", "😊", "😌", "😊",
-        "👍", "😊", "😌", "😊", "🎉", "😊",
-        "😊", "🎉", "😊", "😊", "👍", "😊"
-    )
+    if (entries.isEmpty()) {
+        EmptyState()
+        return
+    }
     
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
@@ -142,11 +167,8 @@ private fun GridView(entries: List<FoodEntry>, navController: NavController) {
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(15) { index ->
-            ModernGridItemCard(
-                emoji = moodEmojis.getOrElse(index) { "😊" },
-                onClick = { navController.navigate(Screen.AddEntry.route) }
-            )
+        items(entries) { entry ->
+            GridItemCard(entry = entry, navController = navController)
         }
     }
 }
@@ -189,14 +211,31 @@ private fun GridItemCard(entry: FoodEntry, navController: NavController) {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Mood emoji badge
+            // Photo or colored background
+            if (entry.localPhotoPath != null || entry.photoUrl != null) {
+                AsyncImage(
+                    model = entry.localPhotoPath ?: entry.photoUrl,
+                    contentDescription = entry.foodName,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                // Color box if no photo
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(entry.moodColor))
+                )
+            }
+            
+            // Mood emoji badge at bottom right
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(8.dp)
                     .size(36.dp),
                 shape = CircleShape,
-                color = Color(0xFF3C3C3E)
+                color = Color.Black.copy(alpha = 0.5f)
             ) {
                 Box(
                     contentAlignment = Alignment.Center
@@ -438,29 +477,6 @@ private fun CalendarView(entries: List<FoodEntry>, navController: NavController)
         entries.take(2).forEach { entry ->
             CalendarEntryCard(entry)
             Spacer(modifier = Modifier.height(12.dp))
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Add button
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            FloatingActionButton(
-                onClick = { navController.navigate(Screen.AddEntry.route) },
-                containerColor = Color.White,
-                contentColor = Color.Black,
-                modifier = Modifier.size(56.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add",
-                    modifier = Modifier.size(32.dp)
-                )
-            }
         }
     }
 }
@@ -748,6 +764,40 @@ private fun getMoodEmoji(color: Int): String {
         color == android.graphics.Color.parseColor("#4CAF50") -> "😊"
         color == android.graphics.Color.parseColor("#FFD700") -> "😌"
         else -> "😊"
+    }
+}
+
+@Composable
+private fun QuickAccessButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
+        color = Color(0xFF2C2C2E)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = Color(0xFFFFD700),
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = label,
+                color = Color.White,
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 
