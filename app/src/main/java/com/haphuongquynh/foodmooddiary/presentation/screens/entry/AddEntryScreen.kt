@@ -113,8 +113,6 @@ fun AddEntryScreen(
             when (currentStep) {
                 0 -> PhotoCaptionStep(
                     photoData = photoData,
-                    caption = photoCaption,
-                    onCaptionChange = { photoCaption = it },
                     onChangePhoto = { showPhotoSourceDialog = true },
                     onContinue = { 
                         if (photoData != null) currentStep = 1
@@ -145,6 +143,7 @@ fun AddEntryScreen(
                         viewModel.addEntry(
                             foodName = foodName.ifBlank { "Unnamed" },
                             moodColor = selectedColor,
+                            mood = selectedMood,
                             notes = combinedNotes,
                             mealType = selectedMealType,
                             rating = rating
@@ -215,8 +214,6 @@ fun AddEntryScreen(
 @Composable
 private fun PhotoCaptionStep(
     photoData: com.haphuongquynh.foodmooddiary.presentation.viewmodel.PhotoData?,
-    caption: String,
-    onCaptionChange: (String) -> Unit,
     onChangePhoto: () -> Unit,
     onContinue: () -> Unit,
     onBack: () -> Unit
@@ -265,23 +262,6 @@ private fun PhotoCaptionStep(
                         tint = Color.Gray
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Surface(shape = RoundedCornerShape(20.dp), color = Color.White) {
-                TextField(
-                    value = caption,
-                    onValueChange = onCaptionChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Cung hí Christmas, Merry phát tài") },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    )
-                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -403,13 +383,17 @@ private fun EntryFormStep(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     moods.forEach { mood ->
-                        Text(
-                            mood,
-                            fontSize = 32.sp,
-                            modifier = Modifier
-                                .clickable { onMoodSelect(mood) }
-                                .padding(4.dp)
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (mood == selectedMood) Color(0xFF4CAF50) else Color.Transparent,
+                            modifier = Modifier.clickable { onMoodSelect(mood) }
+                        ) {
+                            Text(
+                                mood,
+                                fontSize = 32.sp,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -425,7 +409,11 @@ private fun EntryFormStep(
                         color = Color(0xFFA8A8A8)
                     ) {
                         Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                            Text("Now (tap to change)", color = Color.Black, fontSize = 12.sp)
+                            Text(
+                                getCurrentDateTime(), 
+                                color = Color.Black, 
+                                fontSize = 12.sp
+                            )
                         }
                     }
                 }
@@ -437,7 +425,12 @@ private fun EntryFormStep(
                         color = Color(0xFFA8A8A8)
                     ) {
                         Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                            Text(location?.address?.take(20) ?: "Unknown", color = Color.Black, fontSize = 12.sp)
+                            Text(
+                                location?.address?.take(25) ?: "Fetching...", 
+                                color = Color.Black, 
+                                fontSize = 11.sp,
+                                maxLines = 1
+                            )
                         }
                     }
                 }
@@ -562,4 +555,12 @@ private fun EntryFormStep(
             }
         }
     }
+}
+
+/**
+ * Get current date and time formatted
+ */
+private fun getCurrentDateTime(): String {
+    val sdf = java.text.SimpleDateFormat("dd MMM yyyy - hh:mm a", java.util.Locale.getDefault())
+    return sdf.format(java.util.Date())
 }

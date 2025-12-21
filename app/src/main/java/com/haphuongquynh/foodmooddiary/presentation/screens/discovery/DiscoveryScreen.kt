@@ -31,6 +31,7 @@ import com.haphuongquynh.foodmooddiary.presentation.viewmodel.DiscoveryViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiscoveryScreen(
+    onNavigateBack: (() -> Unit)? = null,
     viewModel: DiscoveryViewModel = hiltViewModel()
 ) {
     val currentMeal by viewModel.currentMeal.collectAsState()
@@ -51,15 +52,29 @@ fun DiscoveryScreen(
     val context = LocalContext.current
 
     Scaffold(
+        containerColor = Color(0xFF1C1C1E),
         topBar = {
             TopAppBar(
-                title = { Text("Discover Meals") },
+                title = { Text("Discover Meals", color = Color.White) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF2C2C2E),
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
+                    actionIconContentColor = Color.White
+                ),
+                navigationIcon = {
+                    if (onNavigateBack != null) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.Default.ArrowBack, "Back", tint = Color.White)
+                        }
+                    }
+                },
                 actions = {
                     IconButton(onClick = { showSearchBar = !showSearchBar }) {
-                        Icon(Icons.Default.Search, "Search")
+                        Icon(Icons.Default.Search, "Search", tint = Color.White)
                     }
                     IconButton(onClick = { showFilters = !showFilters }) {
-                        Icon(Icons.Default.FilterList, "Filters")
+                        Icon(Icons.Default.FilterList, "Filters", tint = Color.White)
                     }
                 }
             )
@@ -213,7 +228,7 @@ private fun SearchBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        color = Color(0xFF3C3C3E),
         shape = RoundedCornerShape(24.dp)
     ) {
         Row(
@@ -222,21 +237,24 @@ private fun SearchBar(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.Search, "Search", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(Icons.Default.Search, "Search", tint = Color.White)
             TextField(
                 value = query,
                 onValueChange = onQueryChange,
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("Search meals...") },
+                placeholder = { Text("Search meals...", color = Color.Gray) },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    cursorColor = Color.White
                 )
             )
             IconButton(onClick = onClose) {
-                Icon(Icons.Default.Close, "Close")
+                Icon(Icons.Default.Close, "Close", tint = Color.White)
             }
         }
     }
@@ -251,15 +269,31 @@ private fun FiltersRow(
     onCategorySelected: (String) -> Unit,
     onAreaSelected: (String) -> Unit
 ) {
+    // Enhanced categories for Vietnamese context
+    val enhancedCategories = listOf(
+        "Beef", "Chicken", "Pork", "Seafood", "Vegetarian", 
+        "Dessert", "Lamb", "Pasta", "Side", "Starter"
+    )
+    
+    // Enhanced areas prioritizing Vietnam and Southeast Asia
+    val enhancedAreas = listOf(
+        "Vietnamese", "Thai", "Chinese", "Japanese", "Korean",
+        "Malaysian", "Indonesian", "Singaporean", "Filipino",
+        "American", "Italian", "French", "Indian", "Mexican"
+    )
+    
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
+            .background(Color(0xFF1C1C1E))
     ) {
         item {
             Text(
                 "Categories",
                 style = MaterialTheme.typography.titleSmall,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(8.dp)
             )
         }
@@ -268,11 +302,17 @@ private fun FiltersRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                categories.take(5).forEach { category ->
+                enhancedCategories.take(5).forEach { category ->
                     FilterChip(
                         selected = category == selectedCategory,
                         onClick = { onCategorySelected(category) },
-                        label = { Text(category) }
+                        label = { Text(category) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = Color(0xFF3C3C3E),
+                            labelColor = Color.White,
+                            selectedContainerColor = Color(0xFFFFD700),
+                            selectedLabelColor = Color.Black
+                        )
                     )
                 }
             }
@@ -282,6 +322,8 @@ private fun FiltersRow(
             Text(
                 "Areas",
                 style = MaterialTheme.typography.titleSmall,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(8.dp)
             )
         }
@@ -290,11 +332,17 @@ private fun FiltersRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                areas.take(5).forEach { area ->
+                enhancedAreas.take(5).forEach { area ->
                     FilterChip(
                         selected = area == selectedArea,
                         onClick = { onAreaSelected(area) },
-                        label = { Text(area) }
+                        label = { Text(area) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = Color(0xFF3C3C3E),
+                            labelColor = Color.White,
+                            selectedContainerColor = Color(0xFFFFD700),
+                            selectedLabelColor = Color.Black
+                        )
                     )
                 }
             }
@@ -309,7 +357,9 @@ private fun DiscoverTab(
     onYouTubeClick: (String) -> Unit
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF1C1C1E)),
         contentPadding = PaddingValues(16.dp)
     ) {
         item {
@@ -317,11 +367,15 @@ private fun DiscoverTab(
                 onClick = onRandomClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+                    .padding(bottom = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFFFD700),
+                    contentColor = Color.Black
+                )
             ) {
-                Icon(Icons.Default.Refresh, "Random Meal")
+                Icon(Icons.Default.Refresh, "Random Meal", tint = Color.Black)
                 Spacer(Modifier.width(8.dp))
-                Text("Get Random Meal")
+                Text("Get Random Meal", color = Color.Black)
             }
         }
 
@@ -342,7 +396,10 @@ private fun MealCard(
     onYouTubeClick: (String) -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF2C2C2E)
+        )
     ) {
         Column {
             // Image
@@ -361,7 +418,8 @@ private fun MealCard(
                 Text(
                     text = meal.name,
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -372,13 +430,21 @@ private fun MealCard(
                 ) {
                     AssistChip(
                         onClick = {},
-                        label = { Text(meal.category) },
-                        leadingIcon = { Icon(Icons.Default.Fastfood, null) }
+                        label = { Text(meal.category, color = Color.White) },
+                        leadingIcon = { Icon(Icons.Default.Fastfood, null, tint = Color(0xFFFFD700)) },
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = Color(0xFF3C3C3E),
+                            labelColor = Color.White
+                        )
                     )
                     AssistChip(
                         onClick = {},
-                        label = { Text(meal.area) },
-                        leadingIcon = { Icon(Icons.Default.Place, null) }
+                        label = { Text(meal.area, color = Color.White) },
+                        leadingIcon = { Icon(Icons.Default.Place, null, tint = Color(0xFFFFD700)) },
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = Color(0xFF3C3C3E),
+                            labelColor = Color.White
+                        )
                     )
                 }
 

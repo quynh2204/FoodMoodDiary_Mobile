@@ -105,6 +105,7 @@ class FoodEntryViewModel @Inject constructor(
         foodName: String,
         notes: String = "",
         moodColor: Int,
+        mood: String? = null,
         photoFile: File? = null,
         mealType: String = "Dinner",
         rating: Int = 0
@@ -124,6 +125,7 @@ class FoodEntryViewModel @Inject constructor(
                 foodName = foodName,
                 notes = notes,
                 moodColor = moodColor,
+                mood = mood,
                 localPhotoPath = _currentPhoto.value?.file?.absolutePath,
                 location = _currentLocation.value,
                 timestamp = System.currentTimeMillis()

@@ -20,6 +20,7 @@ data class FoodEntryEntity(
     val photoUrl: String?,
     val localPhotoPath: String?,
     val moodColor: Int,
+    val mood: String?,
     @Embedded(prefix = "loc_")
     val location: LocationEntity?,
     val timestamp: Long,
@@ -36,6 +37,7 @@ data class FoodEntryEntity(
             photoUrl = photoUrl,
             localPhotoPath = localPhotoPath,
             moodColor = moodColor,
+            mood = mood,
             location = location?.toDomain(),
             timestamp = timestamp,
             createdAt = createdAt,
@@ -54,6 +56,7 @@ data class FoodEntryEntity(
                 photoUrl = entry.photoUrl,
                 localPhotoPath = entry.localPhotoPath,
                 moodColor = entry.moodColor,
+                mood = entry.mood,
                 location = entry.location?.let { LocationEntity.fromDomain(it) },
                 timestamp = entry.timestamp,
                 createdAt = entry.createdAt,

@@ -12,6 +12,7 @@ data class FoodEntry(
     val photoUrl: String? = null,
     val localPhotoPath: String? = null,
     val moodColor: Int, // ARGB color value
+    val mood: String? = null, // Emoji representing mood
     val location: Location? = null,
     val timestamp: Long = System.currentTimeMillis(),
     val createdAt: Long = System.currentTimeMillis(),

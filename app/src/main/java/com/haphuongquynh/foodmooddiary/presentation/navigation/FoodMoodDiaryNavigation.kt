@@ -92,7 +92,9 @@ fun FoodMoodDiaryNavigation() {
         }
 
         composable(route = Screen.Discovery.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.discovery.DiscoveryScreen()
+            com.haphuongquynh.foodmooddiary.presentation.screens.discovery.DiscoveryScreen(
+                onNavigateBack = { navController.navigateUp() }
+            )
         }
     }
 }

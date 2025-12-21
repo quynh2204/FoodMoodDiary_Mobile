@@ -241,7 +241,7 @@ private fun GridItemCard(entry: FoodEntry, navController: NavController) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        getMoodEmoji(entry.moodColor),
+                        getMoodEmoji(entry),
                         fontSize = 20.sp
                     )
                 }
@@ -302,7 +302,7 @@ private fun ListItemCard(entry: FoodEntry, onClick: () -> Unit) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        getMoodEmoji(entry.moodColor),
+                        getMoodEmoji(entry),
                         fontSize = 32.sp
                     )
                 }
@@ -324,9 +324,9 @@ private fun ListItemCard(entry: FoodEntry, onClick: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = getMoodEmoji(entry.moodColor), fontSize = 18.sp)
+                    Text(text = getMoodEmoji(entry), fontSize = 18.sp)
                     Text(
-                        text = getMoodLabel(entry.moodColor),
+                        text = getMoodLabel(entry),
                         color = Color(0xFFFFB800),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
@@ -374,12 +374,12 @@ private fun ListItemCard(entry: FoodEntry, navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        getMoodEmoji(entry.moodColor),
+                        getMoodEmoji(entry),
                         fontSize = 16.sp
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        getMoodLabel(entry.moodColor),
+                        getMoodLabel(entry),
                         color = Color.Gray,
                         fontSize = 14.sp
                     )
@@ -719,7 +719,7 @@ private fun DayEntryCard(entry: FoodEntry) {
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    "${getMoodEmoji(entry.moodColor)} ${getMoodLabel(entry.moodColor)}",
+                    "${getMoodEmoji(entry)} ${getMoodLabel(entry)}",
                     color = Color.Gray,
                     fontSize = 12.sp
                 )
@@ -759,27 +759,30 @@ private fun EmptyState() {
     }
 }
 
-private fun getMoodEmoji(color: Int): String {
-    val red = android.graphics.Color.red(color)
-    val green = android.graphics.Color.green(color)
-    val blue = android.graphics.Color.blue(color)
-    
-    // Analyze color to determine mood
-    return when {
-        // Red tones - Stress/Angry
-        red > 200 && green < 100 && blue < 100 -> "😫"
-        // Orange tones - Happy/Energetic  
-        red > 200 && green > 150 && blue < 100 -> "😊"
-        // Yellow tones - Happy/Joyful
-        red > 200 && green > 200 && blue < 150 -> "😄"
-        // Green tones - Calm/Peaceful
-        red < 150 && green > 150 && blue < 150 -> "😌"
-        // Blue tones - Sad/Melancholy
-        red < 100 && green < 150 && blue > 150 -> "😔"
-        // Purple tones - Excited/Party
-        red > 150 && green < 150 && blue > 150 -> "🎉"
-        // Default
-        else -> "😊"
+private fun getMoodEmoji(entry: FoodEntry): String {
+    // Use stored mood emoji if available, otherwise analyze color
+    return entry.mood ?: run {
+        val red = android.graphics.Color.red(entry.moodColor)
+        val green = android.graphics.Color.green(entry.moodColor)
+        val blue = android.graphics.Color.blue(entry.moodColor)
+        
+        // Analyze color to determine mood
+        when {
+            // Red tones - Stress/Angry
+            red > 200 && green < 100 && blue < 100 -> "😫"
+            // Orange tones - Happy/Energetic  
+            red > 200 && green > 150 && blue < 100 -> "😊"
+            // Yellow tones - Happy/Joyful
+            red > 200 && green > 200 && blue < 150 -> "😄"
+            // Green tones - Calm/Peaceful
+            red < 150 && green > 150 && blue < 150 -> "😌"
+            // Blue tones - Sad/Melancholy
+            red < 100 && green < 150 && blue > 150 -> "😔"
+            // Purple tones - Excited/Party
+            red > 150 && green < 150 && blue > 150 -> "🎉"
+            // Default
+            else -> "😊"
+        }
     }
 }
 
@@ -817,10 +820,10 @@ private fun QuickAccessButton(
     }
 }
 
-private fun getMoodLabel(color: Int): String {
-    val red = android.graphics.Color.red(color)
-    val green = android.graphics.Color.green(color)
-    val blue = android.graphics.Color.blue(color)
+private fun getMoodLabel(entry: FoodEntry): String {
+    val red = android.graphics.Color.red(entry.moodColor)
+    val green = android.graphics.Color.green(entry.moodColor)
+    val blue = android.graphics.Color.blue(entry.moodColor)
     
     // Analyze color to determine mood label
     return when {
