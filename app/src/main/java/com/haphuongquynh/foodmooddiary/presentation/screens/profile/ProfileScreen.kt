@@ -5,9 +5,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,12 +23,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.FoodEntryViewModel
-import com.haphuongquynh.foodmooddiary.util.WorkManagerHelper
-import androidx.compose.ui.platform.LocalContext
 
 /**
- * Profile & Settings Screen - Day 22
- * User profile, stats, and app settings
+ * Profile Screen - Hồ sơ cá nhân
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,171 +35,261 @@ fun ProfileScreen(
     authViewModel: AuthViewModel = hiltViewModel(),
     entryViewModel: FoodEntryViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-    val workManagerHelper = remember { WorkManagerHelper(context) }
     val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
     val entries by entryViewModel.entries.collectAsStateWithLifecycle()
     
     var showLogoutDialog by remember { mutableStateOf(false) }
-    var showClearDataDialog by remember { mutableStateOf(false) }
-    var showExportDialog by remember { mutableStateOf(false) }
+    var showEditProfileDialog by remember { mutableStateOf(false) }
 
-    Surface(color = Color(0xFF1C1C1E)) {
-        Scaffold(
-            containerColor = Color.Transparent,
-            topBar = {
-                TopAppBar(
-                    title = { Text("Profile & Settings", color = Color.White) },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Color.White)
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF1C1C1E),
-                        titleContentColor = Color.White,
-                        navigationIconContentColor = Color.White
-                    )
-                )
-            }
-        ) { padding ->
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF1C1C1E))
+            .verticalScroll(rememberScrollState())
+    ) {
+        // Header with Settings Icon
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Profile Header
-            currentUser?.let { user ->
-                ProfileHeader(
-                    userName = user.displayName ?: user.email,
-                    userEmail = user.email,
-                    totalEntries = entries.size,
-                    modifier = Modifier.fillMaxWidth()
+            Text(
+                text = "Hồ sơ cá nhân",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            
+            IconButton(
+                onClick = { /* Navigate to settings */ },
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF2C2C2E))
+            ) {
+                Icon(
+                    Icons.Default.Settings,
+                    contentDescription = "Settings",
+                    tint = Color.White
                 )
             }
+        }
 
-            // Statistics Summary
-            StatsSummarySection(
-                totalEntries = entries.size,
-                streak = 0, // TODO: Calculate actual streak
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // Settings Section
-            SettingsSection(
-                onNotificationToggle = { enabled ->
-                    workManagerHelper.setRemindersEnabled(enabled)
-                },
-                onThemeChange = { /* TODO */ },
-                onExportData = { showExportDialog = true },
-                onClearData = { showClearDataDialog = true },
-                onLogout = { showLogoutDialog = true }
+        // Profile Card
+        currentUser?.let { user ->
+            ProfileCard(
+                userName = user.displayName ?: user.email?.substringBefore("@") ?: "Người dùng",
+                userEmail = user.email,
+                joinDate = "Đã tham gia từ tháng 12, 2025",
+                age = 21,
+                height = 160,
+                weight = 52,
+                onEditClick = { showEditProfileDialog = true },
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
         }
 
-        // Dialogs
-        if (showLogoutDialog) {
-            LogoutConfirmDialog(
-                onConfirm = {
-                    authViewModel.logout()
-                    showLogoutDialog = false
-                    onNavigateToLogin()
-                },
-                onDismiss = { showLogoutDialog = false }
-            )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // BMI/Health Status Card
+        HealthStatusCard(
+            currentWeight = 52,
+            targetWeight = 48,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Reports Section
+        SectionHeader(
+            title = "Xem báo cáo thống kê",
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        ReportOptionsGrid(
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Community Section
+        SectionHeader(
+            title = "Cộng đồng và hỗ trợ",
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        CommunityCard(
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Social Media Links
+        SocialMediaSection(
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Support Center
+        SupportCenterItem(
+            onClick = { /* Navigate to support */ },
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Logout Button
+        Button(
+            onClick = { showLogoutDialog = true },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(56.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF8B5CF6)
+            ),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Icon(Icons.Default.Logout, "Logout")
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Đăng xuất", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         }
 
-        if (showClearDataDialog) {
-            ClearDataConfirmDialog(
-                onConfirm = {
-                    entries.forEach { entryViewModel.deleteEntry(it.id) }
-                    showClearDataDialog = false
-                },
-                onDismiss = { showClearDataDialog = false }
-            )
-        }
+        Spacer(modifier = Modifier.height(100.dp)) // Bottom padding for nav bar
+    }
 
-        if (showExportDialog) {
-            ExportDataDialog(
-                onExportCSV = {
-                    // TODO: Export as CSV
-                    showExportDialog = false
-                },
-                onExportPDF = {
-                    // TODO: Export as PDF
-                    showExportDialog = false
-                },
-                onDismiss = { showExportDialog = false }
-            )
-        }
-        }
+    // Logout Dialog
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Đăng xuất") },
+            text = { Text("Bạn có chắc chắn muốn đăng xuất?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        authViewModel.logout()
+                        showLogoutDialog = false
+                        onNavigateToLogin()
+                    }
+                ) {
+                    Text("Đăng xuất", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Hủy")
+                }
+            }
+        )
     }
 }
 
 @Composable
-fun ProfileHeader(
+fun ProfileCard(
     userName: String,
     userEmail: String,
-    totalEntries: Int,
+    joinDate: String,
+    age: Int,
+    height: Int,
+    weight: Int,
+    onEditClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF2C2C2E)
-        )
+        ),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Profile Icon
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFFFD700)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = Color.Black
-                )
+            // Avatar with Edit Button
+            Box {
+                Box(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFE8E3F5)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = "Profile",
+                        modifier = Modifier.size(60.dp),
+                        tint = Color(0xFF8B5CF6)
+                    )
+                }
+                
+                // Edit Button
+                IconButton(
+                    onClick = onEditClick,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF3C3C3E))
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "Edit",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
 
-            // User Info
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // User Name
             Text(
                 text = userName,
-                style = MaterialTheme.typography.titleLarge,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
 
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Join Date
             Text(
-                text = userEmail,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFFA8A8A8)
+                text = joinDate,
+                fontSize = 14.sp,
+                color = Color.Gray
             )
 
-            // Total Entries Badge
-            Surface(
-                color = Color(0xFFFFD700),
-                shape = MaterialTheme.shapes.small
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Stats Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text(
-                    text = "🔥 $totalEntries days in a row",
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                StatItem(
+                    icon = Icons.Default.Cake,
+                    value = "$age tuổi",
+                    modifier = Modifier.weight(1f)
+                )
+                
+                StatItem(
+                    icon = Icons.Default.Height,
+                    value = "$height cm",
+                    modifier = Modifier.weight(1f)
+                )
+                
+                StatItem(
+                    icon = Icons.Default.MonitorWeight,
+                    value = "$weight kg",
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -210,301 +297,423 @@ fun ProfileHeader(
 }
 
 @Composable
-fun StatsSummarySection(
-    totalEntries: Int,
-    streak: Int,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text(
-            text = "Statistics",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFFFFD700)
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            StatCard(
-                icon = Icons.Default.Restaurant,
-                label = "Total Entries",
-                value = totalEntries.toString(),
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            StatCard(
-                icon = Icons.Default.LocalFireDepartment,
-                label = "Streak",
-                value = "$streak days",
-                color = MaterialTheme.colorScheme.tertiary
-            )
-        }
-    }
-}
-
-@Composable
-fun StatCard(
+fun StatItem(
     icon: ImageVector,
-    label: String,
     value: String,
-    color: Color,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2C2C2E)
-        )
+    Surface(
+        modifier = modifier.padding(4.dp),
+        color = Color(0xFF3C3C3E),
+        shape = RoundedCornerShape(12.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
             Icon(
                 icon,
                 contentDescription = null,
-                modifier = Modifier.size(32.dp),
-                tint = Color(0xFFFFD700)
+                tint = Color(0xFFFFD700),
+                modifier = Modifier.size(20.dp)
             )
+            Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = value,
-                style = MaterialTheme.typography.titleLarge,
+                fontSize = 13.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+@Composable
+fun HealthStatusCard(
+    currentWeight: Int,
+    targetWeight: Int,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF8B5CF6)
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            // Title with Icon
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.TrackChanges,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Hành trình của bạn",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Theo dõi cân nặng và dinh dưỡng",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Ghi chép thường xuyên để xem báo cáo chi tiết",
+                fontSize = 14.sp,
+                color = Color.White.copy(alpha = 0.9f)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Progress Bar
+            LinearProgressIndicator(
+                progress = 0.8f,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp)),
+                color = Color.White,
+                trackColor = Color.White.copy(alpha = 0.3f)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Weight Display
+            Text(
+                text = "$currentWeight kg",
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFFA8A8A8)
-            )
         }
     }
 }
 
 @Composable
-fun SettingsSection(
-    onNotificationToggle: (Boolean) -> Unit,
-    onThemeChange: (String) -> Unit,
-    onExportData: () -> Unit,
-    onClearData: () -> Unit,
-    onLogout: () -> Unit,
+fun SectionHeader(
+    title: String,
     modifier: Modifier = Modifier
 ) {
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var selectedTheme by remember { mutableStateOf("System") }
-
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text(
-            text = "Settings",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFFFFD700)
-        )
-
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF2C2C2E)
-            )
-        ) {
-            Column {
-                // Notifications
-                SettingItem(
-                    icon = Icons.Default.Notifications,
-                    title = "Notifications",
-                    subtitle = "Daily reminders",
-                    trailing = {
-                        Switch(
-                            checked = notificationsEnabled,
-                            onCheckedChange = {
-                                notificationsEnabled = it
-                                onNotificationToggle(it)
-                            }
-                        )
-                    }
-                )
-
-                HorizontalDivider()
-
-                // Theme
-                SettingItem(
-                    icon = Icons.Default.Palette,
-                    title = "Theme",
-                    subtitle = selectedTheme,
-                    onClick = { /* TODO: Show theme picker */ }
-                )
-
-                HorizontalDivider()
-
-                // Export Data
-                SettingItem(
-                    icon = Icons.Default.FileDownload,
-                    title = "Export Data",
-                    subtitle = "Save as CSV or PDF",
-                    onClick = onExportData
-                )
-
-                HorizontalDivider()
-
-                // Clear Data
-                SettingItem(
-                    icon = Icons.Default.DeleteForever,
-                    title = "Clear All Data",
-                    subtitle = "Delete all entries",
-                    onClick = onClearData,
-                    destructive = true
-                )
-
-                HorizontalDivider()
-
-                // Logout
-                SettingItem(
-                    icon = Icons.Default.Logout,
-                    title = "Log Out",
-                    subtitle = "Sign out of your account",
-                    onClick = onLogout,
-                    destructive = true
-                )
-            }
-        }
-    }
+    Text(
+        text = title,
+        fontSize = 18.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = Color.White,
+        modifier = modifier
+    )
 }
 
 @Composable
-fun SettingItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: (() -> Unit)? = null,
-    trailing: @Composable (() -> Unit)? = null,
-    destructive: Boolean = false,
+fun ReportOptionsGrid(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .then(
-                if (onClick != null) Modifier.clickable(onClick = onClick)
-                else Modifier
-            )
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Icon(
-            icon,
-            contentDescription = null,
-            tint = if (destructive) Color(0xFFFF5252)
-                  else Color(0xFFFFD700)
+        ReportOptionCard(
+            icon = Icons.Default.Restaurant,
+            title = "Dinh dưỡng",
+            color = Color(0xFFFFA726),
+            modifier = Modifier.weight(1f)
         )
-
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (destructive) Color(0xFFFF5252)
-                       else Color.White
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFFA8A8A8)
-            )
-        }
-
-        trailing?.invoke()
+        
+        ReportOptionCard(
+            icon = Icons.Default.FitnessCenter,
+            title = "Tập luyện",
+            color = Color(0xFFEF5350),
+            modifier = Modifier.weight(1f)
+        )
+        
+        ReportOptionCard(
+            icon = Icons.Default.DirectionsWalk,
+            title = "Số bước",
+            color = Color(0xFF66BB6A),
+            modifier = Modifier.weight(1f)
+        )
+        
+        ReportOptionCard(
+            icon = Icons.Default.EmojiEvents,
+            title = "Cân nặng",
+            color = Color(0xFF42A5F5),
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
 @Composable
-fun LogoutConfirmDialog(
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+fun ReportOptionCard(
+    icon: ImageVector,
+    title: String,
+    color: Color,
+    modifier: Modifier = Modifier
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Default.Logout, null) },
-        title = { Text("Log Out") },
-        text = { Text("Are you sure you want to log out?") },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text("Log Out", color = MaterialTheme.colorScheme.error)
+    Card(
+        modifier = modifier
+            .aspectRatio(1f)
+            .clickable { /* Handle click */ },
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF2C2C2E)
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(color.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = title,
+                    tint = color,
+                    modifier = Modifier.size(28.dp)
+                )
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = title,
+                fontSize = 12.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Medium
+            )
         }
-    )
+    }
 }
 
 @Composable
-fun ClearDataConfirmDialog(
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+fun CommunityCard(
+    modifier: Modifier = Modifier
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error) },
-        title = { Text("Clear All Data") },
-        text = { Text("This will permanently delete all your food entries. This action cannot be undone.") },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text("Delete All", color = MaterialTheme.colorScheme.error)
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { /* Join community */ },
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF8B5CF6)
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Food Images
+            Row(
+                modifier = Modifier.weight(1f)
+            ) {
+                // Placeholder for food images
+                repeat(3) { index ->
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .offset(x = (-index * 12).dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFFFD700)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Restaurant,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
+            
+            Column(
+                modifier = Modifier.weight(2f)
+            ) {
+                Text(
+                    text = "Chia sẻ hành trình của bạn",
+                    fontSize = 14.sp,
+                    color = Color(0xFFE0FFE0)
+                )
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                Text(
+                    text = "Cùng cộng đồng ghi lại khoảnh khắc ăn uống",
+                    fontSize = 14.sp,
+                    color = Color(0xFFE0FFE0)
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Text(
+                    text = "Tham gia cộng đồng FoodMood!",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Button(
+                    onClick = { /* Join now */ },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFA77BF3)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Tham gia ngay", fontWeight = FontWeight.SemiBold)
+                }
             }
         }
-    )
+    }
 }
 
 @Composable
-fun ExportDataDialog(
-    onExportCSV: () -> Unit,
-    onExportPDF: () -> Unit,
-    onDismiss: () -> Unit
+fun SocialMediaSection(
+    modifier: Modifier = Modifier
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Default.FileDownload, null) },
-        title = { Text("Export Data") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Choose export format:")
-                TextButton(
-                    onClick = onExportCSV,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Export as CSV")
-                }
-                TextButton(
-                    onClick = onExportPDF,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Export as PDF")
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
+    Column(modifier = modifier) {
+        Text(
+            text = "Theo dõi FoodMoodDiary trên mạng xã hội",
+            fontSize = 14.sp,
+            color = Color.Gray,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            SocialMediaButton(
+                name = "Tiktok",
+                onClick = { /* Open Tiktok */ },
+                modifier = Modifier.weight(1f)
+            )
+            
+            SocialMediaButton(
+                name = "Facebook",
+                onClick = { /* Open Facebook */ },
+                modifier = Modifier.weight(1f)
+            )
+            
+            SocialMediaButton(
+                name = "Instagram",
+                onClick = { /* Open Instagram */ },
+                modifier = Modifier.weight(1f)
+            )
         }
-    )
+    }
+}
+
+@Composable
+fun SocialMediaButton(
+    name: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF2C2C2E)
+        ),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                when(name) {
+                    "Tiktok" -> Icons.Default.MusicNote
+                    "Facebook" -> Icons.Default.Facebook
+                    else -> Icons.Default.CameraAlt
+                },
+                contentDescription = name,
+                tint = Color.White,
+                modifier = Modifier.size(32.dp)
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = name,
+                fontSize = 13.sp,
+                color = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+fun SupportCenterItem(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF2C2C2E)
+        ),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.Support,
+                    contentDescription = "Support",
+                    tint = Color.White
+                )
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                Text(
+                    text = "Trung tâm hỗ trợ",
+                    fontSize = 16.sp,
+                    color = Color.White
+                )
+            }
+            
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = "Navigate",
+                tint = Color.Gray
+            )
+        }
+    }
 }

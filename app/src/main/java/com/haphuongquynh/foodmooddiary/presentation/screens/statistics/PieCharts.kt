@@ -15,6 +15,26 @@ import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.PercentFormatter
 import com.haphuongquynh.foodmooddiary.domain.model.ColorDistribution
 import com.haphuongquynh.foodmooddiary.domain.model.MealDistribution
+import androidx.compose.ui.Alignment
+
+@Composable
+fun EmptyChartState(
+    message: String,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = androidx.compose.ui.graphics.Color.Gray
+        )
+    }
+}
 
 /**
  * Pie Chart for Meal Type Distribution

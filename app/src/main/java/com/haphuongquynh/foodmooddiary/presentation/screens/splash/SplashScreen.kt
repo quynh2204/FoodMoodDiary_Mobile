@@ -43,7 +43,7 @@ fun SplashScreen(
         
         // Check authentication state and navigate
         val destination = if (currentUser != null) {
-            Screen.Home.route
+            Screen.Main.route
         } else {
             Screen.Login.route
         }

@@ -72,53 +72,13 @@ fun MapScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Column {
-                        Text("Food Map")
-                        Text(
-                            text = "${entriesWithLocation.size} locations",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
-                    }
-                },
-                actions = {
-                    // Heat map toggle
-                    IconButton(onClick = { showHeatMap = !showHeatMap }) {
-                        Icon(
-                            if (showHeatMap) Icons.Default.Layers else Icons.Default.LayersClear,
-                            "Toggle Heat Map",
-                            tint = if (showHeatMap) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    // Map type toggle
-                    IconButton(onClick = { 
-                        mapType = when (mapType) {
-                            GoogleMap.MAP_TYPE_NORMAL -> GoogleMap.MAP_TYPE_SATELLITE
-                            GoogleMap.MAP_TYPE_SATELLITE -> GoogleMap.MAP_TYPE_TERRAIN
-                            else -> GoogleMap.MAP_TYPE_NORMAL
-                        }
-                    }) {
-                        Icon(Icons.Default.Map, "Map Type")
-                    }
-
-                    // Refresh
-                    IconButton(onClick = { viewModel.refresh() }) {
-                        Icon(Icons.Default.Refresh, "Refresh")
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF1C1C1E))
+    ) {
+        // Map content
+        Box(modifier = Modifier.fillMaxSize()) {
             if (locationPermissionState.allPermissionsGranted) {
                 GoogleMapView(
                     entries = entriesWithLocation,
@@ -151,6 +111,54 @@ fun MapScreen(
                     },
                     modifier = Modifier.align(Alignment.Center)
                 )
+            }
+        }
+        
+        // Floating action buttons
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Map type toggle
+            FloatingActionButton(
+                onClick = { 
+                    mapType = when (mapType) {
+                        GoogleMap.MAP_TYPE_NORMAL -> GoogleMap.MAP_TYPE_SATELLITE
+                        GoogleMap.MAP_TYPE_SATELLITE -> GoogleMap.MAP_TYPE_TERRAIN
+                        else -> GoogleMap.MAP_TYPE_NORMAL
+                    }
+                },
+                containerColor = Color(0xFF2C2C2E),
+                contentColor = Color.White,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(Icons.Default.Map, "Map Type", modifier = Modifier.size(24.dp))
+            }
+            
+            // Heat map toggle
+            FloatingActionButton(
+                onClick = { showHeatMap = !showHeatMap },
+                containerColor = if (showHeatMap) Color(0xFF8B5CF6) else Color(0xFF2C2C2E),
+                contentColor = Color.White,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    if (showHeatMap) Icons.Default.Layers else Icons.Default.LayersClear,
+                    "Toggle Heat Map",
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            
+            // Refresh
+            FloatingActionButton(
+                onClick = { viewModel.refresh() },
+                containerColor = Color(0xFF2C2C2E),
+                contentColor = Color.White,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(Icons.Default.Refresh, "Refresh", modifier = Modifier.size(24.dp))
             }
         }
     }
@@ -263,8 +271,11 @@ fun EntryBottomSheet(
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
-        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF2C2C2E)
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -278,10 +289,11 @@ fun EntryBottomSheet(
                 Text(
                     text = entry.foodName,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, "Close")
+                    Icon(Icons.Default.Close, "Close", tint = Color.White)
                 }
             }
 
@@ -313,13 +325,12 @@ fun EntryBottomSheet(
                     )
                 }
             }
-
             // Details
             if (entry.notes.isNotBlank()) {
                 Text(
                     text = entry.notes,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.Gray
                 )
             }
 
@@ -331,12 +342,12 @@ fun EntryBottomSheet(
                     Icons.Default.AccessTime,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = Color.Gray
                 )
                 Text(
                     text = dateFormat.format(Date(entry.timestamp)),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.Gray
                 )
             }
 
@@ -349,12 +360,12 @@ fun EntryBottomSheet(
                         Icons.Default.LocationOn,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = Color(0xFF8B5CF6)
                     )
                     Text(
                         text = location.address ?: "${location.latitude}, ${location.longitude}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White
                     )
                 }
             }
@@ -376,20 +387,26 @@ fun PermissionDeniedContent(
             Icons.Default.LocationOff,
             contentDescription = null,
             modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            tint = Color.Gray
         )
         Text(
-            text = "Location Permission Required",
+            text = "Cần quyền truy cập vị trí",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = Color.White
         )
         Text(
-            text = "Please grant location permission to see your food entries on the map",
+            text = "Vui lòng cấp quyền truy cập vị trí để xem bản đồ các địa điểm",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = Color.Gray
         )
-        Button(onClick = onRequestPermission) {
-            Text("Grant Permission")
+        Button(
+            onClick = onRequestPermission,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF8B5CF6)
+            ),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Cấp quyền", color = Color.White)
         }
     }
 }

@@ -53,8 +53,8 @@ fun LoginScreen(
     LaunchedEffect(authState) {
         when (authState) {
             is AuthState.Success -> {
-                // Navigate to home
-                navController.navigate(Screen.Home.route) {
+                // Navigate to main screen
+                navController.navigate(Screen.Main.route) {
                     popUpTo(Screen.Login.route) { inclusive = true }
                 }
             }
@@ -370,13 +370,13 @@ fun LoginScreen(
             // Test/Skip button
             TextButton(
                 onClick = {
-                    navController.navigate(Screen.Home.route) {
+                    navController.navigate(Screen.Main.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 }
             ) {
                 Text(
-                    text = "[DEV] Skip to Home",
+                    text = "[DEV] Skip to Main",
                     fontSize = 12.sp,
                     color = Color(0xFF666666)
                 )

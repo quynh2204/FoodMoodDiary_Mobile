@@ -45,6 +45,7 @@ class DiscoveryViewModel @Inject constructor(
         loadCategories()
         loadAreas()
         loadRandomMeal()
+        loadInitialMealsOnStart() // Load some meals for discovery
     }
 
     fun loadRandomMeal() {
@@ -191,5 +192,41 @@ class DiscoveryViewModel @Inject constructor(
 
     fun clearSearchResults() {
         _searchResults.value = emptyList()
+    }
+
+    fun loadInitialMeals() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val initialMeals = mutableListOf<Meal>()
+            
+            // Load 10 random meals for discovery
+            repeat(10) {
+                mealRepository.getRandomMeal()
+                    .onSuccess { meal ->
+                        initialMeals.add(meal)
+                    }
+            }
+            
+            _searchResults.value = initialMeals
+            _isLoading.value = false
+        }
+    }
+
+    private fun loadInitialMealsOnStart() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val initialMeals = mutableListOf<Meal>()
+            
+            // Load 10 random meals for discovery
+            repeat(10) {
+                mealRepository.getRandomMeal()
+                    .onSuccess { meal ->
+                        initialMeals.add(meal)
+                    }
+            }
+            
+            _searchResults.value = initialMeals
+            _isLoading.value = false
+        }
     }
 }

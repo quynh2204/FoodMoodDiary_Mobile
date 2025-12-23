@@ -36,3 +36,45 @@ build/
 
 # AVD files
 .android/
+
+# Google Services (contains sensitive keys)
+google-services.json
+
+# Local configuration file (SDK path, etc.)
+local.properties
+
+# IntelliJ IDEA
+*.iml
+.idea/
+*.ipr
+*.iws
+
+# Gradle wrapper (optional - usually committed but can be regenerated)
+# .gradle/wrapper/
+
+# Mac OS
+.DS_Store
+*.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Keystore files (NEVER commit these!)
+*.jks
+*.keystore
+keystore.properties
+
+# NDK
+obj/
+.externalNativeBuild/
+
+# Signing files
+signing.properties
+keystore.jks
+release.jks

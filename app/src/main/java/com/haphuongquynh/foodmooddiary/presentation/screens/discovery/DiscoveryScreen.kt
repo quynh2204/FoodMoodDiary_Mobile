@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -19,14 +20,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.haphuongquynh.foodmooddiary.domain.model.Meal
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.DiscoveryViewModel
 
 /**
- * Discovery Screen - Explore meals from TheMealDB API
+ * Discovery Screen - Explore meal plans from TheMealDB API
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,553 +42,258 @@ fun DiscoveryScreen(
     val searchResults by viewModel.searchResults.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
-    val categories by viewModel.categories.collectAsState()
-    val areas by viewModel.areas.collectAsState()
 
-    var selectedTab by remember { mutableStateOf(0) }
-    var searchQuery by remember { mutableStateOf("") }
-    var showSearchBar by remember { mutableStateOf(false) }
-    var selectedCategory by remember { mutableStateOf<String?>(null) }
-    var selectedArea by remember { mutableStateOf<String?>(null) }
-    var showFilters by remember { mutableStateOf(false) }
+    var selectedTab by remember { mutableStateOf(1) } // Default to "Khám phá món ăn"
+    var selectedCategory by remember { mutableStateOf("Tất cả") }
 
     val context = LocalContext.current
 
-    Scaffold(
-        containerColor = Color(0xFF1C1C1E),
-        topBar = {
-            TopAppBar(
-                title = { Text("Discover Meals", color = Color.White) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF2C2C2E),
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White,
-                    actionIconContentColor = Color.White
-                ),
-                navigationIcon = {
-                    if (onNavigateBack != null) {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.Default.ArrowBack, "Back", tint = Color.White)
-                        }
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showSearchBar = !showSearchBar }) {
-                        Icon(Icons.Default.Search, "Search", tint = Color.White)
-                    }
-                    IconButton(onClick = { showFilters = !showFilters }) {
-                        Icon(Icons.Default.FilterList, "Filters", tint = Color.White)
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            if (selectedTab == 0 && currentMeal != null) {
-                FloatingActionButton(
-                    onClick = { currentMeal?.let { viewModel.toggleFavorite(it) } }
-                ) {
-                    Icon(
-                        imageVector = if (currentMeal?.isFavorite == true) 
-                            Icons.Default.Favorite 
-                        else 
-                            Icons.Default.FavoriteBorder,
-                        contentDescription = "Toggle Favorite",
-                        tint = if (currentMeal?.isFavorite == true) 
-                            Color.Red 
-                        else 
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            // Search Bar
-            if (showSearchBar) {
-                SearchBar(
-                    query = searchQuery,
-                    onQueryChange = { 
-                        searchQuery = it
-                        if (it.length >= 2) {
-                            viewModel.searchMealsByName(it)
-                        } else if (it.isEmpty()) {
-                            viewModel.clearSearchResults()
-                        }
-                    },
-                    onClose = { 
-                        showSearchBar = false
-                        searchQuery = ""
-                        viewModel.clearSearchResults()
-                    }
-                )
-            }
-
-            // Filters
-            if (showFilters) {
-                FiltersRow(
-                    categories = categories,
-                    areas = areas,
-                    selectedCategory = selectedCategory,
-                    selectedArea = selectedArea,
-                    onCategorySelected = { category ->
-                        selectedCategory = if (selectedCategory == category) null else category
-                        selectedCategory?.let { viewModel.filterByCategory(it) }
-                            ?: viewModel.clearSearchResults()
-                    },
-                    onAreaSelected = { area ->
-                        selectedArea = if (selectedArea == area) null else area
-                        selectedArea?.let { viewModel.filterByArea(it) }
-                            ?: viewModel.clearSearchResults()
-                    }
-                )
-            }
-
-            // Tabs
-            TabRow(selectedTabIndex = selectedTab) {
-                Tab(
-                    selected = selectedTab == 0,
-                    onClick = { 
-                        selectedTab = 0
-                        viewModel.clearSearchResults()
-                    },
-                    text = { Text("Discover") }
-                )
-                Tab(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    text = { Text("Favorites (${favorites.size})") }
-                )
-            }
-
-            // Content
-            when {
-                isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-                error != null -> {
-                    ErrorMessage(
-                        message = error ?: "Unknown error",
-                        onRetry = {
-                            viewModel.clearError()
-                            if (selectedTab == 0) {
-                                viewModel.loadRandomMeal()
-                            }
-                        }
-                    )
-                }
-                selectedTab == 0 -> {
-                    if (searchResults.isNotEmpty()) {
-                        SearchResultsList(
-                            meals = searchResults,
-                            onMealClick = { 
-                                viewModel.loadMealById(it.id)
-                                selectedTab = 0
-                            },
-                            onFavoriteClick = { viewModel.toggleFavorite(it) }
-                        )
-                    } else {
-                        DiscoverTab(
-                            meal = currentMeal,
-                            onRandomClick = { viewModel.loadRandomMeal() },
-                            onYouTubeClick = { url ->
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                                context.startActivity(intent)
-                            }
-                        )
-                    }
-                }
-                selectedTab == 1 -> {
-                    FavoritesTab(
-                        favorites = favorites,
-                        onMealClick = { 
-                            viewModel.loadMealById(it.id)
-                            selectedTab = 0
-                        },
-                        onFavoriteClick = { viewModel.toggleFavorite(it) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SearchBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    onClose: () -> Unit
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        color = Color(0xFF3C3C3E),
-        shape = RoundedCornerShape(24.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Default.Search, "Search", tint = Color.White)
-            TextField(
-                value = query,
-                onValueChange = onQueryChange,
-                modifier = Modifier.weight(1f),
-                placeholder = { Text("Search meals...", color = Color.Gray) },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    cursorColor = Color.White
-                )
-            )
-            IconButton(onClick = onClose) {
-                Icon(Icons.Default.Close, "Close", tint = Color.White)
-            }
-        }
-    }
-}
-
-@Composable
-private fun FiltersRow(
-    categories: List<String>,
-    areas: List<String>,
-    selectedCategory: String?,
-    selectedArea: String?,
-    onCategorySelected: (String) -> Unit,
-    onAreaSelected: (String) -> Unit
-) {
-    // Enhanced categories for Vietnamese context
-    val enhancedCategories = listOf(
-        "Beef", "Chicken", "Pork", "Seafood", "Vegetarian", 
-        "Dessert", "Lamb", "Pasta", "Side", "Starter"
-    )
-    
-    // Enhanced areas prioritizing Vietnam and Southeast Asia
-    val enhancedAreas = listOf(
-        "Vietnamese", "Thai", "Chinese", "Japanese", "Korean",
-        "Malaysian", "Indonesian", "Singaporean", "Filipino",
-        "American", "Italian", "French", "Indian", "Mexican"
-    )
-    
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .background(Color(0xFF1C1C1E))
-    ) {
-        item {
-            Text(
-                "Categories",
-                style = MaterialTheme.typography.titleSmall,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(8.dp)
-            )
-        }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                enhancedCategories.take(5).forEach { category ->
-                    FilterChip(
-                        selected = category == selectedCategory,
-                        onClick = { onCategorySelected(category) },
-                        label = { Text(category) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            containerColor = Color(0xFF3C3C3E),
-                            labelColor = Color.White,
-                            selectedContainerColor = Color(0xFFFFD700),
-                            selectedLabelColor = Color.Black
-                        )
-                    )
-                }
-            }
-        }
-        
-        item {
-            Text(
-                "Areas",
-                style = MaterialTheme.typography.titleSmall,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(8.dp)
-            )
-        }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                enhancedAreas.take(5).forEach { area ->
-                    FilterChip(
-                        selected = area == selectedArea,
-                        onClick = { onAreaSelected(area) },
-                        label = { Text(area) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            containerColor = Color(0xFF3C3C3E),
-                            labelColor = Color.White,
-                            selectedContainerColor = Color(0xFFFFD700),
-                            selectedLabelColor = Color.Black
-                        )
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DiscoverTab(
-    meal: Meal?,
-    onRandomClick: () -> Unit,
-    onYouTubeClick: (String) -> Unit
-) {
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1C1C1E)),
-        contentPadding = PaddingValues(16.dp)
+            .background(Color(0xFF1C1C1E))
     ) {
-        item {
-            Button(
-                onClick = onRandomClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFD700),
-                    contentColor = Color.Black
-                )
-            ) {
-                Icon(Icons.Default.Refresh, "Random Meal", tint = Color.Black)
-                Spacer(Modifier.width(8.dp))
-                Text("Get Random Meal", color = Color.Black)
-            }
-        }
-
-        meal?.let {
-            item {
-                MealCard(
-                    meal = it,
-                    onYouTubeClick = onYouTubeClick
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun MealCard(
-    meal: Meal,
-    onYouTubeClick: (String) -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2C2C2E)
+        // Header
+        Text(
+            text = "Khám phá món ăn",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
         )
-    ) {
-        Column {
-            // Image
-            AsyncImage(
-                model = meal.thumbUrl,
-                contentDescription = meal.name,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
-                contentScale = ContentScale.Crop
+
+        // Tab Row
+        TabRow(
+            selectedTabIndex = selectedTab,
+            containerColor = Color(0xFF1C1C1E),
+            contentColor = Color(0xFF8B5CF6)
+        ) {
+            Tab(
+                selected = selectedTab == 0,
+                onClick = { selectedTab = 0 },
+                text = { 
+                    Text(
+                        "Gợi ý cho bạn",
+                        color = if (selectedTab == 0) Color(0xFF8B5CF6) else Color.Gray,
+                        fontSize = 14.sp
+                    )
+                }
             )
+            Tab(
+                selected = selectedTab == 1,
+                onClick = { selectedTab = 1 },
+                text = { 
+                    Text(
+                        "Khám phá món ăn",
+                        color = if (selectedTab == 1) Color(0xFF8B5CF6) else Color.Gray,
+                        fontSize = 14.sp
+                    )
+                }
+            )
+            Tab(
+                selected = selectedTab == 2,
+                onClick = { selectedTab = 2 },
+                text = { 
+                    Text(
+                        "Món đã lưu",
+                        color = if (selectedTab == 2) Color(0xFF8B5CF6) else Color.Gray,
+                        fontSize = 14.sp
+                    )
+                }
+            )
+        }
 
-            Column(modifier = Modifier.padding(16.dp)) {
-                // Title
-                Text(
-                    text = meal.name,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+        Spacer(modifier = Modifier.height(16.dp))
 
-                Spacer(Modifier.height(8.dp))
-
-                // Category & Area
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+        // Content
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    AssistChip(
-                        onClick = {},
-                        label = { Text(meal.category, color = Color.White) },
-                        leadingIcon = { Icon(Icons.Default.Fastfood, null, tint = Color(0xFFFFD700)) },
-                        colors = AssistChipDefaults.assistChipColors(
-                            containerColor = Color(0xFF3C3C3E),
-                            labelColor = Color.White
-                        )
-                    )
-                    AssistChip(
-                        onClick = {},
-                        label = { Text(meal.area, color = Color.White) },
-                        leadingIcon = { Icon(Icons.Default.Place, null, tint = Color(0xFFFFD700)) },
-                        colors = AssistChipDefaults.assistChipColors(
-                            containerColor = Color(0xFF3C3C3E),
-                            labelColor = Color.White
-                        )
-                    )
+                    CircularProgressIndicator(color = Color(0xFF8B5CF6))
                 }
-
-                Spacer(Modifier.height(8.dp))
-
-                // Tags
-                if (meal.tags.isNotEmpty()) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        meal.tags.forEach { tag ->
-                            SuggestionChip(
-                                onClick = {},
-                                label = { Text(tag, style = MaterialTheme.typography.bodySmall) }
-                            )
+            }
+            error != null -> {
+                ErrorMessage(
+                    message = error ?: "Unknown error",
+                    onRetry = {
+                        viewModel.clearError()
+                        viewModel.loadRandomMeal()
+                    }
+                )
+            }
+            selectedTab == 0 -> {
+                // Suggestions for you
+                SuggestionsTab()
+            }
+            selectedTab == 1 -> {
+                // Discover Meals
+                DiscoverMealsTab(
+                    selectedCategory = selectedCategory,
+                    onCategoryChange = { category ->
+                        selectedCategory = category
+                        when(category) {
+                            "Tất cả" -> viewModel.loadInitialMeals()
+                            "Bò" -> viewModel.filterByCategory("Beef")
+                            "Gà" -> viewModel.filterByCategory("Chicken")
+                            "Hải sản" -> viewModel.filterByCategory("Seafood")
                         }
-                    }
-                    Spacer(Modifier.height(8.dp))
-                }
-
-                // Ingredients
-                Text(
-                    "Ingredients",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    },
+                    searchResults = searchResults,
+                    favorites = favorites,
+                    onFavoriteClick = { viewModel.toggleFavorite(it) },
+                    onMealClick = { meal ->
+                        meal.youtubeUrl?.let { url ->
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                            context.startActivity(intent)
+                        }
+                    },
+                    onRefresh = { viewModel.loadRandomMeal() }
                 )
-                Spacer(Modifier.height(4.dp))
-                meal.ingredients.forEach { (ingredient, measure) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 2.dp)
-                    ) {
-                        Text("• $ingredient", modifier = Modifier.weight(1f))
-                        Text(measure, style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-
-                Spacer(Modifier.height(16.dp))
-
-                // Instructions
-                Text(
-                    "Instructions",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    meal.instructions,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                // YouTube Button
-                meal.youtubeUrl?.let { url ->
-                    Spacer(Modifier.height(16.dp))
-                    Button(
-                        onClick = { onYouTubeClick(url) },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFFF0000)
-                        )
-                    ) {
-                        Icon(Icons.Default.PlayArrow, "Watch on YouTube")
-                        Spacer(Modifier.width(8.dp))
-                        Text("Watch on YouTube")
-                    }
-                }
+            }
+            selectedTab == 2 -> {
+                // Saved Meals
+                SavedMealsTab(favorites = favorites)
             }
         }
     }
 }
 
 @Composable
-private fun SearchResultsList(
-    meals: List<Meal>,
+private fun SuggestionsTab() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                Icons.Default.Lightbulb,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = Color(0xFFFFD700)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "Gợi ý dựa trên sở thích của bạn",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "Thêm môn ăn vào nhật ký để nhận gợi ý",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
+        }
+    }
+}
+
+@Composable
+private fun DiscoverMealsTab(
+    selectedCategory: String,
+    onCategoryChange: (String) -> Unit,
+    searchResults: List<Meal>,
+    favorites: List<Meal>,
+    onFavoriteClick: (Meal) -> Unit,
     onMealClick: (Meal) -> Unit,
-    onFavoriteClick: (Meal) -> Unit
+    onRefresh: () -> Unit
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        items(meals) { meal ->
-            MealListItem(
+        // Title
+        item {
+            Text(
+                text = "Khám phá món ăn mới",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
+                modifier = Modifier.padding(vertical = 12.dp)
+            )
+        }
+
+        // Category Filters
+        item {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                items(listOf("Tất cả", "Bò", "Gà", "Hải sản")) { category ->
+                    FilterChip(
+                        selected = category == selectedCategory,
+                        onClick = { onCategoryChange(category) },
+                        label = { 
+                            Text(
+                                category,
+                                fontSize = 13.sp
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = Color(0xFF2C2C2E),
+                            labelColor = Color.Gray,
+                            selectedContainerColor = Color(0xFF8B5CF6),
+                            selectedLabelColor = Color.White
+                        ),
+                        border = null
+                    )
+                }
+            }
+        }
+
+        // Meal Plans
+        val mealsToShow = if (searchResults.isNotEmpty()) searchResults else favorites.take(10)
+        
+        items(mealsToShow) { meal ->
+            MealDiscoveryCard(
                 meal = meal,
                 onClick = { onMealClick(meal) },
                 onFavoriteClick = { onFavoriteClick(meal) }
             )
+            Spacer(modifier = Modifier.height(12.dp))
         }
-    }
-}
 
-@Composable
-private fun FavoritesTab(
-    favorites: List<Meal>,
-    onMealClick: (Meal) -> Unit,
-    onFavoriteClick: (Meal) -> Unit
-) {
-    if (favorites.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    Icons.Default.FavoriteBorder,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    "No favorites yet",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    "Discover meals and add them to favorites!",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    } else {
-        LazyColumn(
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(favorites) { meal ->
-                MealListItem(
-                    meal = meal,
-                    onClick = { onMealClick(meal) },
-                    onFavoriteClick = { onFavoriteClick(meal) }
-                )
+        // Load more or empty state
+        item {
+            if (mealsToShow.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            "Đang tải món ăn...",
+                            color = Color.Gray,
+                            fontSize = 14.sp
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = onRefresh,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF8B5CF6)
+                            )
+                        ) {
+                            Icon(Icons.Default.Refresh, "Refresh")
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Ẩn khám phá")
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun MealListItem(
+private fun MealDiscoveryCard(
     meal: Meal,
     onClick: () -> Unit,
     onFavoriteClick: () -> Unit
@@ -593,48 +301,170 @@ private fun MealListItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF2C2C2E)
+        ),
+        shape = RoundedCornerShape(12.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AsyncImage(
-                model = meal.thumbUrl,
-                contentDescription = meal.name,
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
+        Column {
+            // Image
+            Box {
+                AsyncImage(
+                    model = meal.thumbUrl,
+                    contentDescription = meal.name,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+                    contentScale = ContentScale.Crop
+                )
+                
+                // Overlay badge
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(12.dp),
+                    color = Color(0xFFFFD700).copy(alpha = 0.9f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = meal.area,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                    }
+                }
+            }
 
+            // Content
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 12.dp)
+                modifier = Modifier.padding(12.dp)
             ) {
                 Text(
                     text = meal.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // Meal description
                 Text(
                     text = "${meal.category} • ${meal.area}",
+                    fontSize = 13.sp,
+                    color = Color.Gray
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // Tags
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(
+                        color = Color(0xFF3C3C3E),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Restaurant,
+                                contentDescription = null,
+                                tint = Color(0xFFFFD700),
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "${meal.ingredients.size} ngậy liệu",
+                                fontSize = 11.sp,
+                                color = Color.White
+                            )
+                        }
+                    }
+                    
+                    if (meal.isFavorite) {
+                        Surface(
+                            color = Color(0xFF3C3C3E),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.Favorite,
+                                    contentDescription = null,
+                                    tint = Color.Red,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Favorite",
+                                    fontSize = 11.sp,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SavedMealsTab(favorites: List<Meal>) {
+    if (favorites.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    Icons.Default.BookmarkBorder,
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "Chưa có món ăn được lưu",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Lưu món ăn yêu thích để xem sau",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.Gray
                 )
             }
-
-            IconButton(onClick = onFavoriteClick) {
-                Icon(
-                    imageVector = if (meal.isFavorite) 
-                        Icons.Default.Favorite 
-                    else 
-                        Icons.Default.FavoriteBorder,
-                    contentDescription = "Toggle Favorite",
-                    tint = if (meal.isFavorite) Color.Red else MaterialTheme.colorScheme.onSurface
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(favorites) { meal ->
+                MealDiscoveryCard(
+                    meal = meal,
+                    onClick = { },
+                    onFavoriteClick = { }
                 )
             }
         }
@@ -658,25 +488,31 @@ private fun ErrorMessage(
                 Icons.Default.Error,
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.error
+                tint = Color(0xFFFF5252)
             )
             Spacer(Modifier.height(16.dp))
             Text(
                 "Oops!",
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
             Spacer(Modifier.height(8.dp))
             Text(
                 message,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color.Gray
             )
             Spacer(Modifier.height(16.dp))
-            Button(onClick = onRetry) {
+            Button(
+                onClick = onRetry,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF8B5CF6)
+                )
+            ) {
                 Icon(Icons.Default.Refresh, "Retry")
                 Spacer(Modifier.width(8.dp))
-                Text("Retry")
+                Text("Thử lại")
             }
         }
     }

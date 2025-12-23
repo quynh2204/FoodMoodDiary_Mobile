@@ -35,6 +35,10 @@ fun FoodMoodDiaryNavigation() {
         }
 
         // Main Flow
+        composable(route = Screen.Main.route) {
+            com.haphuongquynh.foodmooddiary.presentation.screens.main.MainScreen(navController = navController)
+        }
+
         composable(route = Screen.Home.route) {
             com.haphuongquynh.foodmooddiary.presentation.screens.home.ModernHomeScreen(navController = navController)
         }
@@ -63,9 +67,7 @@ fun FoodMoodDiaryNavigation() {
         }
 
         composable(route = Screen.Statistics.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.statistics.StatisticsScreen(
-                onNavigateBack = { navController.navigateUp() }
-            )
+            com.haphuongquynh.foodmooddiary.presentation.screens.statistics.StatisticsScreen()
         }
 
         composable(route = Screen.Map.route) {
@@ -79,7 +81,7 @@ fun FoodMoodDiaryNavigation() {
                 onNavigateBack = { navController.navigateUp() },
                 onNavigateToLogin = {
                     navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
+                        popUpTo(Screen.Main.route) { inclusive = true }
                     }
                 }
             )
@@ -104,6 +106,7 @@ sealed class Screen(val route: String) {
     data object Login : Screen("login")
     data object Register : Screen("register")
     data object NewPassword : Screen("new_password")
+    data object Main : Screen("main")
     data object Home : Screen("home")
     data object AddEntry : Screen("add_entry")
     data object EntryDetail : Screen("entry_detail/{entryId}") {

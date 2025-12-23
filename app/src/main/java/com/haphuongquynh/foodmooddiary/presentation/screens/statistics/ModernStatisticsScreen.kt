@@ -359,7 +359,7 @@ private fun ModernChartsTab(
     ) {
         // Mood Trend Chart
         ModernChartSection(title = "Mood Trend") {
-            MoodTrendChart(data = moodTrend)
+            MoodTrendChart(moodTrend = moodTrend)
         }
 
         // Top Foods Chart

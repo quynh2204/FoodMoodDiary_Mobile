@@ -51,7 +51,7 @@ fun RegisterScreen(
     LaunchedEffect(authState) {
         when (authState) {
             is AuthState.Success -> {
-                navController.navigate(Screen.Home.route) {
+                navController.navigate(Screen.Main.route) {
                     popUpTo(Screen.Register.route) { inclusive = true }
                 }
             }
