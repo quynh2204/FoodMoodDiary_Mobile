@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.haphuongquynh.foodmooddiary.ui.theme.*
 import com.haphuongquynh.foodmooddiary.domain.model.FoodEntry
 import com.haphuongquynh.foodmooddiary.presentation.navigation.Screen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.FoodEntryViewModel
@@ -49,7 +50,7 @@ fun EntryListScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1C1C1E))
+            .background(BlackPrimary)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // View mode toggle header
@@ -77,8 +78,8 @@ fun EntryListScreen(
                             .size(40.dp)
                             .clip(CircleShape)
                             .background(
-                                if (showCalendar) Color(0xFF8B5CF6) 
-                                else Color(0xFF2C2C2E)
+                                if (showCalendar) PastelGreen 
+                                else BlackSecondary
                             )
                     ) {
                         Icon(
@@ -95,8 +96,8 @@ fun EntryListScreen(
                             .size(40.dp)
                             .clip(CircleShape)
                             .background(
-                                if (viewMode == ViewMode.GRID) Color(0xFF8B5CF6) 
-                                else Color(0xFF2C2C2E)
+                                if (viewMode == ViewMode.GRID) PastelGreen 
+                                else BlackSecondary
                             )
                     ) {
                         Icon(
@@ -113,8 +114,8 @@ fun EntryListScreen(
                             .size(40.dp)
                             .clip(CircleShape)
                             .background(
-                                if (viewMode == ViewMode.LIST) Color(0xFF8B5CF6) 
-                                else Color(0xFF2C2C2E)
+                                if (viewMode == ViewMode.LIST) PastelGreen 
+                                else BlackSecondary
                             )
                     ) {
                         Icon(
@@ -618,7 +619,7 @@ fun CalendarView(
                                             .fillMaxSize()
                                             .clip(CircleShape)
                                             .background(
-                                                if (isToday) Color(0xFF8B5CF6)
+                                                if (isToday) PastelGreen
                                                 else Color.Transparent
                                             )
                                             .clickable { /* Select date */ },

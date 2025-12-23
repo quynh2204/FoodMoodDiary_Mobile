@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.haphuongquynh.foodmooddiary.ui.theme.*
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.FoodEntryViewModel
 
@@ -44,7 +45,7 @@ fun ProfileScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1C1C1E))
+            .background(BlackPrimary)
             .verticalScroll(rememberScrollState())
     ) {
         // Header with Settings Icon
@@ -59,7 +60,7 @@ fun ProfileScreen(
                 text = "Hồ sơ cá nhân",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = WhiteText
             )
             
             IconButton(
@@ -67,12 +68,12 @@ fun ProfileScreen(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF2C2C2E))
+                    .background(BlackSecondary)
             ) {
                 Icon(
                     Icons.Default.Settings,
                     contentDescription = "Settings",
-                    tint = Color.White
+                    tint = WhiteText
                 )
             }
         }

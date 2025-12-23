@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.haphuongquynh.foodmooddiary.ui.theme.*
 
 @Composable
 fun NewPasswordScreen(
@@ -27,7 +28,7 @@ fun NewPasswordScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1A1A1A))
+            .background(BlackPrimary)
             .padding(horizontal = 24.dp)
     ) {
         Column(
@@ -111,8 +112,8 @@ fun NewPasswordScreen(
                     unfocusedContainerColor = Color.White,
                     focusedContainerColor = Color.White,
                     unfocusedBorderColor = Color.Transparent,
-                    focusedBorderColor = Color(0xFFE91E8C),
-                    cursorColor = Color(0xFFE91E8C)
+                    focusedBorderColor = PastelGreen,
+                    cursorColor = PastelGreen
                 ),
                 singleLine = true
             )
@@ -142,8 +143,8 @@ fun NewPasswordScreen(
                     unfocusedContainerColor = Color.White,
                     focusedContainerColor = Color.White,
                     unfocusedBorderColor = Color.Transparent,
-                    focusedBorderColor = Color(0xFFE91E8C),
-                    cursorColor = Color(0xFFE91E8C)
+                    focusedBorderColor = PastelGreen,
+                    cursorColor = PastelGreen
                 ),
                 singleLine = true
             )
@@ -160,7 +161,7 @@ fun NewPasswordScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFE91E8C),
+                    containerColor = PastelGreen,
                     contentColor = Color.White
                 )
             ) {

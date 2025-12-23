@@ -31,6 +31,7 @@ import androidx.navigation.NavController
 import com.haphuongquynh.foodmooddiary.presentation.navigation.Screen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthState
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
+import com.haphuongquynh.foodmooddiary.ui.theme.*
 
 @Composable
 fun RegisterScreen(
@@ -65,7 +66,7 @@ fun RegisterScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1A1A1A))
+            .background(BlackPrimary)
             .padding(horizontal = 24.dp)
     ) {
         Column(
@@ -88,7 +89,7 @@ fun RegisterScreen(
             // Tagline
             Text(
                 text = "Track your meals. Understand your emotions.",
-                color = Color(0xFFFFB800),
+                color = PastelGreenLight,
                 fontSize = 13.sp,
                 textAlign = TextAlign.Center
             )
@@ -138,8 +139,8 @@ fun RegisterScreen(
                     unfocusedContainerColor = Color.White,
                     focusedContainerColor = Color.White,
                     unfocusedBorderColor = Color.Transparent,
-                    focusedBorderColor = Color(0xFFE91E8C),
-                    cursorColor = Color(0xFFE91E8C)
+                    focusedBorderColor = PastelGreen,
+                    cursorColor = PastelGreen
                 ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -178,8 +179,8 @@ fun RegisterScreen(
                     unfocusedContainerColor = Color.White,
                     focusedContainerColor = Color.White,
                     unfocusedBorderColor = Color.Transparent,
-                    focusedBorderColor = Color(0xFFE91E8C),
-                    cursorColor = Color(0xFFE91E8C)
+                    focusedBorderColor = PastelGreen,
+                    cursorColor = PastelGreen
                 ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -219,8 +220,8 @@ fun RegisterScreen(
                     unfocusedContainerColor = Color.White,
                     focusedContainerColor = Color.White,
                     unfocusedBorderColor = Color.Transparent,
-                    focusedBorderColor = Color(0xFFE91E8C),
-                    cursorColor = Color(0xFFE91E8C)
+                    focusedBorderColor = PastelGreen,
+                    cursorColor = PastelGreen
                 ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -260,8 +261,8 @@ fun RegisterScreen(
                     unfocusedContainerColor = Color.White,
                     focusedContainerColor = Color.White,
                     unfocusedBorderColor = Color.Transparent,
-                    focusedBorderColor = Color(0xFFE91E8C),
-                    cursorColor = Color(0xFFE91E8C)
+                    focusedBorderColor = PastelGreen,
+                    cursorColor = PastelGreen
                 ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -285,7 +286,7 @@ fun RegisterScreen(
             if (errorMessage != null) {
                 Text(
                     text = errorMessage!!,
-                    color = Color(0xFFE91E8C),
+                    color = PastelGreen,
                     fontSize = 14.sp,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -307,7 +308,7 @@ fun RegisterScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFE91E8C),
+                    containerColor = PastelGreen,
                     contentColor = Color.White
                 ),
                 enabled = authState !is AuthState.Loading
@@ -374,7 +375,7 @@ fun RegisterScreen(
                         text = "G",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFE91E8C)
+                        color = PastelGreen
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
@@ -401,7 +402,7 @@ fun RegisterScreen(
                 Text(
                     text = "Sign in",
                     fontSize = 14.sp,
-                    color = Color(0xFFE91E8C),
+                    color = PastelGreen,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable {
                         navController.navigateUp()

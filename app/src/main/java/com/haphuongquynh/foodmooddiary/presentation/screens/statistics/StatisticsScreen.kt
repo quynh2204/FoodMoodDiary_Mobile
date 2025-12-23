@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.StatisticsViewModel
+import com.haphuongquynh.foodmooddiary.ui.theme.*
 
 /**
  * Statistics Screen - Thống kê nhật ký tâm trạng và thói quen ăn uống
@@ -38,7 +39,7 @@ fun StatisticsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1C1C1E))
+            .background(BlackPrimary)
             .verticalScroll(rememberScrollState())
     ) {
         // Header
@@ -163,7 +164,7 @@ fun PeriodButton(
         onClick = onClick,
         modifier = modifier.height(48.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) Color(0xFF8B5CF6) else Color(0xFF2C2C2E),
+            containerColor = if (isSelected) PastelGreen else BlackSecondary,
             contentColor = Color.White
         ),
         shape = RoundedCornerShape(24.dp)
@@ -193,7 +194,7 @@ fun DateRangeSelector(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(Color(0xFF2C2C2E))
+                .background(BlackSecondary)
         ) {
             Icon(
                 Icons.Default.ChevronLeft,
@@ -214,7 +215,7 @@ fun DateRangeSelector(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(Color(0xFF2C2C2E))
+                .background(BlackSecondary)
         ) {
             Icon(
                 Icons.Default.ChevronRight,
@@ -233,7 +234,7 @@ fun MoodTrendChart(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2C2C2E)
+            containerColor = BlackSecondary
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -259,7 +260,7 @@ fun MoodTrendChart(
                         modifier = Modifier
                             .size(12.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF8B5CF6))
+                            .background(PastelGreen)
                     )
                     Text(
                         text = "Trung bình",
@@ -308,7 +309,7 @@ fun MoodTrendChart(
                                 .background(
                                     when {
                                         moodValue >= 8f -> Color(0xFF4CAF50)
-                                        moodValue >= 5f -> Color(0xFF8B5CF6)
+                                        moodValue >= 5f -> PastelGreen
                                         moodValue > 0f -> Color(0xFFFF9800)
                                         else -> Color(0xFF3C3C3E)
                                     }
@@ -358,7 +359,7 @@ fun EntrySummaryCards(
                 modifier = Modifier.weight(1f),
                 iconColor = when {
                     avgMoodScore >= 8 -> Color(0xFF4CAF50)
-                    avgMoodScore >= 5 -> Color(0xFF8B5CF6)
+                    avgMoodScore >= 5 -> PastelGreen
                     avgMoodScore > 0 -> Color(0xFFFF9800)
                     else -> Color.Gray
                 }
@@ -369,7 +370,7 @@ fun EntrySummaryCards(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF2C2C2E)
+                    containerColor = BlackSecondary
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -408,7 +409,7 @@ fun EntrySummaryCards(
                             Text(
                                 text = "${food.count} lần",
                                 fontSize = 14.sp,
-                                color = Color(0xFF8B5CF6),
+                                color = PastelGreen,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -425,12 +426,12 @@ fun StatInfoCard(
     value: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     modifier: Modifier = Modifier,
-    iconColor: Color = Color(0xFF8B5CF6)
+    iconColor: Color = PastelGreen
 ) {
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2C2C2E)
+            containerColor = BlackSecondary
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -489,7 +490,7 @@ fun MoodDistributionCards(
             label = "Bình thường",
             count = neutralCount,
             percentage = if (total > 0) (neutralCount * 100 / total) else 0,
-            color = Color(0xFF8B5CF6),
+            color = PastelGreen,
             modifier = Modifier.weight(1f)
         )
         
@@ -516,7 +517,7 @@ fun MoodTypeCard(
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2C2C2E)
+            containerColor = BlackSecondary
         ),
         shape = RoundedCornerShape(12.dp)
     ) {

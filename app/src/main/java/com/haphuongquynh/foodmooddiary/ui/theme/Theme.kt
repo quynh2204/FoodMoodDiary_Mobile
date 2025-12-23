@@ -28,8 +28,10 @@ private val DarkColorScheme = darkColorScheme(
     primaryContainer = PastelGreenDark,  // Container màu chính
     secondaryContainer = BlackTertiary,  // Container phụ
     tertiaryContainer = MintGreen,       // Container tertiary
-    error = Color(0xFFCF6679),           // Màu error
-    onError = BlackPrimary               // Text trên error
+    error = ErrorRed,                    // Màu error
+    onError = BlackPrimary,              // Text trên error
+    outline = CharcoalGray,              // Border/outline
+    outlineVariant = BlackTertiary       // Border variant
 )
 
 private val LightColorScheme = lightColorScheme(

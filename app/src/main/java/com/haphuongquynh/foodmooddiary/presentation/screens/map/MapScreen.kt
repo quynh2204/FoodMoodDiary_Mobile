@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.haphuongquynh.foodmooddiary.ui.theme.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -75,7 +76,7 @@ fun MapScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1C1C1E))
+            .background(BlackPrimary)
     ) {
         // Map content
         Box(modifier = Modifier.fillMaxSize()) {
@@ -140,8 +141,8 @@ fun MapScreen(
             // Heat map toggle
             FloatingActionButton(
                 onClick = { showHeatMap = !showHeatMap },
-                containerColor = if (showHeatMap) Color(0xFF8B5CF6) else Color(0xFF2C2C2E),
-                contentColor = Color.White,
+                containerColor = if (showHeatMap) PastelGreen else BlackSecondary,
+                contentColor = WhiteText,
                 modifier = Modifier.size(48.dp)
             ) {
                 Icon(
@@ -290,10 +291,10 @@ fun EntryBottomSheet(
                     text = entry.foodName,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = WhiteText
                 )
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, "Close", tint = Color.White)
+                    Icon(Icons.Default.Close, "Close", tint = WhiteText)
                 }
             }
 
@@ -360,7 +361,7 @@ fun EntryBottomSheet(
                         Icons.Default.LocationOn,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = Color(0xFF8B5CF6)
+                        tint = PastelGreen
                     )
                     Text(
                         text = location.address ?: "${location.latitude}, ${location.longitude}",
@@ -402,7 +403,7 @@ fun PermissionDeniedContent(
         Button(
             onClick = onRequestPermission,
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF8B5CF6)
+                containerColor = PastelGreen
             ),
             shape = RoundedCornerShape(12.dp)
         ) {

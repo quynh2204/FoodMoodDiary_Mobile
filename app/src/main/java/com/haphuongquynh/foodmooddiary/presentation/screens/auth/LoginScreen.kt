@@ -33,6 +33,7 @@ import androidx.navigation.NavController
 import com.haphuongquynh.foodmooddiary.presentation.navigation.Screen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthState
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
+import com.haphuongquynh.foodmooddiary.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +69,7 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1A1A1A))
+            .background(BlackPrimary)
     ) {
         Column(
             modifier = Modifier
@@ -92,7 +93,7 @@ fun LoginScreen(
             Text(
                 text = "Track your meals. Understand your emotions.",
                 fontSize = 13.sp,
-                color = Color(0xFFFFB800),
+                color = PastelGreenLight,
                 textAlign = TextAlign.Center
             )
             
@@ -250,7 +251,7 @@ fun LoginScreen(
                 Text(
                     text = "Forgot password",
                     fontSize = 14.sp,
-                    color = Color(0xFFE91E8C),
+                    color = PastelGreen,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.clickable {
                         navController.navigate("new_password")
@@ -264,7 +265,7 @@ fun LoginScreen(
             if (errorMessage != null) {
                 Text(
                     text = errorMessage!!,
-                    color = Color(0xFFE91E8C),
+                    color = ErrorRed,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -283,10 +284,10 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFE91E8C),
-                    contentColor = Color.White,
-                    disabledContainerColor = Color(0xFF804060),
-                    disabledContentColor = Color.White
+                    containerColor = PastelGreen,
+                    contentColor = BlackPrimary,
+                    disabledContainerColor = CharcoalGray,
+                    disabledContentColor = GrayText
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
@@ -357,7 +358,7 @@ fun LoginScreen(
                 Text(
                     text = "Sign up",
                     fontSize = 14.sp,
-                    color = Color(0xFFE91E8C),
+                    color = PastelGreen,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.clickable {
                         navController.navigate(Screen.Register.route)

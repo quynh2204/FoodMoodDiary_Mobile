@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.haphuongquynh.foodmooddiary.ui.theme.*
 import com.haphuongquynh.foodmooddiary.presentation.screens.camera.CameraScreen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.EntryState
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.FoodEntryViewModel
@@ -108,7 +109,7 @@ fun AddEntryScreen(
     } else {
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = Color(0xFF1C1C1E)
+            color = BlackPrimary
         ) {
             when (currentStep) {
                 0 -> PhotoCaptionStep(
@@ -163,8 +164,8 @@ fun AddEntryScreen(
                             navController.navigateUp()
                         }
                     },
-                    containerColor = Color(0xFF2C2C2E),
-                    title = { Text("Choose Photo", color = Color.White, fontWeight = FontWeight.Bold) },
+                    containerColor = BlackSecondary,
+                    title = { Text("Choose Photo", color = WhiteText, fontWeight = FontWeight.Bold) },
                     text = {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(
@@ -173,11 +174,11 @@ fun AddEntryScreen(
                                     showCamera = true
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700))
+                                colors = ButtonDefaults.buttonColors(containerColor = PastelGreen)
                             ) {
                                 Icon(Icons.Default.CameraAlt, null)
                                 Spacer(Modifier.width(8.dp))
-                                Text("Take Photo", color = Color.Black)
+                                Text("Take Photo", color = BlackPrimary)
                             }
                             Button(
                                 onClick = {
@@ -185,11 +186,11 @@ fun AddEntryScreen(
                                     galleryLauncher.launch("image/*")
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3C3C3E))
+                                colors = ButtonDefaults.buttonColors(containerColor = BlackTertiary)
                             ) {
-                                Icon(Icons.Default.PhotoLibrary, null, tint = Color.White)
+                                Icon(Icons.Default.PhotoLibrary, null, tint = WhiteText)
                                 Spacer(Modifier.width(8.dp))
-                                Text("Choose from Gallery", color = Color.White)
+                                Text("Choose from Gallery", color = WhiteText)
                             }
                         }
                     },
@@ -201,7 +202,7 @@ fun AddEntryScreen(
                                 navController.navigateUp()
                             }
                         }) {
-                            Text("Cancel", color = Color(0xFFFFD700))
+                            Text("Cancel", color = PastelGreen)
                         }
                     }
                 )
@@ -219,16 +220,16 @@ private fun PhotoCaptionStep(
     onBack: () -> Unit
 ) {
     Scaffold(
-        containerColor = Color(0xFF1C1C1E),
+        containerColor = BlackPrimary,
         topBar = {
             TopAppBar(
-                title = { Text("Add Entry", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = { Text("Add Entry", color = WhiteText, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Back", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, "Back", tint = WhiteText)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1C1C1E))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BlackPrimary)
             )
         }
     ) { paddingValues ->
@@ -245,7 +246,7 @@ private fun PhotoCaptionStep(
                     .fillMaxWidth()
                     .aspectRatio(0.75f),
                 shape = RoundedCornerShape(24.dp),
-                color = Color(0xFF2C2C2E)
+                color = BlackSecondary
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     photoData?.bitmap?.let {
@@ -259,7 +260,7 @@ private fun PhotoCaptionStep(
                         Icons.Default.Image,
                         contentDescription = null,
                         modifier = Modifier.size(80.dp),
-                        tint = Color.Gray
+                        tint = GrayText
                     )
                 }
             }
@@ -271,11 +272,11 @@ private fun PhotoCaptionStep(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700)),
+                colors = ButtonDefaults.buttonColors(containerColor = PastelGreen),
                 shape = RoundedCornerShape(28.dp),
                 enabled = photoData != null
             ) {
-                Text("Continue →", color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Continue →", color = BlackPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -308,16 +309,16 @@ private fun EntryFormStep(
     val scrollState = rememberScrollState()
 
     Scaffold(
-        containerColor = Color(0xFF1C1C1E),
+        containerColor = BlackPrimary,
         topBar = {
             TopAppBar(
-                title = { Text("Add Entry", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = { Text("Add Entry", color = WhiteText, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Back", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, "Back", tint = WhiteText)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1C1C1E))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BlackPrimary)
             )
         }
     ) { paddingValues ->
@@ -337,7 +338,7 @@ private fun EntryFormStep(
                 Surface(
                     modifier = Modifier.size(100.dp),
                     shape = RoundedCornerShape(16.dp),
-                    color = Color(0xFF2C2C2E)
+                    color = BlackSecondary
                 ) {
                     photoData?.bitmap?.let {
                         Image(
@@ -350,31 +351,31 @@ private fun EntryFormStep(
                 }
                 
                 TextButton(onClick = onChangePhoto) {
-                    Text("Change photo", color = Color(0xFFFFD700), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Change photo", color = PastelGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
-            Text("Food Name", color = Color.White, fontSize = 14.sp)
+            Text("Food Name", color = WhiteText, fontSize = 14.sp)
             TextField(
                 value = foodName,
                 onValueChange = onFoodNameChange,
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Bánh kem dâu Giáng sinh đáng yêu", color = Color.Gray) },
+                placeholder = { Text("Bánh kem dâu Giáng sinh đáng yêu", color = GrayText) },
                 shape = RoundedCornerShape(12.dp),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFA8A8A8),
-                    unfocusedContainerColor = Color(0xFFA8A8A8),
+                    focusedContainerColor = PastelGreenVeryLight,
+                    unfocusedContainerColor = PastelGreenVeryLight,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
+                    focusedTextColor = DarkText,
+                    unfocusedTextColor = DarkText
                 )
             )
 
-            Text("Mood", color = Color.White, fontSize = 14.sp)
+            Text("Mood", color = WhiteText, fontSize = 14.sp)
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = Color(0xFFA8A8A8)
+                color = PastelGreenVeryLight
             ) {
                 Row(
                     modifier = Modifier
@@ -385,7 +386,7 @@ private fun EntryFormStep(
                     moods.forEach { mood ->
                         Surface(
                             shape = RoundedCornerShape(8.dp),
-                            color = if (mood == selectedMood) Color(0xFF4CAF50) else Color.Transparent,
+                            color = if (mood == selectedMood) PastelGreenDark else Color.Transparent,
                             modifier = Modifier.clickable { onMoodSelect(mood) }
                         ) {
                             Text(
@@ -403,15 +404,15 @@ private fun EntryFormStep(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Date & Time", color = Color.White, fontSize = 14.sp)
+                    Text("Date & Time", color = WhiteText, fontSize = 14.sp)
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = Color(0xFFA8A8A8)
+                        color = PastelGreenVeryLight
                     ) {
                         Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                             Text(
                                 getCurrentDateTime(), 
-                                color = Color.Black, 
+                                color = DarkText, 
                                 fontSize = 12.sp
                             )
                         }
@@ -419,15 +420,15 @@ private fun EntryFormStep(
                 }
                 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Location", color = Color.White, fontSize = 14.sp)
+                    Text("Location", color = WhiteText, fontSize = 14.sp)
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = Color(0xFFA8A8A8)
+                        color = PastelGreenVeryLight
                     ) {
                         Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                             Text(
                                 location?.address?.take(25) ?: "Fetching...", 
-                                color = Color.Black, 
+                                color = DarkText, 
                                 fontSize = 11.sp,
                                 maxLines = 1
                             )
@@ -436,7 +437,7 @@ private fun EntryFormStep(
                 }
             }
 
-            Text("Meal Type", color = Color.White, fontSize = 14.sp)
+            Text("Meal Type", color = WhiteText, fontSize = 14.sp)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -447,12 +448,12 @@ private fun EntryFormStep(
                             .weight(1f)
                             .clickable { onMealTypeSelect(type) },
                         shape = RoundedCornerShape(12.dp),
-                        color = if (selectedMealType == type) Color(0xFF5C5C5E) else Color(0xFFA8A8A8)
+                        color = if (selectedMealType == type) PastelGreenDark else PastelGreenVeryLight
                     ) {
                         Box(modifier = Modifier.padding(vertical = 12.dp), contentAlignment = Alignment.Center) {
                             Text(
                                 type,
-                                color = Color.Black,
+                                color = if (selectedMealType == type) WhiteText else DarkText,
                                 fontSize = 12.sp,
                                 fontWeight = if (selectedMealType == type) FontWeight.Bold else FontWeight.Normal
                             )
@@ -466,29 +467,29 @@ private fun EntryFormStep(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Notes", color = Color.White, fontSize = 14.sp)
+                    Text("Notes", color = WhiteText, fontSize = 14.sp)
                     TextField(
                         value = notes,
                         onValueChange = onNotesChange,
                         modifier = Modifier.fillMaxWidth().height(120.dp),
-                        placeholder = { Text("Write something...", color = Color.Gray) },
+                        placeholder = { Text("Write something...", color = GrayText) },
                         shape = RoundedCornerShape(12.dp),
                         colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFFA8A8A8),
-                            unfocusedContainerColor = Color(0xFFA8A8A8),
+                            focusedContainerColor = PastelGreenVeryLight,
+                            unfocusedContainerColor = PastelGreenVeryLight,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            focusedTextColor = Color.Black,
-                            unfocusedTextColor = Color.Black
+                            focusedTextColor = DarkText,
+                            unfocusedTextColor = DarkText
                         )
                     )
                 }
                 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Rating", color = Color.White, fontSize = 14.sp)
+                    Text("Rating", color = WhiteText, fontSize = 14.sp)
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = Color(0xFFA8A8A8)
+                        color = PastelGreenVeryLight
                     ) {
                         Column(
                             modifier = Modifier.fillMaxWidth().padding(12.dp),
@@ -501,22 +502,22 @@ private fun EntryFormStep(
                                         if (index < rating) Icons.Default.Star else Icons.Default.StarBorder,
                                         contentDescription = null,
                                         modifier = Modifier.size(24.dp).clickable { onRatingChange(index + 1) },
-                                        tint = Color(0xFFFFD700)
+                                        tint = PastelGreen
                                     )
                                 }
                             }
                             
                             Button(
                                 onClick = {},
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5C5C5E)),
+                                colors = ButtonDefaults.buttonColors(containerColor = PastelGreenDark),
                                 shape = RoundedCornerShape(8.dp),
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                             ) {
-                                Text("Gợi ý AI 🧠", color = Color.White, fontSize = 10.sp)
+                                Text("Gợi ý AI 🧠", color = WhiteText, fontSize = 10.sp)
                             }
                             
                             if (rating > 0) {
-                                Text("Bánh màu đỏ → Happy", color = Color.Black, fontSize = 10.sp)
+                                Text("Bánh màu đỏ → Happy", color = DarkText, fontSize = 10.sp)
                             }
                         }
                     }
@@ -532,25 +533,25 @@ private fun EntryFormStep(
                 Button(
                     onClick = onSave,
                     modifier = Modifier.weight(1f).height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700)),
+                    colors = ButtonDefaults.buttonColors(containerColor = PastelGreen),
                     shape = RoundedCornerShape(28.dp),
                     enabled = !isLoading && foodName.isNotBlank()
                 ) {
                     if (isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.Black)
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = BlackPrimary)
                     } else {
-                        Text("Save", color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text("Save", color = BlackPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     }
                 }
                 
                 Button(
                     onClick = onCancel,
                     modifier = Modifier.weight(1f).height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    colors = ButtonDefaults.buttonColors(containerColor = WhiteText),
                     shape = RoundedCornerShape(28.dp),
                     enabled = !isLoading
                 ) {
-                    Text("Cancel", color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("Cancel", color = BlackPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

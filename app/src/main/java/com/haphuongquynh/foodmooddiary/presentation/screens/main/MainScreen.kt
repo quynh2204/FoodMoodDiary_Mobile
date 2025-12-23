@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.haphuongquynh.foodmooddiary.ui.theme.*
 import com.haphuongquynh.foodmooddiary.presentation.navigation.Screen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthState
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
@@ -68,26 +69,26 @@ fun MainScreen(
                                 BottomNavItem.Discovery.route -> "Discovery"
                                 else -> "FoodMoodDiary"
                             },
-                            color = Color.White
+                            color = WhiteText
                         )
                     },
                     actions = {
                         IconButton(onClick = { navController.navigate(Screen.Profile.route) }) {
-                            Icon(Icons.Default.Person, "Profile", tint = Color.White)
+                            Icon(Icons.Default.Person, "Profile", tint = WhiteText)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF1C1C1E),
-                        titleContentColor = Color.White,
-                        actionIconContentColor = Color.White
+                        containerColor = BlackPrimary,
+                        titleContentColor = WhiteText,
+                        actionIconContentColor = WhiteText
                     )
                 )
             }
         },
         bottomBar = {
             NavigationBar(
-                containerColor = Color(0xFF1C1C1E),
-                contentColor = Color(0xFFFFD700)
+                containerColor = BlackPrimary,
+                contentColor = PastelGreen
             ) {
                 val items = listOf(
                     BottomNavItem.Home,
@@ -106,8 +107,8 @@ fun MainScreen(
                                 selectedTab = item.route
                                 showCamera = true
                             },
-                            containerColor = Color(0xFFFFD700),
-                            contentColor = Color(0xFF1C1C1E),
+                            containerColor = PastelGreen,
+                            contentColor = BlackPrimary,
                             modifier = Modifier
                                 .size(56.dp)
                                 .offset(y = (-16).dp)
@@ -135,11 +136,11 @@ fun MainScreen(
                                 showCamera = false
                             },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Color(0xFFFFD700),
-                                selectedTextColor = Color(0xFFFFD700),
-                                unselectedIconColor = Color.Gray,
-                                unselectedTextColor = Color.Gray,
-                                indicatorColor = Color(0xFFFFD700).copy(alpha = 0.2f)
+                                selectedIconColor = PastelGreen,
+                                selectedTextColor = PastelGreen,
+                                unselectedIconColor = GrayText,
+                                unselectedTextColor = GrayText,
+                                indicatorColor = GreenTransparent
                             )
                         )
                     }
@@ -151,7 +152,7 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color(0xFF1C1C1E))
+                .background(BlackPrimary)
         ) {
             when {
                 showCamera && selectedTab == BottomNavItem.Camera.route -> {

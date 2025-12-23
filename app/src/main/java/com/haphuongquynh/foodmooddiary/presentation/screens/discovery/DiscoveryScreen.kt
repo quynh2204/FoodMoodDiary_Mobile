@@ -27,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.haphuongquynh.foodmooddiary.domain.model.Meal
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.DiscoveryViewModel
+import com.haphuongquynh.foodmooddiary.ui.theme.*
 
 /**
  * Discovery Screen - Explore meal plans from TheMealDB API
@@ -51,7 +52,7 @@ fun DiscoveryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1C1C1E))
+            .background(BlackPrimary)
     ) {
         // Header
         Text(
@@ -65,8 +66,8 @@ fun DiscoveryScreen(
         // Tab Row
         TabRow(
             selectedTabIndex = selectedTab,
-            containerColor = Color(0xFF1C1C1E),
-            contentColor = Color(0xFF8B5CF6)
+            containerColor = BlackPrimary,
+            contentColor = PastelGreen
         ) {
             Tab(
                 selected = selectedTab == 0,
@@ -74,7 +75,7 @@ fun DiscoveryScreen(
                 text = { 
                     Text(
                         "Gợi ý cho bạn",
-                        color = if (selectedTab == 0) Color(0xFF8B5CF6) else Color.Gray,
+                        color = if (selectedTab == 0) PastelGreen else Color.Gray,
                         fontSize = 14.sp
                     )
                 }
@@ -85,7 +86,7 @@ fun DiscoveryScreen(
                 text = { 
                     Text(
                         "Khám phá món ăn",
-                        color = if (selectedTab == 1) Color(0xFF8B5CF6) else Color.Gray,
+                        color = if (selectedTab == 1) PastelGreen else Color.Gray,
                         fontSize = 14.sp
                     )
                 }
@@ -96,7 +97,7 @@ fun DiscoveryScreen(
                 text = { 
                     Text(
                         "Món đã lưu",
-                        color = if (selectedTab == 2) Color(0xFF8B5CF6) else Color.Gray,
+                        color = if (selectedTab == 2) PastelGreen else Color.Gray,
                         fontSize = 14.sp
                     )
                 }
@@ -112,7 +113,7 @@ fun DiscoveryScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Color(0xFF8B5CF6))
+                    CircularProgressIndicator(color = PastelGreen)
                 }
             }
             error != null -> {
@@ -175,7 +176,7 @@ private fun SuggestionsTab() {
                 Icons.Default.Lightbulb,
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
-                tint = Color(0xFFFFD700)
+                tint = PastelGreen
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
@@ -236,9 +237,9 @@ private fun DiscoverMealsTab(
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
-                            containerColor = Color(0xFF2C2C2E),
+                            containerColor = BlackSecondary,
                             labelColor = Color.Gray,
-                            selectedContainerColor = Color(0xFF8B5CF6),
+                            selectedContainerColor = PastelGreen,
                             selectedLabelColor = Color.White
                         ),
                         border = null
@@ -278,7 +279,7 @@ private fun DiscoverMealsTab(
                         Button(
                             onClick = onRefresh,
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF8B5CF6)
+                                containerColor = PastelGreen
                             )
                         ) {
                             Icon(Icons.Default.Refresh, "Refresh")
@@ -303,7 +304,7 @@ private fun MealDiscoveryCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2C2C2E)
+            containerColor = BlackSecondary
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -325,7 +326,7 @@ private fun MealDiscoveryCard(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(12.dp),
-                    color = Color(0xFFFFD700).copy(alpha = 0.9f),
+                    color = PastelGreen.copy(alpha = 0.9f),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Row(
@@ -381,7 +382,7 @@ private fun MealDiscoveryCard(
                             Icon(
                                 Icons.Default.Restaurant,
                                 contentDescription = null,
-                                tint = Color(0xFFFFD700),
+                                tint = PastelGreen,
                                 modifier = Modifier.size(12.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
@@ -507,7 +508,7 @@ private fun ErrorMessage(
             Button(
                 onClick = onRetry,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8B5CF6)
+                    containerColor = PastelGreen
                 )
             ) {
                 Icon(Icons.Default.Refresh, "Retry")

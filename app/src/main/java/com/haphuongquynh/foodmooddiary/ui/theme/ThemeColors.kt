@@ -25,7 +25,7 @@ object ThemeColors {
     val charcoalGray: Color @Composable @ReadOnlyComposable get() = CharcoalGray
     
     // Accent & Special colors
-    val goldAccent: Color @Composable @ReadOnlyComposable get() = GoldAccent
+    val greenAccent: Color @Composable @ReadOnlyComposable get() = PastelGreenDark
     val whiteText: Color @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onBackground
     
     // Legacy color replacements (for gradual migration)
