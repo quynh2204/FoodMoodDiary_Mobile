@@ -12,25 +12,38 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = PastelGreen,              // Xanh lá pastel chính
+    secondary = MintGreen,              // Xanh mint phụ
+    tertiary = SageGreen,               // Xanh sage
+    background = BlackPrimary,          // Nền đen chính
+    surface = BlackSecondary,           // Surface đen nhạt
+    onPrimary = BlackPrimary,           // Text trên primary
+    onSecondary = BlackPrimary,         // Text trên secondary
+    onTertiary = BlackPrimary,          // Text trên tertiary
+    onBackground = WhiteText,           // Text chính trên nền
+    onSurface = WhiteText,              // Text trên surface
+    surfaceVariant = BlackTertiary,     // Surface variant
+    onSurfaceVariant = PastelGreenLight, // Text trên surface variant
+    primaryContainer = PastelGreenDark,  // Container màu chính
+    secondaryContainer = BlackTertiary,  // Container phụ
+    tertiaryContainer = MintGreen,       // Container tertiary
+    error = Color(0xFFCF6679),           // Màu error
+    onError = BlackPrimary               // Text trên error
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = PastelGreenDark,
+    secondary = SageGreen,
+    tertiary = MintGreen,
+    background = PastelGreenLight,
+    surface = WhiteText,
+    onPrimary = WhiteText,
+    onSecondary = BlackPrimary,
+    onTertiary = BlackPrimary,
+    onBackground = BlackPrimary,
+    onSurface = BlackPrimary,
+    surfaceVariant = LimeGreen,
+    onSurfaceVariant = BlackSecondary
 )
 
 @Composable
