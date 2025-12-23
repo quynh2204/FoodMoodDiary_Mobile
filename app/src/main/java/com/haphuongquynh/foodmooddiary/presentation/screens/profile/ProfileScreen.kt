@@ -153,7 +153,7 @@ fun ProfileScreen(
                 .padding(horizontal = 16.dp)
                 .height(56.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF8B5CF6)
+                containerColor = MaterialTheme.colorScheme.primary
             ),
             shape = RoundedCornerShape(16.dp)
         ) {
@@ -226,7 +226,7 @@ fun ProfileCard(
                         Icons.Default.Person,
                         contentDescription = "Profile",
                         modifier = Modifier.size(60.dp),
-                        tint = Color(0xFF8B5CF6)
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 
@@ -315,7 +315,7 @@ fun StatItem(
             Icon(
                 icon,
                 contentDescription = null,
-                tint = Color(0xFFFFD700),
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(6.dp))
@@ -338,7 +338,7 @@ fun HealthStatusCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF8B5CF6)
+            containerColor = MaterialTheme.colorScheme.primary
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -518,7 +518,7 @@ fun CommunityCard(
             .fillMaxWidth()
             .clickable { /* Join community */ },
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF8B5CF6)
+            containerColor = MaterialTheme.colorScheme.primary
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -537,7 +537,7 @@ fun CommunityCard(
                             .size(48.dp)
                             .offset(x = (-index * 12).dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFFFD700)),
+                            .background(MaterialTheme.colorScheme.primary),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
