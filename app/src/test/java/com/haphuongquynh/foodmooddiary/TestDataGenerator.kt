@@ -13,12 +13,12 @@ object TestDataGenerator {
         id: String = UUID.randomUUID().toString(),
         userId: String = "test_user",
         foodName: String = "Test Food",
-        notes: String? = "Test notes",
+        notes: String = "Test notes",
         moodColor: Int = android.graphics.Color.GREEN,
         timestamp: Long = System.currentTimeMillis(),
         latitude: Double = 37.7749,
         longitude: Double = -122.4194,
-        photoUri: String? = null
+        photoUrl: String? = null
     ): FoodEntry {
         return FoodEntry(
             id = id,
@@ -28,7 +28,7 @@ object TestDataGenerator {
             moodColor = moodColor,
             timestamp = timestamp,
             location = Location(latitude, longitude),
-            photoUri = photoUri
+            photoUrl = photoUrl
         )
     }
 

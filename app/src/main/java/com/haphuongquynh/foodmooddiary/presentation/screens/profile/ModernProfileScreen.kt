@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
+import com.haphuongquynh.foodmooddiary.presentation.viewmodel.StatisticsViewModel
 
 /**
  * Modern Profile & Settings Screen
@@ -27,11 +28,28 @@ import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
 fun ModernProfileScreen(
     onNavigateBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    viewModel: AuthViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel(),
+    statisticsViewModel: StatisticsViewModel = hiltViewModel()
 ) {
-    val currentUser by viewModel.currentUser.collectAsState()
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var selectedTheme by remember { mutableStateOf("Auto") }
+    val currentUser by authViewModel.currentUser.collectAsState()
+    var currentStreak by remember { mutableStateOf(0) }
+    var notificationsEnabled by remember { mutableStateOf(currentUser?.notificationsEnabled ?: true) }
+    var selectedTheme by remember { mutableStateOf(currentUser?.themePreference ?: "Auto") }
+    
+    // Load streak on init
+    LaunchedEffect(Unit) {
+        statisticsViewModel.getCurrentStreak { streak ->
+            currentStreak = streak
+        }
+    }
+    
+    // Update local state when currentUser changes
+    LaunchedEffect(currentUser) {
+        currentUser?.let { user ->
+            notificationsEnabled = user.notificationsEnabled
+            selectedTheme = user.themePreference
+        }
+    }
     
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -92,7 +110,7 @@ fun ModernProfileScreen(
                     
                     // Display Name
                     Text(
-                        currentUser?.displayName ?: "JudyDoll",
+                        currentUser?.displayName ?: "Quynh",
                         color = Color.White,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
@@ -110,8 +128,8 @@ fun ModernProfileScreen(
                             fontSize = 16.sp
                         )
                         Text(
-                            "🔥 43 days in a row",
-                            color = Color(0xFFFFD700),
+                            "🔥 $currentStreak days in a row",
+                            color = Color(0xFF9FD4A8),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -123,7 +141,7 @@ fun ModernProfileScreen(
                 // Notifications
                 Text(
                     "Notifications",
-                    color = Color(0xFFFFD700),
+                    color = Color(0xFF9FD4A8),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -146,7 +164,7 @@ fun ModernProfileScreen(
                 // Theme
                 Text(
                     "Theme",
-                    color = Color(0xFFFFD700),
+                    color = Color(0xFF9FD4A8),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -166,7 +184,7 @@ fun ModernProfileScreen(
                 // Data Management
                 Text(
                     "Data Management",
-                    color = Color(0xFFFFD700),
+                    color = Color(0xFF9FD4A8),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -178,7 +196,7 @@ fun ModernProfileScreen(
                 // Export Data
                 Text(
                     "Export Data",
-                    color = Color(0xFFFFD700),
+                    color = Color(0xFF9FD4A8),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -194,7 +212,7 @@ fun ModernProfileScreen(
                 // About
                 Text(
                     "About",
-                    color = Color(0xFFFFD700),
+                    color = Color(0xFF9FD4A8),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -212,7 +230,7 @@ fun ModernProfileScreen(
                 // Logout Button
                 Button(
                     onClick = {
-                        viewModel.logout()
+                        authViewModel.logout()
                         onNavigateToLogin()
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -274,7 +292,7 @@ private fun ThemeButton(
             .clickable(onClick = onClick),
         shape = CircleShape,
         color = if (selected) Color(0xFF4CAF50) else Color(0xFF3C3C3E),
-        border = if (selected) BorderStroke(2.dp, Color(0xFFFFD700)) else null
+        border = if (selected) BorderStroke(2.dp, Color(0xFF9FD4A8)) else null
     ) {
         Box(
             contentAlignment = Alignment.Center

@@ -17,8 +17,21 @@ data class FoodEntry(
     val timestamp: Long = System.currentTimeMillis(),
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
-    val isSynced: Boolean = false
-)
+    val isSynced: Boolean = false,
+    // New fields for Wao/Locket style features
+    val calories: Int = 0,
+    val protein: Int = 0, // grams
+    val carbs: Int = 0,   // grams
+    val fat: Int = 0,     // grams
+    val category: String = ""
+) {
+    // Extension properties for compatibility
+    val imageUrl: String
+        get() = photoUrl ?: localPhotoPath ?: ""
+    
+    val note: String
+        get() = notes
+}
 
 /**
  * Location data for food entry

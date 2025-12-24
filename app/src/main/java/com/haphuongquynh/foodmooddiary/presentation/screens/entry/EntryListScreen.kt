@@ -69,13 +69,13 @@ fun EntryListScreen(
                 )
                 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Calendar button
                     IconButton(
                         onClick = { showCalendar = !showCalendar },
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(48.dp)
                             .clip(CircleShape)
                             .background(
                                 if (showCalendar) PastelGreen 
@@ -85,7 +85,8 @@ fun EntryListScreen(
                         Icon(
                             Icons.Default.CalendarMonth,
                             contentDescription = "Calendar",
-                            tint = Color.White
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                     
@@ -93,7 +94,7 @@ fun EntryListScreen(
                     IconButton(
                         onClick = { viewMode = ViewMode.GRID },
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(48.dp)
                             .clip(CircleShape)
                             .background(
                                 if (viewMode == ViewMode.GRID) PastelGreen 
@@ -103,7 +104,8 @@ fun EntryListScreen(
                         Icon(
                             Icons.Default.GridView,
                             contentDescription = "Grid View",
-                            tint = Color.White
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                     
@@ -111,7 +113,7 @@ fun EntryListScreen(
                     IconButton(
                         onClick = { viewMode = ViewMode.LIST },
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(48.dp)
                             .clip(CircleShape)
                             .background(
                                 if (viewMode == ViewMode.LIST) PastelGreen 
@@ -121,7 +123,8 @@ fun EntryListScreen(
                         Icon(
                             Icons.Default.ViewList,
                             contentDescription = "List View",
-                            tint = Color.White
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }

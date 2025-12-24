@@ -141,7 +141,7 @@ fun ModernEntryDetailScreen(
                         Column {
                             Text(
                                 "Rating",
-                                color = Color(0xFFFFD700),
+                                color = Color(0xFF9FD4A8),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -151,7 +151,7 @@ fun ModernEntryDetailScreen(
                                     Icon(
                                         imageVector = Icons.Filled.Star,
                                         contentDescription = null,
-                                        tint = Color(0xFFFFD700),
+                                        tint = Color(0xFF9FD4A8),
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
@@ -164,7 +164,7 @@ fun ModernEntryDetailScreen(
                         Column {
                             Text(
                                 "Notes",
-                                color = Color(0xFFFFD700),
+                                color = Color(0xFF9FD4A8),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -180,7 +180,7 @@ fun ModernEntryDetailScreen(
                     // AI Palette Extracted
                     Text(
                         "AI Palette Extracted",
-                        color = Color(0xFFFFD700),
+                        color = Color(0xFF9FD4A8),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -195,7 +195,7 @@ fun ModernEntryDetailScreen(
                     // AI Suggestion
                     Text(
                         "AI Suggestion",
-                        color = Color(0xFFFFD700),
+                        color = Color(0xFF9FD4A8),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -217,7 +217,7 @@ fun ModernEntryDetailScreen(
                         onClick = onShare,
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFFFD700)
+                            containerColor = Color(0xFF9FD4A8)
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -243,7 +243,7 @@ private fun InfoColumn(label: String, value: String) {
     Column {
         Text(
             label,
-            color = Color(0xFFFFD700),
+            color = Color(0xFF9FD4A8),
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium
         )

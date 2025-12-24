@@ -40,7 +40,9 @@ fun FoodMoodDiaryNavigation() {
         }
 
         composable(route = Screen.Home.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.home.ModernHomeScreen(navController = navController)
+            com.haphuongquynh.foodmooddiary.presentation.screens.home.SimpleHomeScreen(
+                navController = navController
+            )
         }
 
         composable(route = Screen.AddEntry.route) {
@@ -77,7 +79,7 @@ fun FoodMoodDiaryNavigation() {
         }
 
         composable(route = Screen.Profile.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.profile.ProfileScreen(
+            com.haphuongquynh.foodmooddiary.presentation.screens.profile.ModernProfileScreen(
                 onNavigateBack = { navController.navigateUp() },
                 onNavigateToLogin = {
                     navController.navigate(Screen.Login.route) {
@@ -96,6 +98,17 @@ fun FoodMoodDiaryNavigation() {
         composable(route = Screen.Discovery.route) {
             com.haphuongquynh.foodmooddiary.presentation.screens.discovery.DiscoveryScreen(
                 onNavigateBack = { navController.navigateUp() }
+            )
+        }
+        
+        composable(route = Screen.Camera.route) {
+            com.haphuongquynh.foodmooddiary.presentation.screens.camera.CameraScreen(
+                onPhotoCaptured = { file, bitmap ->
+                    navController.navigate(Screen.AddEntry.route)
+                },
+                onDismiss = {
+                    navController.popBackStack()
+                }
             )
         }
     }
@@ -120,4 +133,5 @@ sealed class Screen(val route: String) {
     data object Profile : Screen("profile")
     data object Settings : Screen("settings")
     data object Discovery : Screen("discovery")
+    data object Camera : Screen("camera")
 }

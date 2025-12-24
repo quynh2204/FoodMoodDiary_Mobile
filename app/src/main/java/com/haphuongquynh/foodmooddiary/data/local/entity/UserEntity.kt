@@ -16,7 +16,9 @@ data class UserEntity(
     val displayName: String,
     val photoUrl: String?,
     val createdAt: Long,
-    val lastLoginAt: Long
+    val lastLoginAt: Long,
+    val notificationsEnabled: Boolean = true,
+    val themePreference: String = "Auto"
 ) {
     /**
      * Convert Entity to Domain Model
@@ -28,7 +30,9 @@ data class UserEntity(
             displayName = displayName,
             photoUrl = photoUrl,
             createdAt = createdAt,
-            lastLoginAt = lastLoginAt
+            lastLoginAt = lastLoginAt,
+            notificationsEnabled = notificationsEnabled,
+            themePreference = themePreference
         )
     }
     
@@ -43,7 +47,9 @@ data class UserEntity(
                 displayName = user.displayName,
                 photoUrl = user.photoUrl,
                 createdAt = user.createdAt,
-                lastLoginAt = user.lastLoginAt
+                lastLoginAt = user.lastLoginAt,
+                notificationsEnabled = user.notificationsEnabled,
+                themePreference = user.themePreference
             )
         }
     }
