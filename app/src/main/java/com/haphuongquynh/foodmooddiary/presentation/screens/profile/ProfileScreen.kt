@@ -24,6 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.haphuongquynh.foodmooddiary.ui.theme.*
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.FoodEntryViewModel
+import com.haphuongquynh.foodmooddiary.presentation.viewmodel.ThemeViewModel
 
 /**
  * Profile Screen - Hồ sơ cá nhân
@@ -33,11 +34,15 @@ import com.haphuongquynh.foodmooddiary.presentation.viewmodel.FoodEntryViewModel
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
+    onNavigateToNotificationSettings: () -> Unit = {},
+    onNavigateToDataManagement: () -> Unit = {},
     authViewModel: AuthViewModel = hiltViewModel(),
-    entryViewModel: FoodEntryViewModel = hiltViewModel()
+    entryViewModel: FoodEntryViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
     val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
     val entries by entryViewModel.entries.collectAsStateWithLifecycle()
+    val themeMode by themeViewModel.themeMode.collectAsStateWithLifecycle()
     
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showEditProfileDialog by remember { mutableStateOf(false) }
@@ -45,7 +50,7 @@ fun ProfileScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BlackPrimary)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
     ) {
         // Header with Settings Icon
@@ -98,6 +103,34 @@ fun ProfileScreen(
         HealthStatusCard(
             currentWeight = 52,
             targetWeight = 48,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Settings Section
+        SectionHeader(
+            title = "Cài đặt",
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        SettingsMenuItem(
+            icon = Icons.Default.Notifications,
+            title = "Cài đặt thông báo",
+            description = "Nhắc nhở bữa ăn và insights",
+            onClick = onNavigateToNotificationSettings,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        SettingsMenuItem(
+            icon = Icons.Default.Storage,
+            title = "Quản lý dữ liệu",
+            description = "Xuất và sao lưu nhật ký",
+            onClick = onNavigateToDataManagement,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
 
@@ -707,6 +740,179 @@ fun SupportCenterItem(
                     text = "Trung tâm hỗ trợ",
                     fontSize = 16.sp,
                     color = Color.White
+                )
+            }
+            
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = "Navigate",
+                tint = Color.Gray
+            )
+        }
+    }
+}
+
+@Composable
+fun ThemeToggleCard(
+    currentTheme: String,
+    onThemeChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF2C2C2E)
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = if (currentTheme == "Light") Icons.Default.LightMode else Icons.Default.DarkMode,
+                    contentDescription = "Theme",
+                    tint = PastelGreen,
+                    modifier = Modifier.size(24.dp)
+                )
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                Text(
+                    text = "Giao diện",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Theme Options
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ThemeOptionButton(
+                    icon = Icons.Default.LightMode,
+                    label = "Sáng",
+                    isSelected = currentTheme == "Light",
+                    onClick = { onThemeChange("Light") },
+                    modifier = Modifier.weight(1f)
+                )
+                
+                ThemeOptionButton(
+                    icon = Icons.Default.DarkMode,
+                    label = "Tối",
+                    isSelected = currentTheme == "Dark",
+                    onClick = { onThemeChange("Dark") },
+                    modifier = Modifier.weight(1f)
+                )
+                
+                ThemeOptionButton(
+                    icon = Icons.Default.Brightness4,
+                    label = "Tự động",
+                    isSelected = currentTheme == "Auto",
+                    onClick = { onThemeChange("Auto") },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ThemeOptionButton(
+    icon: ImageVector,
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) PastelGreen else BlackTertiary
+        ),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                icon,
+                contentDescription = label,
+                tint = if (isSelected) BlackPrimary else WhiteText,
+                modifier = Modifier.size(28.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = label,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = if (isSelected) BlackPrimary else WhiteText
+            )
+        }
+    }
+}
+
+@Composable
+fun SettingsMenuItem(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = BlackSecondary),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(PastelGreen.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = title,
+                    tint = PastelGreen,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = WhiteText
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = description,
+                    fontSize = 13.sp,
+                    color = Color.Gray
                 )
             }
             

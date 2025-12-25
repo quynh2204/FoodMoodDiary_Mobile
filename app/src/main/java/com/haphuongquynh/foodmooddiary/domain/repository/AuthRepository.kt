@@ -52,4 +52,11 @@ interface AuthRepository {
      * @return Resource with updated User or error
      */
     suspend fun updateProfile(displayName: String?, photoUrl: String?): Resource<User>
+    
+    /**
+     * Update user theme preference
+     * @param themePreference Theme preference: "Light", "Dark", or "Auto"
+     * @return Resource with updated User or error
+     */
+    suspend fun updateThemePreference(themePreference: String): Resource<User>
 }

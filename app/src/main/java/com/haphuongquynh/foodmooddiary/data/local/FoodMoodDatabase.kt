@@ -9,7 +9,7 @@ import com.haphuongquynh.foodmooddiary.data.local.entity.UserEntity
 
 /**
  * Room Database for FoodMoodDiary app
- * Version 4: Added mood field to FoodEntryEntity
+ * Version 5: Updated schema after backend merge
  */
 @Database(
     entities = [
@@ -17,7 +17,7 @@ import com.haphuongquynh.foodmooddiary.data.local.entity.UserEntity
         com.haphuongquynh.foodmooddiary.data.local.entity.FoodEntryEntity::class,
         FavoriteMealEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class FoodMoodDatabase : RoomDatabase() {

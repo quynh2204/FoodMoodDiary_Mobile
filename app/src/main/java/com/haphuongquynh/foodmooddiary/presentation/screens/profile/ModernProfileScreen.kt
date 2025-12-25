@@ -28,6 +28,8 @@ import com.haphuongquynh.foodmooddiary.presentation.viewmodel.StatisticsViewMode
 fun ModernProfileScreen(
     onNavigateBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
+    onNavigateToNotificationSettings: () -> Unit = {},
+    onNavigateToDataManagement: () -> Unit = {},
     authViewModel: AuthViewModel = hiltViewModel(),
     statisticsViewModel: StatisticsViewModel = hiltViewModel()
 ) {
@@ -145,41 +147,12 @@ fun ModernProfileScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    ToggleButton(
-                        label = "ON",
-                        selected = notificationsEnabled,
-                        onClick = { notificationsEnabled = true }
-                    )
-                    ToggleButton(
-                        label = "OFF",
-                        selected = !notificationsEnabled,
-                        onClick = { notificationsEnabled = false }
-                    )
-                }
-
-                // Theme
-                Text(
-                    "Theme",
-                    color = Color(0xFF9FD4A8),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                OptionButton(
+                    text = "→ Notification Settings",
+                    onClick = onNavigateToNotificationSettings
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    listOf("Light", "Dark", "Auto").forEach { theme ->
-                        ThemeButton(
-                            label = theme,
-                            selected = selectedTheme == theme,
-                            onClick = { selectedTheme = theme }
-                        )
-                    }
-                }
+
+
 
                 // Data Management
                 Text(
@@ -189,8 +162,8 @@ fun ModernProfileScreen(
                     fontWeight = FontWeight.Bold
                 )
                 OptionButton(
-                    text = "→ Clear All Entries",
-                    onClick = { /* clear all */ }
+                    text = "→ Manage & Export Data",
+                    onClick = onNavigateToDataManagement
                 )
 
                 // Export Data

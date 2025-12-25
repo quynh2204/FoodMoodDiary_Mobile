@@ -85,6 +85,12 @@ fun FoodMoodDiaryNavigation() {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Main.route) { inclusive = true }
                     }
+                },
+                onNavigateToNotificationSettings = {
+                    navController.navigate(Screen.NotificationSettings.route)
+                },
+                onNavigateToDataManagement = {
+                    navController.navigate(Screen.DataManagement.route)
                 }
             )
         }
@@ -111,6 +117,23 @@ fun FoodMoodDiaryNavigation() {
                 }
             )
         }
+        
+        composable(route = Screen.NotificationSettings.route) {
+            com.haphuongquynh.foodmooddiary.presentation.screens.settings.NotificationSettingsScreen(
+                onNavigateBack = { navController.navigateUp() },
+                onSaveSettings = { /* Save notification settings */ }
+            )
+        }
+        
+        composable(route = Screen.DataManagement.route) {
+            com.haphuongquynh.foodmooddiary.presentation.screens.settings.DataManagementScreen(
+                onNavigateBack = { navController.navigateUp() },
+                onExportCSV = { /* Export CSV */ },
+                onExportPDF = { /* Export PDF */ },
+                onExportJSON = { /* Export JSON */ },
+                onClearAllData = { /* Clear all data */ }
+            )
+        }
     }
 }
 
@@ -134,4 +157,6 @@ sealed class Screen(val route: String) {
     data object Settings : Screen("settings")
     data object Discovery : Screen("discovery")
     data object Camera : Screen("camera")
+    data object NotificationSettings : Screen("notification_settings")
+    data object DataManagement : Screen("data_management")
 }

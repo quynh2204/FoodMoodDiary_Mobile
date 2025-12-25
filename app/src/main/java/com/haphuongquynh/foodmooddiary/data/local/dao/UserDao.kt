@@ -49,6 +49,13 @@ interface UserDao {
     fun getCurrentUser(): Flow<UserEntity?>
     
     /**
+     * Get user by UID (suspend version for direct access)
+     * @return UserEntity or null if not found
+     */
+    @Query("SELECT * FROM users WHERE uid = :uid LIMIT 1")
+    suspend fun getUserById(uid: String): UserEntity?
+    
+    /**
      * Delete all users (for logout)
      */
     @Query("DELETE FROM users")

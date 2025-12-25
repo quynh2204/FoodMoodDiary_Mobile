@@ -177,6 +177,32 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateThemePreference(themePreference: String): Resource<User> {
+        return try {
+            val firebaseUser = firebaseAuth.currentUser 
+                ?: return Resource.error("No authenticated user")
+
+            // Get current user from database
+            val currentUserEntity = userDao.getUserById(firebaseUser.uid)
+                ?: return Resource.error("User not found in local database")
+
+            // Update theme preference
+            val updatedUser = currentUserEntity.toDomain().copy(
+                themePreference = themePreference
+            )
+
+            // Save to local database
+            userDao.insertUser(UserEntity.fromDomain(updatedUser))
+
+            // Sync with Firestore
+            syncUserToFirestore(updatedUser)
+
+            Resource.success(updatedUser)
+        } catch (e: Exception) {
+            Resource.error("Theme update failed: ${e.localizedMessage}", e)
+        }
+    }
+
     /**
      * Sync user data to Firestore for backup and cross-device access
      */
@@ -188,7 +214,8 @@ class AuthRepositoryImpl @Inject constructor(
                 "displayName" to user.displayName,
                 "photoUrl" to user.photoUrl,
                 "createdAt" to user.createdAt,
-                "lastLoginAt" to user.lastLoginAt
+                "lastLoginAt" to user.lastLoginAt,
+                "themePreference" to user.themePreference
             )
             firestore.collection("users")
                 .document(user.uid)

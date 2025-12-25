@@ -76,7 +76,7 @@ fun MapScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BlackPrimary)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Map content
         Box(modifier = Modifier.fillMaxSize()) {
