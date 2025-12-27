@@ -24,7 +24,10 @@ import com.haphuongquynh.foodmooddiary.ui.theme.*
 import com.haphuongquynh.foodmooddiary.presentation.navigation.Screen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthState
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
+import com.haphuongquynh.foodmooddiary.presentation.viewmodel.FoodEntryViewModel
 import com.haphuongquynh.foodmooddiary.presentation.screens.camera.CameraScreen
+import com.haphuongquynh.foodmooddiary.presentation.screens.camera.EmptyCameraOnlyScreen
+import com.haphuongquynh.foodmooddiary.presentation.screens.home.PhotoGalleryHomeScreen
 
 sealed class BottomNavItem(
     val route: String,
@@ -32,22 +35,23 @@ sealed class BottomNavItem(
     val label: String
 ) {
     object Home : BottomNavItem("home_tab", Icons.Default.Home, "Trang chủ")
-    object Statistics : BottomNavItem("statistics_tab", Icons.Default.CalendarToday, "Nhật ký")
     object Camera : BottomNavItem("camera_tab", Icons.Default.CameraAlt, "Camera")
-    object Map : BottomNavItem("map_tab", Icons.Default.Map, "Bản đồ")
-    object Discovery : BottomNavItem("discovery_tab", Icons.Default.Explore, "Khám phá")
+    object Profile : BottomNavItem("profile_tab", Icons.Default.Person, "Cá nhân")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     navController: NavController,
-    viewModel: AuthViewModel = hiltViewModel()
+    viewModel: AuthViewModel = hiltViewModel(),
+    foodEntryViewModel: FoodEntryViewModel = hiltViewModel()
 ) {
-    var selectedTab by remember { mutableStateOf(BottomNavItem.Home.route) }
+    var selectedTab by remember { mutableStateOf(BottomNavItem.Camera.route) }
     val authState by viewModel.authState.collectAsState()
-    var showCamera by remember { mutableStateOf(false) }
+    var showCamera by remember { mutableStateOf(true) }
     val currentUser by viewModel.currentUser.collectAsState()
+    val entries by foodEntryViewModel.entries.collectAsState()
+    val hasEntries = entries.isNotEmpty()
 
     // Handle logout
     LaunchedEffect(authState) {
@@ -59,98 +63,52 @@ fun MainScreen(
         }
     }
 
+    // Show empty camera screen if no entries yet
+    if (!hasEntries) {
+        EmptyCameraOnlyScreen(
+            onCameraClick = {
+                showCamera = true
+                selectedTab = BottomNavItem.Camera.route
+            }
+        )
+        
+        // Show camera when button clicked
+        if (showCamera) {
+            CameraScreen(
+                onPhotoCaptured = { file, bitmap ->
+                    showCamera = false
+                    navController.navigate(Screen.AddEntry.route)
+                },
+                onDismiss = {
+                    showCamera = false
+                }
+            )
+        }
+        return
+    }
+
+    // Show full UI with bottom navigation when user has entries
     Scaffold(
         containerColor = DarkGray,
-        topBar = {
-            TopAppBar(
-                title = {},
-                actions = {
-                    IconButton(onClick = { navController.navigate(Screen.Profile.route) }) {
-                        Icon(
-                            Icons.Default.Person,
-                            contentDescription = "Profile",
-                            tint = WhiteText,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
+        floatingActionButton = {
+            // Camera FAB at bottom center
+            FloatingActionButton(
+                onClick = {
+                    showCamera = true
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkGray
-                )
-            )
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = DarkGray,
-                contentColor = PastelGreen
+                containerColor = PastelGreen,
+                contentColor = BlackPrimary,
+                shape = CircleShape,
+                modifier = Modifier.size(64.dp)
             ) {
-                val items = listOf(
-                    BottomNavItem.Home,
-                    BottomNavItem.Statistics,
-                    BottomNavItem.Camera,
-                    BottomNavItem.Map,
-                    BottomNavItem.Discovery
+                Icon(
+                    imageVector = Icons.Default.CameraAlt,
+                    contentDescription = "Chụp ảnh",
+                    modifier = Modifier.size(32.dp)
                 )
-
-                items.forEach { item ->
-                    if (item == BottomNavItem.Camera) {
-                        // Camera button in the middle - circular like Locket
-                        Box(
-                            modifier = Modifier.weight(1f),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            FloatingActionButton(
-                                onClick = {
-                                    selectedTab = item.route
-                                    showCamera = true
-                                },
-                                containerColor = PastelGreen,
-                                contentColor = BlackPrimary,
-                                shape = CircleShape,
-                                modifier = Modifier.size(60.dp)
-                            ) {
-                                Icon(
-                                    imageVector = item.icon,
-                                    contentDescription = item.label,
-                                    modifier = Modifier.size(30.dp)
-                                )
-                            }
-                        }
-                    } else {
-                        NavigationBarItem(
-                            modifier = Modifier.weight(1f),
-                            icon = {
-                                Icon(
-                                    imageVector = item.icon,
-                                    contentDescription = item.label,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            },
-                            label = { 
-                                Text(
-                                    item.label, 
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontSize = 9.sp,
-                                    maxLines = 1
-                                ) 
-                            },
-                            selected = selectedTab == item.route,
-                            onClick = {
-                                selectedTab = item.route
-                                showCamera = false
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = PastelGreen,
-                                selectedTextColor = PastelGreen,
-                                unselectedIconColor = GrayText,
-                                unselectedTextColor = GrayText,
-                                indicatorColor = GreenTransparent
-                            )
-                        )
-                    }
-                }
             }
-        }
+        },
+        floatingActionButtonPosition = FabPosition.Center
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -159,7 +117,7 @@ fun MainScreen(
                 .background(DarkGray)
         ) {
             when {
-                showCamera && selectedTab == BottomNavItem.Camera.route -> {
+                showCamera -> {
                     CameraScreen(
                         onPhotoCaptured = { file, bitmap ->
                             showCamera = false
@@ -167,26 +125,12 @@ fun MainScreen(
                         },
                         onDismiss = {
                             showCamera = false
-                            selectedTab = BottomNavItem.Home.route
                         }
                     )
                 }
-                selectedTab == BottomNavItem.Home.route -> {
-                    com.haphuongquynh.foodmooddiary.presentation.screens.entry.EntryListScreen(
+                else -> {
+                    PhotoGalleryHomeScreen(
                         navController = navController
-                    )
-                }
-                selectedTab == BottomNavItem.Statistics.route -> {
-                    com.haphuongquynh.foodmooddiary.presentation.screens.statistics.StatisticsScreen()
-                }
-                selectedTab == BottomNavItem.Map.route -> {
-                    com.haphuongquynh.foodmooddiary.presentation.screens.map.MapScreen(
-                        onNavigateBack = { selectedTab = BottomNavItem.Home.route }
-                    )
-                }
-                selectedTab == BottomNavItem.Discovery.route -> {
-                    com.haphuongquynh.foodmooddiary.presentation.screens.discovery.DiscoveryScreen(
-                        onNavigateBack = { selectedTab = BottomNavItem.Home.route }
                     )
                 }
             }
