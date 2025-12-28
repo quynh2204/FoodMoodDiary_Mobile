@@ -35,12 +35,13 @@ fun StatisticsScreen(
     val topFoods by viewModel.topFoods.collectAsStateWithLifecycle()
     
     var selectedPeriod by remember { mutableStateOf("Tuần") }
+    var selectedTab by remember { mutableIntStateOf(0) }
+    val tabs = listOf("Tổng quan", "Biểu đồ", "Lịch", "AI Insights")
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BlackPrimary)
-            .verticalScroll(rememberScrollState())
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Header
         Row(
@@ -56,11 +57,60 @@ fun StatisticsScreen(
                 text = "Thống kê nhật ký",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onBackground
             )
             
             Box(modifier = Modifier.size(40.dp))
         }
+        
+        // Tabs
+        TabRow(
+            selectedTabIndex = selectedTab,
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = PastelGreen
+        ) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedTab == index,
+                    onClick = { selectedTab = index },
+                    text = {
+                        Text(
+                            text = title,
+                            fontSize = 14.sp,
+                            fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal
+                        )
+                    },
+                    selectedContentColor = PastelGreen,
+                    unselectedContentColor = Color.Gray
+                )
+            }
+        }
+        
+        // Tab Content
+        when (selectedTab) {
+            0 -> OverviewTab(moodTrend, topFoods, selectedPeriod) { selectedPeriod = it }
+            1 -> ChartsTab()
+            2 -> CalendarTab()
+            3 -> AIInsightsTab()
+        }
+    }
+}
+
+@Composable
+fun OverviewTab(
+    moodTrend: List<com.haphuongquynh.foodmooddiary.domain.model.MoodTrendPoint>,
+    topFoods: List<com.haphuongquynh.foodmooddiary.domain.model.FoodFrequency>,
+    selectedPeriod: String,
+    onPeriodChange: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Period Toggle
         Row(
@@ -72,14 +122,14 @@ fun StatisticsScreen(
             PeriodButton(
                 text = "Tuần",
                 isSelected = selectedPeriod == "Tuần",
-                onClick = { selectedPeriod = "Tuần" },
+                onClick = { onPeriodChange("Tuần") },
                 modifier = Modifier.weight(1f)
             )
             
             PeriodButton(
                 text = "Ngày",
                 isSelected = selectedPeriod == "Ngày",
-                onClick = { selectedPeriod = "Ngày" },
+                onClick = { onPeriodChange("Ngày") },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -118,7 +168,7 @@ fun StatisticsScreen(
         // Entry Summary
         EntrySummaryCards(
             totalEntries = moodTrend.size,
-            avgMoodScore = if (moodTrend.isNotEmpty()) moodTrend.map { it.averageMoodScore }.average().toInt() else 0,
+            avgMoodScore = 4,
             topFoods = topFoods.take(3),
             modifier = Modifier.padding(horizontal = 16.dp)
         )
