@@ -97,11 +97,7 @@ fun FoodMoodDiaryNavigation() {
         
         composable(route = Screen.DataManagement.route) {
             com.haphuongquynh.foodmooddiary.presentation.screens.settings.DataManagementScreen(
-                onNavigateBack = { navController.navigateUp() },
-                onExportCSV = { /* TODO: Implement CSV export */ },
-                onExportPDF = { /* TODO: Implement PDF export */ },
-                onExportJSON = { /* TODO: Implement JSON export */ },
-                onClearAllData = { /* TODO: Implement clear data */ }
+                onNavigateBack = { navController.navigateUp() }
             )
         }
         

@@ -5,9 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.haphuongquynh.foodmooddiary.domain.model.FoodEntry
 import com.haphuongquynh.foodmooddiary.domain.repository.FoodEntryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,6 +22,8 @@ import javax.inject.Inject
 class MapViewModel @Inject constructor(
     private val foodEntryRepository: FoodEntryRepository
 ) : ViewModel() {
+
+    private var entriesJob: Job? = null
 
     private val _entriesWithLocation = MutableStateFlow<List<FoodEntry>>(emptyList())
     val entriesWithLocation: StateFlow<List<FoodEntry>> = _entriesWithLocation.asStateFlow()
@@ -37,18 +42,15 @@ class MapViewModel @Inject constructor(
      * Load all food entries that have location data
      */
     private fun loadEntriesWithLocation() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                foodEntryRepository.getAllEntries().collect { entries ->
-                    // Filter entries that have location
-                    _entriesWithLocation.value = entries.filter { 
-                        it.location != null
-                    }
+        entriesJob?.cancel()
+        entriesJob = viewModelScope.launch {
+            foodEntryRepository.getAllEntries()
+                .onStart { _isLoading.value = true }
+                .catch { _isLoading.value = false }
+                .collect { entries ->
+                    _entriesWithLocation.value = entries.filter { it.location != null }
+                    _isLoading.value = false
                 }
-            } finally {
-                _isLoading.value = false
-            }
         }
     }
 

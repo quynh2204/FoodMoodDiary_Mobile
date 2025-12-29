@@ -10,9 +10,9 @@ import com.haphuongquynh.foodmooddiary.domain.usecase.entry.AddEntryUseCase
 import com.haphuongquynh.foodmooddiary.domain.usecase.entry.DeleteEntryUseCase
 import com.haphuongquynh.foodmooddiary.domain.usecase.entry.GetEntriesUseCase
 import com.haphuongquynh.foodmooddiary.domain.usecase.entry.UpdateEntryUseCase
-import com.haphuongquynh.foodmooddiary.utils.ColorAnalyzer
-import com.haphuongquynh.foodmooddiary.utils.LocationManager
-import com.haphuongquynh.foodmooddiary.utils.Resource
+import com.haphuongquynh.foodmooddiary.util.color.ColorAnalyzer
+import com.haphuongquynh.foodmooddiary.util.location.LocationManager
+import com.haphuongquynh.foodmooddiary.util.common.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

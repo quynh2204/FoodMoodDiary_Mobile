@@ -1,4 +1,4 @@
-package com.haphuongquynh.foodmooddiary.utils
+package com.haphuongquynh.foodmooddiary.util.location
 
 import android.Manifest
 import android.content.Context

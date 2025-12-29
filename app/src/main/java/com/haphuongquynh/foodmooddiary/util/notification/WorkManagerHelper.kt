@@ -1,4 +1,4 @@
-package com.haphuongquynh.foodmooddiary.util
+package com.haphuongquynh.foodmooddiary.util.notification
 
 import android.content.Context
 import androidx.work.*

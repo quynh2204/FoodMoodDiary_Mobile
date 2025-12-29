@@ -1,5 +1,6 @@
 package com.haphuongquynh.foodmooddiary.presentation.screens.settings
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,21 +17,43 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.haphuongquynh.foodmooddiary.presentation.viewmodel.DataManagementViewModel
+import com.haphuongquynh.foodmooddiary.presentation.viewmodel.ExportState
 import com.haphuongquynh.foodmooddiary.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DataManagementScreen(
     onNavigateBack: () -> Unit,
-    onExportCSV: () -> Unit,
-    onExportPDF: () -> Unit,
-    onExportJSON: () -> Unit,
-    onClearAllData: () -> Unit
+    viewModel: DataManagementViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val exportState by viewModel.exportState.collectAsState()
     var showClearDialog by remember { mutableStateOf(false) }
+    
+    // Handle export state changes
+    LaunchedEffect(exportState) {
+        when (val state = exportState) {
+            is ExportState.Success -> {
+                Toast.makeText(context, "✅ ${state.format} exported successfully!", Toast.LENGTH_SHORT).show()
+                viewModel.resetState()
+            }
+            is ExportState.Error -> {
+                Toast.makeText(context, "❌ ${state.message}", Toast.LENGTH_LONG).show()
+                viewModel.resetState()
+            }
+            is ExportState.DataCleared -> {
+                Toast.makeText(context, "🗑️ All data cleared successfully", Toast.LENGTH_SHORT).show()
+                viewModel.resetState()
+            }
+            else -> { /* No action needed */ }
+        }
+    }
     var exportProgress by remember { mutableStateOf(false) }
     
     Scaffold(
@@ -79,11 +102,11 @@ fun DataManagementScreen(
             
             // Export Options
             ExportOptionCard(
-                icon = Icons.Default.Description,
+                icon = Icons.Default.TableChart,
                 title = "Xuất CSV",
-                description = "Định dạng bảng tính, dễ mở với Excel",
-                fileSize = "~ 2-5 MB",
-                onClick = onExportCSV,
+                description = "Dữ liệu dạng bảng, dễ mở bằng Excel hoặc Google Sheets",
+                fileSize = "~2.5 MB",
+                onClick = { viewModel.exportToCSV(context) },
                 color = PastelGreen
             )
             
@@ -92,9 +115,9 @@ fun DataManagementScreen(
             ExportOptionCard(
                 icon = Icons.Default.PictureAsPdf,
                 title = "Xuất PDF",
-                description = "Báo cáo đầy đủ với ảnh và biểu đồ",
-                fileSize = "~ 10-20 MB",
-                onClick = onExportPDF,
+                description = "Định dạng chuẩn, dễ chia sẻ và in ấn",
+                fileSize = "~8.3 MB",
+                onClick = { viewModel.exportToPDF(context) },
                 color = ErrorRed
             )
             
@@ -103,9 +126,9 @@ fun DataManagementScreen(
             ExportOptionCard(
                 icon = Icons.Default.DataObject,
                 title = "Xuất JSON",
-                description = "Định dạng dữ liệu thô, cho developer",
-                fileSize = "~ 1-3 MB",
-                onClick = onExportJSON,
+                description = "Định dạng lập trình, phục hồi toàn bộ dữ liệu",
+                fileSize = "~3.7 MB",
+                onClick = { viewModel.exportToJSON(context) },
                 color = Color(0xFF64B5F6)
             )
             
@@ -298,7 +321,7 @@ fun DataManagementScreen(
                 Button(
                     onClick = {
                         showClearDialog = false
-                        onClearAllData()
+                        viewModel.clearAllData()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = ErrorRed)
                 ) {

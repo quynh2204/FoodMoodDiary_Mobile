@@ -23,16 +23,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.haphuongquynh.foodmooddiary.domain.model.MoodTrendPoint
 import com.haphuongquynh.foodmooddiary.ui.theme.*
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.*
 
 @Composable
-fun CalendarTab() {
+fun CalendarTab(moodTrend: List<MoodTrendPoint>) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
+    val entriesByDate = remember(moodTrend) {
+        moodTrend.associateBy { point ->
+            Instant.ofEpochMilli(point.date).atZone(ZoneId.systemDefault()).toLocalDate()
+        }
+    }
     
     Column(
         modifier = Modifier
@@ -131,14 +139,15 @@ fun CalendarTab() {
                             val date = currentMonth.atDay(dayNumber)
                             val isToday = date == LocalDate.now()
                             val isSelected = date == selectedDate
-                            val hasMeals = dayNumber % 3 == 0 // Mock data
+                            val dayData = entriesByDate[date]
+                            val hasMeals = dayData?.entryCount?.let { it > 0 } == true
                             
                             CalendarDayCell(
                                 day = dayNumber,
                                 isToday = isToday,
                                 isSelected = isSelected,
                                 hasMeals = hasMeals,
-                                mealCount = if (hasMeals) (1..3).random() else 0,
+                                mealCount = dayData?.entryCount ?: 0,
                                 onClick = { selectedDate = date }
                             )
                         } else {
@@ -213,6 +222,7 @@ fun CalendarTab() {
         
         // Selected Date Details
         selectedDate?.let { date ->
+            val dayData = entriesByDate[date]
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = BlackSecondary),
@@ -253,17 +263,19 @@ fun CalendarTab() {
                     ) {
                         DayStat(
                             icon = Icons.Default.Restaurant,
-                            value = "3",
+                            value = dayData?.entryCount?.takeIf { it > 0 }?.toString() ?: "--",
                             label = "Bữa ăn"
                         )
                         DayStat(
                             icon = Icons.Default.SentimentSatisfiedAlt,
-                            value = "4.5",
+                            value = dayData?.averageMoodScore?.let {
+                                String.format(Locale.getDefault(), "%.1f", it)
+                            } ?: "--",
                             label = "Tâm trạng"
                         )
                         DayStat(
                             icon = Icons.Default.Photo,
-                            value = "5",
+                            value = dayData?.entryCount?.takeIf { it > 0 }?.toString() ?: "--",
                             label = "Ảnh"
                         )
                     }
@@ -318,14 +330,15 @@ fun CalendarDayCell(
                 Row(
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    repeat(mealCount) {
+                    val dots = mealCount.coerceIn(1, 3)
+                    repeat(dots) {
                         Box(
                             modifier = Modifier
                                 .size(4.dp)
                                 .clip(CircleShape)
                                 .background(GoldPrimary)
                         )
-                        if (it < mealCount - 1) {
+                        if (it < dots - 1) {
                             Spacer(modifier = Modifier.width(2.dp))
                         }
                     }

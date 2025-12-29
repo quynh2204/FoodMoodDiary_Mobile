@@ -1,7 +1,7 @@
 package com.haphuongquynh.foodmooddiary.domain.usecase.entry
 
 import com.haphuongquynh.foodmooddiary.domain.repository.FoodEntryRepository
-import com.haphuongquynh.foodmooddiary.utils.Resource
+import com.haphuongquynh.foodmooddiary.util.common.Resource
 import javax.inject.Inject
 
 /**

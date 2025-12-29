@@ -100,119 +100,15 @@
 
 ## 🚀 TECHNICAL STACK
 
-### Core
-- **Language**: Kotlin 2.0.21
-- **Min SDK**: 26 (Android 8.0 Oreo)
-- **Target SDK**: 36 (Android 15)
-- **Java Runtime**: Java 21 LTS
-- **Build Tool**: Gradle 8.13 (Kotlin DSL)
+**Kotlin** • **Jetpack Compose** • **Material3** • **Hilt** • **Room** • **Firebase** • **Google Maps** • **Coroutines & Flow**
 
-### UI Framework
-- **Jetpack Compose** - Modern declarative UI
-- **Material Design 3** - Latest design system
-- **Coil** - Image loading & caching
-- **Lottie** - Complex animations
+> 📖 Xem chi tiết trong [ARCHITECTURE.md](ARCHITECTURE.md)
 
-### Architecture & Design Patterns
-- **MVVM** (Model-View-ViewModel)
-- **Repository Pattern** - Single Source of Truth
-- **Dependency Injection** - Hilt
-- **Clean Architecture** - Separation of concerns
-
-### Data & Storage
-- **Room Database** - Local SQLite database
-- **DataStore** - Key-value preferences
-- **Firebase Realtime Database** - Cloud sync
-- **Firebase Firestore** - Structured cloud data
-- **Firebase Storage** - Image storage
-
-### Authentication & Security
-- **Firebase Authentication** - Email/Password + Google
-- **Encrypted Preferences** - Secure local storage
-
-### Networking & API
-- **Retrofit** - REST API client
-- **OkHttp** - HTTP client & interceptor
-- **Gson** - JSON serialization
-- **TheMealDB API** - External food data
-
-### Maps & Location
-- **Google Maps SDK** - Map display
-- **Places API** - Location search
-- **Fused Location Provider** - GPS location
-- **Geocoding API** - Address conversion
-
-### Multimedia
-- **CameraX** - Camera capture
-- **MediaStore API** - Gallery access
-- **Palette API** - Color extraction
-
-### Background Processing
-- **WorkManager** - Scheduled background tasks
-- **Kotlin Coroutines** - Async operations
-- **Kotlin Flow** - Reactive data streams
-
-### Charts & Analytics
-- **MPAndroidChart** - Data visualization
-- **Firebase Analytics** - User behavior tracking
-
-### Sensors
-- **Accelerometer** - Shake detection
-- **Light Sensor** - Auto theme switching
-
-### Testing & Quality
-- **JUnit** - Unit testing
-- **Mockk** - Mocking framework
-- **Espresso** - UI testing
-- **LeakCanary** - Memory leak detection
-
----
-
-## 🏛️ KIẾN TRÚC
-
-### MVVM Architecture
-
-```
-┌─────────────────────────────────────────┐
-│          UI Layer (Compose)             │
-│  ┌────────────────────────────────┐    │
-│  │    Composable Screens          │    │
-│  └──────────┬─────────────────────┘    │
-│             │ observes StateFlow        │
-│             ▼                            │
-│  ┌────────────────────────────────┐    │
-│  │       ViewModels               │    │
-│  └──────────┬─────────────────────┘    │
-└─────────────┼──────────────────────────┘
-              │ calls
-              ▼
-┌─────────────────────────────────────────┐
-│         Domain Layer (Optional)         │
-│  ┌────────────────────────────────┐    │
-│  │        Use Cases               │    │
-│  └──────────┬─────────────────────┘    │
-└─────────────┼──────────────────────────┘
-              │ uses
-              ▼
-┌─────────────────────────────────────────┐
-│            Data Layer                   │
-│  ┌────────────────────────────────┐    │
-│  │       Repositories             │    │
-│  └────┬──────────────────┬────────┘    │
-│       │                  │              │
-│       ▼                  ▼              │
-│  ┌──────────┐      ┌──────────┐       │
-│  │   Room   │◄────►│ Firebase │       │
-│  │    DB    │ sync │          │       │
-│  └──────────┘      └──────────┘       │
-└─────────────────────────────────────────┘
-```
-
-### Offline-First Strategy
-1. **Write**: Lưu vào Room DB ngay lập tức → UI cập nhật instantly
-2. **Sync**: WorkManager đồng bộ lên Firebase khi có mạng
-3. **Read**: Luôn đọc từ Room DB (Single Source of Truth)
-4. **Conflict**: Last-write-wins strategy
+### Kiến trúc
+- **Clean Architecture** (Data/Domain/Presentation layers)
+- **MVVM** pattern với Use Cases
+- **Offline-First** strategy (Room ↔ Firebase sync)
+- **Dependency Injection** với Hilt
 
 ---
 

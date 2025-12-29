@@ -1,4 +1,4 @@
-package com.haphuongquynh.foodmooddiary.util
+package com.haphuongquynh.foodmooddiary.util.sensor
 
 import android.content.Context
 import android.hardware.Sensor

@@ -6,9 +6,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.FoodEntryViewModel
+import com.haphuongquynh.foodmooddiary.util.export.ExportHelper
 
 /**
  * Entry Detail Screen Wrapper
@@ -20,6 +22,7 @@ fun EntryDetailScreen(
     navController: NavController,
     viewModel: FoodEntryViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val entries by viewModel.entries.collectAsState()
     val entry = entries.firstOrNull { it.id == entryId }
 
@@ -28,7 +31,8 @@ fun EntryDetailScreen(
             entry = entry,
             onNavigateBack = { navController.navigateUp() },
             onShare = {
-                // TODO: Implement share functionality
+                // Share single entry as text
+                ExportHelper.shareEntriesAsText(context, listOf(entry))
             }
         )
     } else {

@@ -2,7 +2,7 @@ package com.haphuongquynh.foodmooddiary.domain.usecase.auth
 
 import com.haphuongquynh.foodmooddiary.domain.model.User
 import com.haphuongquynh.foodmooddiary.domain.repository.AuthRepository
-import com.haphuongquynh.foodmooddiary.utils.Resource
+import com.haphuongquynh.foodmooddiary.util.common.Resource
 import javax.inject.Inject
 
 /**

@@ -1,4 +1,4 @@
-package com.haphuongquynh.foodmooddiary.utils
+package com.haphuongquynh.foodmooddiary.util.color
 
 import android.graphics.Bitmap
 import androidx.palette.graphics.Palette

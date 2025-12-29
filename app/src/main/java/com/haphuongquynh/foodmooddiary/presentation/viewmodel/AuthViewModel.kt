@@ -7,7 +7,7 @@ import com.haphuongquynh.foodmooddiary.domain.usecase.auth.GetCurrentUserUseCase
 import com.haphuongquynh.foodmooddiary.domain.usecase.auth.LoginUseCase
 import com.haphuongquynh.foodmooddiary.domain.usecase.auth.LogoutUseCase
 import com.haphuongquynh.foodmooddiary.domain.usecase.auth.RegisterUseCase
-import com.haphuongquynh.foodmooddiary.utils.Resource
+import com.haphuongquynh.foodmooddiary.util.common.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

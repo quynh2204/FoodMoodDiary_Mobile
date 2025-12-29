@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.SensorViewModel
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.ThemeMode
-import com.haphuongquynh.foodmooddiary.util.hasSensorSupport
+import com.haphuongquynh.foodmooddiary.util.sensor.hasSensorSupport
 
 /**
  * Settings Screen for sensor and app configuration

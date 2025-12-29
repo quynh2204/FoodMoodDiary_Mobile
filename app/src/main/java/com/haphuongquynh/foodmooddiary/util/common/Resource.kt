@@ -1,4 +1,4 @@
-package com.haphuongquynh.foodmooddiary.utils
+package com.haphuongquynh.foodmooddiary.util.common
 
 /**
  * A generic wrapper class for handling success, error, and loading states
