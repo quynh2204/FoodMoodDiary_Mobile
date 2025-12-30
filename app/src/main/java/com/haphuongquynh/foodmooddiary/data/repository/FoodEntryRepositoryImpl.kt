@@ -8,7 +8,7 @@ import com.haphuongquynh.foodmooddiary.data.local.dao.FoodEntryDao
 import com.haphuongquynh.foodmooddiary.data.local.entity.FoodEntryEntity
 import com.haphuongquynh.foodmooddiary.domain.model.FoodEntry
 import com.haphuongquynh.foodmooddiary.domain.repository.FoodEntryRepository
-import com.haphuongquynh.foodmooddiary.utils.Resource
+import com.haphuongquynh.foodmooddiary.util.common.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await

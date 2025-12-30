@@ -7,7 +7,7 @@ import androidx.work.WorkerParameters
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
 import com.haphuongquynh.foodmooddiary.data.local.dao.FoodEntryDao
-import com.haphuongquynh.foodmooddiary.util.NotificationService
+import com.haphuongquynh.foodmooddiary.util.notification.NotificationService
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.tasks.await

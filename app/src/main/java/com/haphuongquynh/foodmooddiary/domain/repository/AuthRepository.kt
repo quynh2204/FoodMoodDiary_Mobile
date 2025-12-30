@@ -1,7 +1,7 @@
 package com.haphuongquynh.foodmooddiary.domain.repository
 
 import com.haphuongquynh.foodmooddiary.domain.model.User
-import com.haphuongquynh.foodmooddiary.utils.Resource
+import com.haphuongquynh.foodmooddiary.util.common.Resource
 import kotlinx.coroutines.flow.Flow
 
 /**

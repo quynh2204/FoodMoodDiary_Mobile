@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.google.firebase.FirebaseApp
-import com.haphuongquynh.foodmooddiary.util.WorkManagerHelper
+import com.haphuongquynh.foodmooddiary.util.notification.WorkManagerHelper
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 

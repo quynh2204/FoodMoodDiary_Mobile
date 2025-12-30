@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,6 +29,13 @@ import coil.compose.AsyncImage
 import com.haphuongquynh.foodmooddiary.domain.model.FoodEntry
 import com.haphuongquynh.foodmooddiary.presentation.navigation.Screen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.FoodEntryViewModel
+import com.haphuongquynh.foodmooddiary.ui.theme.BlackPrimary
+import com.haphuongquynh.foodmooddiary.ui.theme.BlackSecondary
+import com.haphuongquynh.foodmooddiary.ui.theme.BlackTertiary
+import com.haphuongquynh.foodmooddiary.ui.theme.GrayText
+import com.haphuongquynh.foodmooddiary.ui.theme.PastelGreen
+import com.haphuongquynh.foodmooddiary.ui.theme.PastelGreenLight
+import com.haphuongquynh.foodmooddiary.ui.theme.WhiteText
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -45,7 +53,7 @@ fun SimpleHomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1C1C1E))
+            .background(BlackPrimary)
     ) {
         // View Mode Selector
         Row(
@@ -61,22 +69,48 @@ fun SimpleHomeScreen(
                         .padding(horizontal = 4.dp)
                         .clickable { selectedView = index },
                     shape = RoundedCornerShape(8.dp),
-                    color = if (selectedView == index) Color(0xFF3C3C3E)
-                           else Color(0xFF2C2C2E),
-                    border = if (selectedView == index) 
-                        BorderStroke(2.dp, Color(0xFF9FD4A8))
-                        else null
+                    color = if (selectedView == index) BlackSecondary else BlackTertiary,
+                    border = if (selectedView == index)
+                        BorderStroke(2.dp, PastelGreenLight)
+                        else BorderStroke(1.dp, BlackSecondary)
                 ) {
                     Text(
                         label,
                         modifier = Modifier.padding(12.dp),
-                        color = Color.White,
+                        color = WhiteText,
                         fontSize = 14.sp,
                         fontWeight = if (selectedView == index) FontWeight.Bold else FontWeight.Normal,
                         textAlign = TextAlign.Center
                     )
                 }
             }
+        }
+
+        // Quick Access
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            QuickAccessButton(
+                icon = Icons.Default.BarChart,
+                label = "Statistics",
+                onClick = { navController.navigate(Screen.Statistics.route) },
+                modifier = Modifier.weight(1f)
+            )
+            QuickAccessButton(
+                icon = Icons.Default.Map,
+                label = "Map",
+                onClick = { navController.navigate(Screen.Map.route) },
+                modifier = Modifier.weight(1f)
+            )
+            QuickAccessButton(
+                icon = Icons.Default.Search,
+                label = "Discovery",
+                onClick = { navController.navigate(Screen.Discovery.route) },
+                modifier = Modifier.weight(1f)
+            )
         }
 
         // Content based on selected view
@@ -115,7 +149,7 @@ private fun GridItemCard(entry: FoodEntry, navController: NavController) {
             .clickable { navController.navigate(Screen.EntryDetail.createRoute(entry.id)) },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2C2C2E)
+            containerColor = BlackSecondary
         )
     ) {
         Box(
@@ -188,7 +222,7 @@ private fun ListItemCard(entry: FoodEntry, onClick: () -> Unit) {
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2C2C2E)
+            containerColor = BlackSecondary
         )
     ) {
         Row(
@@ -230,7 +264,7 @@ private fun ListItemCard(entry: FoodEntry, onClick: () -> Unit) {
             ) {
                 Text(
                     text = entry.foodName,
-                    color = Color.White,
+                    color = WhiteText,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -242,13 +276,13 @@ private fun ListItemCard(entry: FoodEntry, onClick: () -> Unit) {
                     Text(text = getMoodEmoji(entry), fontSize = 18.sp)
                     Text(
                         text = getMoodLabel(entry),
-                        color = Color(0xFF9FD4A8),
+                        color = PastelGreen,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
                         text = "• ${formatDate(entry.timestamp)}",
-                        color = Color(0xFF8E8E93),
+                        color = GrayText,
                         fontSize = 12.sp
                     )
                 }
@@ -275,7 +309,7 @@ private fun CalendarView(entries: List<FoodEntry>, navController: NavController)
         ) {
             Text(
                 text = "<",
-                color = Color.White,
+                color = WhiteText,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
@@ -284,13 +318,13 @@ private fun CalendarView(entries: List<FoodEntry>, navController: NavController)
             )
             Text(
                 text = "December 2025",
-                color = Color.White,
+                color = WhiteText,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = ">",
-                color = Color.White,
+                color = WhiteText,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
@@ -304,7 +338,7 @@ private fun CalendarView(entries: List<FoodEntry>, navController: NavController)
         // Calendar Grid (simplified)
         Text(
             text = "Calendar view - showing ${entries.size} entries",
-            color = Color(0xFF9FD4A8),
+            color = PastelGreen,
             fontSize = 14.sp,
             modifier = Modifier.padding(16.dp)
         )
@@ -329,7 +363,7 @@ private fun EmptyState() {
             )
             Text(
                 "No entries yet",
-                color = Color.White,
+                color = WhiteText,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -338,6 +372,30 @@ private fun EmptyState() {
                 color = Color.Gray,
                 fontSize = 14.sp
             )
+        }
+    }
+}
+
+@Composable
+private fun QuickAccessButton(
+    icon: ImageVector,
+    label: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = modifier.clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        color = BlackSecondary,
+        border = BorderStroke(1.dp, PastelGreenLight)
+    ) {
+        Row(
+            modifier = Modifier.padding(vertical = 12.dp, horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(icon, contentDescription = label, tint = PastelGreen)
+            Text(label, color = WhiteText, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
         }
     }
 }

@@ -3,7 +3,7 @@ package com.haphuongquynh.foodmooddiary.domain.usecase.export
 import android.content.Context
 import com.haphuongquynh.foodmooddiary.domain.model.FoodEntry
 import com.haphuongquynh.foodmooddiary.domain.repository.FoodEntryRepository
-import com.haphuongquynh.foodmooddiary.util.ExportHelper
+import com.haphuongquynh.foodmooddiary.util.export.ExportHelper
 import kotlinx.coroutines.flow.first
 import java.io.File
 import javax.inject.Inject

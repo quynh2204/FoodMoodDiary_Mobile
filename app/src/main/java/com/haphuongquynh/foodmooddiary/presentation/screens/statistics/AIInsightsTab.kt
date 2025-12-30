@@ -9,7 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,17 +19,20 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.haphuongquynh.foodmooddiary.domain.model.Insight
+import com.haphuongquynh.foodmooddiary.domain.model.InsightType
 import com.haphuongquynh.foodmooddiary.ui.theme.*
 
 @Composable
-fun AIInsightsTab() {
+fun AIInsightsTab(insights: List<Insight>) {
+    val summary = insights.firstOrNull()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        // AI Summary Card
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -89,7 +92,7 @@ fun AIInsightsTab() {
                     Spacer(modifier = Modifier.height(20.dp))
                     
                     Text(
-                        text = "Trong tuần qua, cảm xúc của bạn đã cải thiện đáng kể! Các bữa ăn tại nhà hàng Việt Nam có xu hướng làm bạn vui vẻ hơn. Hãy duy trì thói quen ăn sáng đều đặn nhé! 🌟",
+                        text = summary?.description ?: "Chưa đủ dữ liệu để tạo insight. Thêm vài bữa ăn để xem gợi ý thông minh!",
                         fontSize = 15.sp,
                         color = WhiteText,
                         lineHeight = 22.sp
@@ -100,7 +103,6 @@ fun AIInsightsTab() {
         
         Spacer(modifier = Modifier.height(24.dp))
         
-        // Insights List
         Text(
             text = "Thống kê chi tiết",
             fontSize = 20.sp,
@@ -110,84 +112,38 @@ fun AIInsightsTab() {
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        InsightCard(
-            icon = Icons.Default.Restaurant,
-            title = "Món ăn yêu thích",
-            value = "Phở Hà Nội",
-            description = "Xuất hiện 12 lần trong tháng",
-            trend = "+3 lần so với tháng trước",
-            color = PastelGreen
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        InsightCard(
-            icon = Icons.Default.SentimentSatisfiedAlt,
-            title = "Cảm xúc tích cực",
-            value = "87%",
-            description = "Tỷ lệ bữa ăn vui vẻ",
-            trend = "+12% so với tháng trước",
-            color = GoldPrimary
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        InsightCard(
-            icon = Icons.Default.Schedule,
-            title = "Thời gian yêu thích",
-            value = "19:00 - 20:00",
-            description = "Khung giờ ăn tối thường xuyên nhất",
-            trend = "Duy trì đều đặn",
-            color = Color(0xFF90CAF9)
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        InsightCard(
-            icon = Icons.Default.LocationOn,
-            title = "Địa điểm ưa chuộng",
-            value = "Nhà hàng Việt",
-            description = "Quán ăn bạn ghé nhiều nhất",
-            trend = "18 lượt check-in",
-            color = ErrorRed
-        )
-        
+        if (insights.isEmpty()) {
+            RecommendationCard(
+                icon = Icons.Default.CalendarMonth,
+                title = "Bắt đầu ghi lại",
+                description = "Ghi chép vài bữa ăn để hệ thống tạo insight cho bạn"
+            )
+        } else {
+            insights.forEach { insight ->
+                val (icon, color) = insightStyle(insight.type)
+                InsightCard(
+                    icon = icon,
+                    title = insight.title,
+                    value = insight.type.name.replace('_', ' ').lowercase().replaceFirstChar { it.titlecase() },
+                    description = insight.description,
+                    trend = if (insight.actionable) "Nên thử ngay" else null,
+                    color = color
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
-        
-        // Recommendations
-        Text(
-            text = "Gợi ý cho bạn",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = WhiteText
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        RecommendationCard(
-            icon = Icons.Default.TrendingUp,
-            title = "Thử món mới",
-            description = "Bạn chưa thử món Ý trong 2 tuần. Thử khám phá món mới để đa dạng hơn nhé!"
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        RecommendationCard(
-            icon = Icons.Default.FitnessCenter,
-            title = "Cân bằng dinh dưỡng",
-            description = "Hãy thêm nhiều rau xanh vào bữa tối để cân bằng chế độ ăn"
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        RecommendationCard(
-            icon = Icons.Default.CalendarMonth,
-            title = "Thói quen tốt",
-            description = "Bạn đã duy trì streak 7 ngày! Tiếp tục ghi nhật ký mỗi ngày nhé 🔥"
-        )
-        
-        Spacer(modifier = Modifier.height(32.dp))
     }
+}
+
+private fun insightStyle(type: InsightType): Pair<ImageVector, Color> = when (type) {
+    InsightType.MOOD_PATTERN -> Icons.Default.SentimentSatisfiedAlt to PastelGreen
+    InsightType.FOOD_CORRELATION -> Icons.Default.Restaurant to GoldPrimary
+    InsightType.TIME_PATTERN -> Icons.Default.Schedule to Color(0xFF90CAF9)
+    InsightType.COLOR_PATTERN -> Icons.Default.Palette to ErrorRed
+    InsightType.STREAK -> Icons.Default.LocalFireDepartment to StreakOrange
+    InsightType.RECOMMENDATION -> Icons.Default.AutoAwesome to PastelGreen
 }
 
 @Composable
@@ -196,7 +152,7 @@ fun InsightCard(
     title: String,
     value: String,
     description: String,
-    trend: String,
+    trend: String?,
     color: Color
 ) {
     Card(
@@ -236,7 +192,7 @@ fun InsightCard(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = value,
-                    fontSize = 22.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = color
                 )
@@ -246,18 +202,20 @@ fun InsightCard(
                     fontSize = 13.sp,
                     color = WhiteText
                 )
-                Spacer(modifier = Modifier.height(6.dp))
-                Surface(
-                    color = color.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = trend,
-                        fontSize = 11.sp,
-                        color = color,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
+                if (!trend.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Surface(
+                        color = color.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = trend,
+                            fontSize = 11.sp,
+                            color = color,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
                 }
             }
         }

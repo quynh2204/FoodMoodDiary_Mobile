@@ -100,6 +100,19 @@ fun FoodMoodDiaryNavigation() {
                 onNavigateBack = { navController.navigateUp() }
             )
         }
+        
+        composable(route = Screen.DataManagement.route) {
+            com.haphuongquynh.foodmooddiary.presentation.screens.settings.DataManagementScreen(
+                onNavigateBack = { navController.navigateUp() }
+            )
+        }
+        
+        composable(route = Screen.NotificationSettings.route) {
+            com.haphuongquynh.foodmooddiary.presentation.screens.settings.NotificationSettingsScreen(
+                onNavigateBack = { navController.navigateUp() },
+                onSaveSettings = { /* TODO: Save notification settings */ }
+            )
+        }
 
         composable(route = Screen.Discovery.route) {
             com.haphuongquynh.foodmooddiary.presentation.screens.discovery.DiscoveryScreen(
@@ -155,6 +168,8 @@ sealed class Screen(val route: String) {
     data object Map : Screen("map")
     data object Profile : Screen("profile")
     data object Settings : Screen("settings")
+    data object DataManagement : Screen("data_management")
+    data object NotificationSettings : Screen("notification_settings")
     data object Discovery : Screen("discovery")
     data object Camera : Screen("camera")
     data object NotificationSettings : Screen("notification_settings")

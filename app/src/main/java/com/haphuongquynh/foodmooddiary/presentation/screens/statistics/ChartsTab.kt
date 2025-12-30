@@ -9,7 +9,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,30 +23,67 @@ import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.data.PieData
+import com.github.mikephil.charting.data.PieDataSet
+import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import com.haphuongquynh.foodmooddiary.ui.theme.*
+import com.haphuongquynh.foodmooddiary.domain.model.ColorDistribution
+import com.haphuongquynh.foodmooddiary.domain.model.MealDistribution
+import com.haphuongquynh.foodmooddiary.domain.model.MealType
+import com.haphuongquynh.foodmooddiary.domain.model.MoodTrendPoint
+import com.haphuongquynh.foodmooddiary.domain.model.WeeklySummary
+import com.haphuongquynh.foodmooddiary.presentation.viewmodel.DateRange
+import com.haphuongquynh.foodmooddiary.ui.theme.BlackPrimary
+import com.haphuongquynh.foodmooddiary.ui.theme.BlackSecondary
+import com.haphuongquynh.foodmooddiary.ui.theme.PastelGreen
+import com.haphuongquynh.foodmooddiary.ui.theme.WhiteText
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
-fun ChartsTab() {
+fun ChartsTab(
+    moodTrend: List<MoodTrendPoint>,
+    mealDistribution: List<MealDistribution>,
+    colorDistribution: List<ColorDistribution>,
+    weeklySummary: WeeklySummary?,
+    selectedRange: DateRange,
+    onPeriodChange: (DateRange) -> Unit
+) {
+    val periodOptions = listOf(
+        DateRange.LAST_7_DAYS to "7 ngày",
+        DateRange.LAST_30_DAYS to "30 ngày",
+        DateRange.LAST_90_DAYS to "90 ngày"
+    )
+
+    val totalEntries = weeklySummary?.totalEntries ?: moodTrend.sumOf { it.entryCount }
+    val averageMood = weeklySummary?.averageMoodScore ?: if (moodTrend.isNotEmpty()) {
+        moodTrend.map { it.averageMoodScore }.average().toFloat()
+    } else 0f
+    val streak = weeklySummary?.streak ?: 0
+    val photoCount = colorDistribution.sumOf { it.count }.takeIf { it > 0 } ?: totalEntries
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        // Period Selector
-        var selectedPeriod by remember { mutableStateOf("Tuần") }
-        
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            listOf("Tuần", "Tháng", "Năm").forEach { period ->
+            periodOptions.forEach { (range, label) ->
                 FilterChip(
-                    selected = selectedPeriod == period,
-                    onClick = { selectedPeriod = period },
-                    label = { Text(period) },
+                    selected = selectedRange == range,
+                    onClick = { onPeriodChange(range) },
+                    label = { Text(label) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = PastelGreen,
                         selectedLabelColor = BlackPrimary,
@@ -55,19 +93,18 @@ fun ChartsTab() {
                 )
             }
         }
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
-        // Mood Trend Line Chart
+
         Text(
             text = "Xu hướng cảm xúc",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = WhiteText
         )
-        
+
         Spacer(modifier = Modifier.height(12.dp))
-        
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -80,22 +117,21 @@ fun ChartsTab() {
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                MoodLineChart()
+                MoodLineChart(moodTrend)
             }
         }
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
-        // Meals Per Day Bar Chart
+
         Text(
             text = "Số bữa ăn mỗi ngày",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = WhiteText
         )
-        
+
         Spacer(modifier = Modifier.height(12.dp))
-        
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -108,22 +144,21 @@ fun ChartsTab() {
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                MealsBarChart()
+                MealsBarChart(moodTrend)
             }
         }
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
-        // Mood Distribution Pie Chart
+
         Text(
-            text = "Phân bổ cảm xúc",
+            text = "Phân bố bữa ăn",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = WhiteText
         )
-        
+
         Spacer(modifier = Modifier.height(12.dp))
-        
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -136,22 +171,21 @@ fun ChartsTab() {
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                MoodPieChart()
+                MoodPieChart(mealDistribution)
             }
         }
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
-        // Quick Stats Grid
+
         Text(
             text = "Thống kê nhanh",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = WhiteText
         )
-        
+
         Spacer(modifier = Modifier.height(12.dp))
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -159,19 +193,19 @@ fun ChartsTab() {
             QuickStatCard(
                 icon = Icons.Default.Restaurant,
                 label = "Tổng bữa ăn",
-                value = "234",
+                value = if (totalEntries > 0) "$totalEntries" else "--",
                 modifier = Modifier.weight(1f)
             )
             QuickStatCard(
                 icon = Icons.Default.Star,
-                label = "Trung bình",
-                value = "4.2/5",
+                label = "Tâm trạng TB",
+                value = if (averageMood > 0f) String.format(Locale.getDefault(), "%.1f/10", averageMood) else "--",
                 modifier = Modifier.weight(1f)
             )
         }
-        
+
         Spacer(modifier = Modifier.height(12.dp))
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -179,23 +213,34 @@ fun ChartsTab() {
             QuickStatCard(
                 icon = Icons.Default.LocalFireDepartment,
                 label = "Streak",
-                value = "7 ngày",
+                value = if (streak > 0) "$streak ngày" else "--",
                 modifier = Modifier.weight(1f)
             )
             QuickStatCard(
                 icon = Icons.Default.Photo,
                 label = "Ảnh chụp",
-                value = "189",
+                value = if (photoCount > 0) "$photoCount" else "--",
                 modifier = Modifier.weight(1f)
             )
         }
-        
+
         Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
 @Composable
-fun MoodLineChart() {
+private fun MoodLineChart(moodTrend: List<MoodTrendPoint>) {
+    if (moodTrend.isEmpty()) {
+        ChartEmptyState("Chưa có dữ liệu cảm xúc")
+        return
+    }
+
+    val sortedTrend = remember(moodTrend) { moodTrend.sortedBy { it.date } }
+    val labels = remember(sortedTrend) {
+        val formatter = SimpleDateFormat("dd/MM", Locale.getDefault())
+        sortedTrend.map { formatter.format(Date(it.date)) }
+    }
+
     AndroidView(
         factory = { context ->
             LineChart(context).apply {
@@ -206,63 +251,63 @@ fun MoodLineChart() {
                 setScaleEnabled(false)
                 setPinchZoom(false)
                 setDrawGridBackground(false)
-                
-                // X Axis
+
                 xAxis.apply {
                     position = XAxis.XAxisPosition.BOTTOM
                     textColor = android.graphics.Color.parseColor("#9E9E9E")
                     setDrawGridLines(false)
                     granularity = 1f
-                    valueFormatter = IndexAxisValueFormatter(
-                        arrayOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
-                    )
                 }
-                
-                // Left Axis
+
                 axisLeft.apply {
                     textColor = android.graphics.Color.parseColor("#9E9E9E")
                     setDrawGridLines(true)
                     gridColor = android.graphics.Color.parseColor("#2C2C2E")
                     axisMinimum = 0f
-                    axisMaximum = 5f
+                    axisMaximum = 10f
                 }
-                
-                // Right Axis
+
                 axisRight.isEnabled = false
-                
-                // Sample Data
-                val entries = listOf(
-                    Entry(0f, 3.5f),
-                    Entry(1f, 4.0f),
-                    Entry(2f, 3.8f),
-                    Entry(3f, 4.5f),
-                    Entry(4f, 4.2f),
-                    Entry(5f, 4.7f),
-                    Entry(6f, 4.3f)
-                )
-                
-                val dataSet = LineDataSet(entries, "Mood").apply {
-                    color = android.graphics.Color.parseColor("#A8D8A8")
-                    lineWidth = 3f
-                    setCircleColor(android.graphics.Color.parseColor("#A8D8A8"))
-                    circleRadius = 5f
-                    setDrawValues(false)
-                    mode = LineDataSet.Mode.CUBIC_BEZIER
-                    setDrawFilled(true)
-                    fillColor = android.graphics.Color.parseColor("#A8D8A8")
-                    fillAlpha = 50
-                }
-                
-                data = LineData(dataSet)
-                invalidate()
             }
+        },
+        update = { chart ->
+            val entries = sortedTrend.mapIndexed { index, point ->
+                Entry(index.toFloat(), point.averageMoodScore.coerceIn(0f, 10f))
+            }
+
+            val dataSet = LineDataSet(entries, "Mood").apply {
+                color = android.graphics.Color.parseColor("#A8D8A8")
+                lineWidth = 3f
+                setCircleColor(android.graphics.Color.parseColor("#A8D8A8"))
+                circleRadius = 5f
+                setDrawValues(false)
+                mode = LineDataSet.Mode.CUBIC_BEZIER
+                setDrawFilled(true)
+                fillColor = android.graphics.Color.parseColor("#A8D8A8")
+                fillAlpha = 50
+            }
+
+            chart.xAxis.valueFormatter = IndexAxisValueFormatter(labels.toTypedArray())
+            chart.data = LineData(dataSet)
+            chart.invalidate()
         },
         modifier = Modifier.fillMaxSize()
     )
 }
 
 @Composable
-fun MealsBarChart() {
+private fun MealsBarChart(moodTrend: List<MoodTrendPoint>) {
+    if (moodTrend.isEmpty()) {
+        ChartEmptyState("Chưa có dữ liệu bữa ăn")
+        return
+    }
+
+    val sortedTrend = remember(moodTrend) { moodTrend.sortedBy { it.date } }
+    val labels = remember(sortedTrend) {
+        val formatter = SimpleDateFormat("dd/MM", Locale.getDefault())
+        sortedTrend.map { formatter.format(Date(it.date)) }
+    }
+
     AndroidView(
         factory = { context ->
             BarChart(context).apply {
@@ -270,58 +315,56 @@ fun MealsBarChart() {
                 legend.isEnabled = false
                 setTouchEnabled(false)
                 setDrawGridBackground(false)
-                
-                // X Axis
+
                 xAxis.apply {
                     position = XAxis.XAxisPosition.BOTTOM
                     textColor = android.graphics.Color.parseColor("#9E9E9E")
                     setDrawGridLines(false)
                     granularity = 1f
-                    valueFormatter = IndexAxisValueFormatter(
-                        arrayOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
-                    )
                 }
-                
-                // Left Axis
+
                 axisLeft.apply {
                     textColor = android.graphics.Color.parseColor("#9E9E9E")
                     setDrawGridLines(true)
                     gridColor = android.graphics.Color.parseColor("#2C2C2E")
                     axisMinimum = 0f
                 }
-                
-                // Right Axis
+
                 axisRight.isEnabled = false
-                
-                // Sample Data
-                val entries = listOf(
-                    BarEntry(0f, 3f),
-                    BarEntry(1f, 4f),
-                    BarEntry(2f, 3f),
-                    BarEntry(3f, 5f),
-                    BarEntry(4f, 4f),
-                    BarEntry(5f, 6f),
-                    BarEntry(6f, 3f)
-                )
-                
-                val dataSet = BarDataSet(entries, "Meals").apply {
-                    color = android.graphics.Color.parseColor("#FFD700")
-                    valueTextColor = android.graphics.Color.parseColor("#FFFFFF")
-                    valueTextSize = 10f
-                }
-                
-                data = BarData(dataSet).apply {
-                    barWidth = 0.6f
-                }
-                invalidate()
             }
+        },
+        update = { chart ->
+            val entries = sortedTrend.mapIndexed { index, point ->
+                BarEntry(index.toFloat(), point.entryCount.toFloat())
+            }
+
+            val dataSet = BarDataSet(entries, "Meals").apply {
+                color = android.graphics.Color.parseColor("#FFD700")
+                valueTextColor = android.graphics.Color.parseColor("#FFFFFF")
+                valueTextSize = 10f
+            }
+
+            chart.xAxis.valueFormatter = IndexAxisValueFormatter(labels.toTypedArray())
+            chart.data = BarData(dataSet).apply { barWidth = 0.6f }
+            chart.invalidate()
         },
         modifier = Modifier.fillMaxSize()
     )
 }
 
 @Composable
-fun MoodPieChart() {
+private fun MoodPieChart(mealDistribution: List<MealDistribution>) {
+    if (mealDistribution.isEmpty()) {
+        ChartEmptyState("Chưa có dữ liệu phân bố bữa ăn")
+        return
+    }
+
+    val entries = remember(mealDistribution) {
+        mealDistribution.map {
+            PieEntry(it.percentage, mealTypeLabel(it.mealType))
+        }
+    }
+
     AndroidView(
         factory = { context ->
             PieChart(context).apply {
@@ -331,33 +374,43 @@ fun MoodPieChart() {
                 legend.textSize = 12f
                 setDrawEntryLabels(false)
                 setUsePercentValues(true)
-                
-                // Sample Data
-                val entries = listOf(
-                    PieEntry(45f, "Vui vẻ 😊"),
-                    PieEntry(30f, "Bình thường 😐"),
-                    PieEntry(15f, "Tuyệt vời 🤩"),
-                    PieEntry(10f, "Buồn 😢")
-                )
-                
-                val dataSet = PieDataSet(entries, "").apply {
-                    colors = listOf(
-                        android.graphics.Color.parseColor("#A8D8A8"),
-                        android.graphics.Color.parseColor("#FFD700"),
-                        android.graphics.Color.parseColor("#90CAF9"),
-                        android.graphics.Color.parseColor("#EF5350")
-                    )
-                    valueTextColor = android.graphics.Color.parseColor("#1C1C1E")
-                    valueTextSize = 14f
-                    sliceSpace = 2f
-                }
-                
-                data = PieData(dataSet)
-                invalidate()
             }
+        },
+        update = { chart ->
+            val dataSet = PieDataSet(entries, "").apply {
+                colors = listOf(
+                    android.graphics.Color.parseColor("#A8D8A8"),
+                    android.graphics.Color.parseColor("#FFD700"),
+                    android.graphics.Color.parseColor("#90CAF9"),
+                    android.graphics.Color.parseColor("#EF5350")
+                )
+                valueTextColor = android.graphics.Color.parseColor("#1C1C1E")
+                valueTextSize = 12f
+                sliceSpace = 2f
+            }
+
+            chart.data = PieData(dataSet)
+            chart.invalidate()
         },
         modifier = Modifier.fillMaxSize()
     )
+}
+
+@Composable
+private fun ChartEmptyState(message: String) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(message, color = Color.Gray)
+    }
+}
+
+private fun mealTypeLabel(type: MealType): String = when (type) {
+    MealType.BREAKFAST -> "Sáng"
+    MealType.LUNCH -> "Trưa"
+    MealType.DINNER -> "Tối"
+    MealType.SNACK -> "Snack"
 }
 
 @Composable

@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.haphuongquynh.foodmooddiary.domain.model.*
+import com.haphuongquynh.foodmooddiary.presentation.viewmodel.DateRange
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.StatisticsViewModel
 import com.haphuongquynh.foodmooddiary.ui.theme.*
 
@@ -33,10 +35,18 @@ fun StatisticsScreen(
 ) {
     val moodTrend by viewModel.moodTrend.collectAsStateWithLifecycle()
     val topFoods by viewModel.topFoods.collectAsStateWithLifecycle()
+    val mealDistribution by viewModel.mealDistribution.collectAsStateWithLifecycle()
+    val colorDistribution by viewModel.colorDistribution.collectAsStateWithLifecycle()
+    val insights by viewModel.insights.collectAsStateWithLifecycle()
+    val weeklySummary by viewModel.weeklySummary.collectAsStateWithLifecycle()
     
-    var selectedPeriod by remember { mutableStateOf("Tuần") }
+    var selectedRange by remember { mutableStateOf(DateRange.LAST_7_DAYS) }
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Tổng quan", "Biểu đồ", "Lịch", "AI Insights")
+
+    LaunchedEffect(selectedRange) {
+        viewModel.setDateRange(selectedRange)
+    }
 
     Column(
         modifier = Modifier
@@ -88,21 +98,47 @@ fun StatisticsScreen(
         
         // Tab Content
         when (selectedTab) {
-            0 -> OverviewTab(moodTrend, topFoods, selectedPeriod) { selectedPeriod = it }
-            1 -> ChartsTab()
-            2 -> CalendarTab()
-            3 -> AIInsightsTab()
+            0 -> OverviewTab(
+                moodTrend = moodTrend,
+                topFoods = topFoods,
+                weeklySummary = weeklySummary,
+                selectedRange = selectedRange,
+                onPeriodChange = { selectedRange = it }
+            )
+            1 -> ChartsTab(
+                moodTrend = moodTrend,
+                mealDistribution = mealDistribution,
+                colorDistribution = colorDistribution,
+                weeklySummary = weeklySummary,
+                selectedRange = selectedRange,
+                onPeriodChange = { selectedRange = it }
+            )
+            2 -> CalendarTab(moodTrend = moodTrend)
+            3 -> AIInsightsTab(insights = insights)
         }
     }
 }
 
 @Composable
 fun OverviewTab(
-    moodTrend: List<com.haphuongquynh.foodmooddiary.domain.model.MoodTrendPoint>,
-    topFoods: List<com.haphuongquynh.foodmooddiary.domain.model.FoodFrequency>,
-    selectedPeriod: String,
-    onPeriodChange: (String) -> Unit
+    moodTrend: List<MoodTrendPoint>,
+    topFoods: List<FoodFrequency>,
+    weeklySummary: WeeklySummary?,
+    selectedRange: DateRange,
+    onPeriodChange: (DateRange) -> Unit
 ) {
+    val periodLabel = when (selectedRange) {
+        DateRange.LAST_7_DAYS -> "7 ngày"
+        DateRange.LAST_30_DAYS -> "30 ngày"
+        DateRange.LAST_90_DAYS -> "90 ngày"
+        DateRange.LAST_YEAR -> "12 tháng"
+        DateRange.ALL_TIME -> "tất cả thời gian"
+    }
+
+    val averageMood = weeklySummary?.averageMoodScore ?: if (moodTrend.isNotEmpty()) {
+        moodTrend.map { it.averageMoodScore }.average().toFloat()
+    } else 0f
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -119,19 +155,19 @@ fun OverviewTab(
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            PeriodButton(
-                text = "Tuần",
-                isSelected = selectedPeriod == "Tuần",
-                onClick = { onPeriodChange("Tuần") },
-                modifier = Modifier.weight(1f)
+            val periodOptions = listOf(
+                DateRange.LAST_7_DAYS to "7 ngày",
+                DateRange.LAST_30_DAYS to "30 ngày"
             )
-            
-            PeriodButton(
-                text = "Ngày",
-                isSelected = selectedPeriod == "Ngày",
-                onClick = { onPeriodChange("Ngày") },
-                modifier = Modifier.weight(1f)
-            )
+
+            periodOptions.forEach { (range, label) ->
+                PeriodButton(
+                    text = label,
+                    isSelected = selectedRange == range,
+                    onClick = { onPeriodChange(range) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -148,7 +184,7 @@ fun OverviewTab(
 
         // Mood Trend Chart Section
         Text(
-            text = "Xu hướng tâm trạng theo ${selectedPeriod.lowercase()}",
+            text = "Xu hướng tâm trạng theo $periodLabel",
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.White,
@@ -167,8 +203,8 @@ fun OverviewTab(
 
         // Entry Summary
         EntrySummaryCards(
-            totalEntries = moodTrend.size,
-            avgMoodScore = 4,
+            totalEntries = weeklySummary?.totalEntries ?: moodTrend.sumOf { it.entryCount },
+            avgMoodScore = averageMood.toInt().coerceAtLeast(0),
             topFoods = topFoods.take(3),
             modifier = Modifier.padding(horizontal = 16.dp)
         )
@@ -278,7 +314,7 @@ fun DateRangeSelector(
 
 @Composable
 fun MoodTrendChart(
-    moodTrend: List<com.haphuongquynh.foodmooddiary.domain.model.MoodTrendPoint>,
+    moodTrend: List<MoodTrendPoint>,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -384,7 +420,7 @@ fun MoodTrendChart(
 fun EntrySummaryCards(
     totalEntries: Int,
     avgMoodScore: Int,
-    topFoods: List<com.haphuongquynh.foodmooddiary.domain.model.FoodFrequency>,
+    topFoods: List<FoodFrequency>,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -514,7 +550,7 @@ fun StatInfoCard(
 
 @Composable
 fun MoodDistributionCards(
-    moodTrend: List<com.haphuongquynh.foodmooddiary.domain.model.MoodTrendPoint>,
+    moodTrend: List<MoodTrendPoint>,
     modifier: Modifier = Modifier
 ) {
     val happyCount = moodTrend.count { it.averageMoodScore >= 8f }
