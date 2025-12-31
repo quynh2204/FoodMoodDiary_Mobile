@@ -86,7 +86,7 @@ fun SimpleHomeScreen(
             }
         }
 
-        // Quick Access
+        // Quick Access - ĐÃ SỬA PHẦN NÀY ĐỂ GỌI AI
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -99,12 +99,15 @@ fun SimpleHomeScreen(
                 onClick = { navController.navigate(Screen.Statistics.route) },
                 modifier = Modifier.weight(1f)
             )
+            
+            // 👇 ĐÂY LÀ NÚT AI MỚI CỦA BẠN
             QuickAccessButton(
-                icon = Icons.Default.Map,
-                label = "Map",
-                onClick = { navController.navigate(Screen.Map.route) },
+                icon = Icons.Default.Face, // Đổi icon thành mặt người
+                label = "Trợ lý AI",       // Đổi tên
+                onClick = { navController.navigate(Screen.Map.route) }, // Dẫn tới Chat (đã tráo ruột)
                 modifier = Modifier.weight(1f)
             )
+
             QuickAccessButton(
                 icon = Icons.Default.Search,
                 label = "Discovery",

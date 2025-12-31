@@ -21,24 +21,27 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.haphuongquynh.foodmooddiary"
-        minSdk = 26
-        targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+    applicationId = "com.haphuongquynh.foodmooddiary"
+    minSdk = 26
+    targetSdk = 36
+    versionCode = 1
+    versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        
-        // Add Google Maps API Key to BuildConfig
-        val mapsApiKey = localProperties.getProperty("GOOGLE_MAPS_API_KEY", "")
-        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = mapsApiKey
-        buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$mapsApiKey\"")
-        
-        // Room schema export
-        ksp {
-            arg("room.schemaLocation", "$projectDir/schemas")
-        }
+    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+    // ===== LOAD API KEYS =====
+    val mapsApiKey = localProperties.getProperty("GOOGLE_MAPS_API_KEY", "")
+    manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = mapsApiKey
+    buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$mapsApiKey\"")
+
+    val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY", "")
+    buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+
+    // Room schema
+    ksp {
+        arg("room.schemaLocation", "$projectDir/schemas")
     }
+}
 
     buildTypes {
         release {
@@ -164,4 +167,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.leakcanary)
+
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 }

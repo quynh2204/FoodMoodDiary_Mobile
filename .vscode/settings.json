@@ -18,5 +18,6 @@
   "gradle.java.home": "/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home",
 
   // Gradle JVM arguments
-  "gradle.jvm.arguments": "-Dfile.encoding=UTF-8 -Xmx2g"
+  "gradle.jvm.arguments": "-Dfile.encoding=UTF-8 -Xmx2g",
+  "java.configuration.updateBuildConfiguration": "interactive"
 }

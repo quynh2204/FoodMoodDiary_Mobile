@@ -1,19 +1,14 @@
 package com.haphuongquynh.foodmooddiary.presentation.screens.main
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.shadow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,6 +20,8 @@ import com.haphuongquynh.foodmooddiary.presentation.navigation.Screen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthState
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
 import com.haphuongquynh.foodmooddiary.presentation.screens.camera.CameraScreen
+// Import màn hình Chat
+import com.haphuongquynh.foodmooddiary.presentation.screens.ChatScreen
 
 sealed class BottomNavItem(
     val route: String,
@@ -34,7 +31,7 @@ sealed class BottomNavItem(
     object Home : BottomNavItem("home_tab", Icons.Default.Home, "Trang chủ")
     object Statistics : BottomNavItem("statistics_tab", Icons.Default.CalendarToday, "Nhật ký")
     object Camera : BottomNavItem("camera_tab", Icons.Default.CameraAlt, "Camera")
-    object Map : BottomNavItem("map_tab", Icons.Default.Map, "Bản đồ")
+    object AI : BottomNavItem("ai_tab", Icons.Default.Face, "Trợ lý AI")
     object Discovery : BottomNavItem("discovery_tab", Icons.Default.Explore, "Khám phá")
 }
 
@@ -47,8 +44,7 @@ fun MainScreen(
     var selectedTab by remember { mutableStateOf(BottomNavItem.Home.route) }
     val authState by viewModel.authState.collectAsState()
     var showCamera by remember { mutableStateOf(false) }
-    val currentUser by viewModel.currentUser.collectAsState()
-
+    
     // Handle logout
     LaunchedEffect(authState) {
         if (authState is AuthState.LoggedOut) {
@@ -88,13 +84,12 @@ fun MainScreen(
                     BottomNavItem.Home,
                     BottomNavItem.Statistics,
                     BottomNavItem.Camera,
-                    BottomNavItem.Map,
+                    BottomNavItem.AI, 
                     BottomNavItem.Discovery
                 )
 
                 items.forEach { item ->
                     if (item == BottomNavItem.Camera) {
-                        // Camera button in the middle - circular like Locket
                         Box(
                             modifier = Modifier.weight(1f),
                             contentAlignment = Alignment.Center
@@ -179,10 +174,8 @@ fun MainScreen(
                 selectedTab == BottomNavItem.Statistics.route -> {
                     com.haphuongquynh.foodmooddiary.presentation.screens.statistics.StatisticsScreen()
                 }
-                selectedTab == BottomNavItem.Map.route -> {
-                    com.haphuongquynh.foodmooddiary.presentation.screens.map.MapScreen(
-                        onNavigateBack = { selectedTab = BottomNavItem.Home.route }
-                    )
+                selectedTab == BottomNavItem.AI.route -> {
+                    ChatScreen()
                 }
                 selectedTab == BottomNavItem.Discovery.route -> {
                     com.haphuongquynh.foodmooddiary.presentation.screens.discovery.DiscoveryScreen(
