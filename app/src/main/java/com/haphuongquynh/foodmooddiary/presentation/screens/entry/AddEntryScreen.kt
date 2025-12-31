@@ -27,6 +27,7 @@ import com.haphuongquynh.foodmooddiary.ui.theme.*
 import com.haphuongquynh.foodmooddiary.presentation.screens.camera.CameraScreen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.EntryState
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.FoodEntryViewModel
+import com.haphuongquynh.foodmooddiary.util.color.ColorAnalyzer
 import java.io.File
 
 /**
@@ -141,9 +142,12 @@ fun AddEntryScreen(
                             notes.takeIf { it.isNotBlank() }
                         ).joinToString("\n")
                         
+                        // Calculate mood color from selected emoji
+                        val moodColor = ColorAnalyzer().getMoodColor(selectedMood)
+                        
                         viewModel.addEntry(
                             foodName = foodName.ifBlank { "Unnamed" },
-                            moodColor = selectedColor,
+                            moodColor = moodColor,
                             mood = selectedMood,
                             notes = combinedNotes,
                             mealType = selectedMealType,

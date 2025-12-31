@@ -62,11 +62,11 @@ class StatisticsRepositoryImpl @Inject constructor(
                 val total = entries.size.toFloat()
                 if (total == 0f) return@map emptyList()
 
-                // Categorize by time of day
-                val distribution = entries.groupBy { getMealTypeFromTimestamp(it.timestamp) }
+                // Use actual mealType stored in entries
+                val distribution = entries.groupBy { it.mealType }
                     .map { (mealType, mealEntries) ->
                         MealDistribution(
-                            mealType = mealType,
+                            mealType = MealType.fromString(mealType),
                             count = mealEntries.size,
                             percentage = (mealEntries.size / total) * 100f
                         )
@@ -217,18 +217,36 @@ class StatisticsRepositoryImpl @Inject constructor(
 
     /**
      * Helper: Calculate mood score from color (0-10 scale)
-     * Brighter/warmer colors = higher score
+     * Uses hue to determine mood (warm colors = positive mood)
+     * Saturation and brightness adjust the intensity
      */
     private fun calculateAverageMoodScore(colors: List<Int>): Float {
         if (colors.isEmpty()) return 5f
         
         return colors.map { color ->
-            // Calculate brightness/saturation as mood indicator
             val hsv = FloatArray(3)
             Color.colorToHSV(color, hsv)
+            
+            val hue = hsv[0]
             val saturation = hsv[1] // 0-1
             val brightness = hsv[2] // 0-1
-            ((saturation + brightness) / 2f) * 10f
+            
+            // Map hue to mood base score
+            // Red/Orange/Yellow (0-90°) = happy (8-10)
+            // Green (90-150°) = calm (6-8)  
+            // Blue/Cyan (150-270°) = neutral/sad (3-5)
+            // Purple/Magenta (270-360°) = creative (6-8)
+            val hueScore = when {
+                hue < 60 -> 8f + (hue / 60f) * 2f // Red to Yellow: 8-10
+                hue < 120 -> 6f + ((hue - 60f) / 60f) * 2f // Yellow to Green: 6-8
+                hue < 180 -> 5f + ((hue - 120f) / 60f) * 1f // Green to Cyan: 5-6
+                hue < 240 -> 3f + ((hue - 180f) / 60f) * 2f // Cyan to Blue: 3-5
+                hue < 300 -> 2f + ((hue - 240f) / 60f) * 1f // Blue to Magenta: 2-3
+                else -> 4f + ((hue - 300f) / 60f) * 4f // Magenta to Red: 4-8
+            }
+            
+            // Adjust by saturation and brightness
+            (hueScore * saturation * brightness).coerceIn(0f, 10f)
         }.average().toFloat()
     }
 

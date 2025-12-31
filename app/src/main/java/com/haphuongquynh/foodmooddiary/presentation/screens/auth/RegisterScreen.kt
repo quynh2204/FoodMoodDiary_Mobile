@@ -32,6 +32,7 @@ import com.haphuongquynh.foodmooddiary.presentation.navigation.Screen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthState
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
 import com.haphuongquynh.foodmooddiary.ui.theme.*
+import com.haphuongquynh.foodmooddiary.util.ValidationUtil
 
 @Composable
 fun RegisterScreen(

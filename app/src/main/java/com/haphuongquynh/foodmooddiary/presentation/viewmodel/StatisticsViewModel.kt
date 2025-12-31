@@ -128,9 +128,10 @@ class StatisticsViewModel @Inject constructor(
  * Date range options for filtering
  */
 enum class DateRange(val days: Int, val label: String) {
-    LAST_7_DAYS(7, "Last 7 Days"),
-    LAST_30_DAYS(30, "Last 30 Days"),
-    LAST_90_DAYS(90, "Last 3 Months"),
-    LAST_YEAR(365, "Last Year"),
-    ALL_TIME(Int.MAX_VALUE, "All Time")
+    LAST_7_DAYS(7, "7 ngày"),
+    LAST_14_DAYS(14, "14 ngày"),
+    LAST_30_DAYS(30, "30 ngày"),
+    LAST_90_DAYS(90, "90 ngày"),
+    LAST_YEAR(365, "12 tháng"),
+    ALL_TIME(Int.MAX_VALUE, "Tất cả")
 }

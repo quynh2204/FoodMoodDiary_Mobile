@@ -1,21 +1,22 @@
-{
-  // Use Temurin Java 17 for VS Code
-  "java.home": "/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home",
 
-  // Configure Java 17 runtime
+{
+  // Use Temurin Java 21 for VS Code (Windows path)
+  "java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.1-hotspot",
+
+  // Configure Java 21 runtime
   "java.configuration.runtimes": [
     {
-      "name": "JavaSE-17",
-      "path": "/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home",
+      "name": "JavaSE-21",
+      "path": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.1-hotspot",
       "default": true
     }
   ],
 
-  // Android SDK path
-  "android.sdkPath": "/Users/haphuongquynh/Library/Android/sdk",
+  // Android SDK path (correct for Windows)
+  "android.sdkPath": "C:\\Users\\ADMIN\\AppData\\Local\\Android\\Sdk",
 
-  // Gradle uses Java 17
-  "gradle.java.home": "/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home",
+  // Gradle uses Java 21
+  "gradle.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.1-hotspot",
 
   // Gradle JVM arguments
   "gradle.jvm.arguments": "-Dfile.encoding=UTF-8 -Xmx2g"

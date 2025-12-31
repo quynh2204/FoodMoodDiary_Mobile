@@ -402,16 +402,9 @@ private fun QuickAccessButton(
 
 // Helper functions
 private fun getMoodEmoji(entry: FoodEntry): String {
-    val moodText = entry.mood ?: ""
-    return when {
-        moodText.contains("happy", ignoreCase = true) -> "😊"
-        moodText.contains("sad", ignoreCase = true) -> "😢"
-        moodText.contains("angry", ignoreCase = true) -> "😠"
-        moodText.contains("calm", ignoreCase = true) -> "😌"
-        moodText.contains("stress", ignoreCase = true) -> "😰"
-        moodText.isNotEmpty() -> moodText // Return emoji if already emoji
-        else -> "😐"
-    }
+    // entry.mood already stores the emoji string directly (e.g., "😊", "😔", etc.)
+    // Just return it as-is, or default to "😐" if not set
+    return entry.mood ?: "😐"
 }
 
 private fun getMoodLabel(entry: FoodEntry): String {

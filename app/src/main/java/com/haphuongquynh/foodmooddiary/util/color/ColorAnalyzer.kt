@@ -66,6 +66,22 @@ class ColorAnalyzer @Inject constructor() {
                 0.114 * android.graphics.Color.blue(backgroundColor)) / 255
         return if (darkness < 0.5) android.graphics.Color.BLACK else android.graphics.Color.WHITE
     }
+
+    /**
+     * Map mood emoji to representative color
+     * This color is used to calculate mood score based on HSV
+     */
+    fun getMoodColor(moodEmoji: String): Int {
+        return when (moodEmoji) {
+            "😊" -> android.graphics.Color.parseColor("#FFC107") // Yellow - Happy
+            "😌" -> android.graphics.Color.parseColor("#81C784") // Green - Calm
+            "😔" -> android.graphics.Color.parseColor("#42A5F5") // Blue - Sad
+            "😫" -> android.graphics.Color.parseColor("#EF5350") // Red - Stressed
+            "🎉" -> android.graphics.Color.parseColor("#FF7043") // Orange - Celebration
+            "💪" -> android.graphics.Color.parseColor("#AB47BC") // Purple - Strong/Motivated
+            else -> android.graphics.Color.parseColor("#9E9E9E") // Gray - Unknown
+        }
+    }
 }
 
 /**

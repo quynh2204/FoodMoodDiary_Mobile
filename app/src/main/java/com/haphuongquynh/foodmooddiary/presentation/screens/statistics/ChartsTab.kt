@@ -1,6 +1,7 @@
 package com.haphuongquynh.foodmooddiary.presentation.screens.statistics
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -57,9 +58,12 @@ fun ChartsTab(
     onPeriodChange: (DateRange) -> Unit
 ) {
     val periodOptions = listOf(
-        DateRange.LAST_7_DAYS to "7 ngày",
-        DateRange.LAST_30_DAYS to "30 ngày",
-        DateRange.LAST_90_DAYS to "90 ngày"
+        DateRange.LAST_7_DAYS,
+        DateRange.LAST_14_DAYS,
+        DateRange.LAST_30_DAYS,
+        DateRange.LAST_90_DAYS,
+        DateRange.LAST_YEAR,
+        DateRange.ALL_TIME
     )
 
     val totalEntries = weeklySummary?.totalEntries ?: moodTrend.sumOf { it.entryCount }
@@ -76,14 +80,16 @@ fun ChartsTab(
             .padding(16.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            periodOptions.forEach { (range, label) ->
+            periodOptions.forEach { range ->
                 FilterChip(
                     selected = selectedRange == range,
                     onClick = { onPeriodChange(range) },
-                    label = { Text(label) },
+                    label = { Text(range.label) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = PastelGreen,
                         selectedLabelColor = BlackPrimary,

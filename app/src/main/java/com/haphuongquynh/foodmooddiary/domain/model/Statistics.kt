@@ -32,7 +32,17 @@ data class MealDistribution(
 )
 
 enum class MealType {
-    BREAKFAST, LUNCH, DINNER, SNACK
+    BREAKFAST, LUNCH, DINNER, SNACK;
+    
+    companion object {
+        fun fromString(value: String): MealType {
+            return try {
+                valueOf(value.uppercase())
+            } catch (e: Exception) {
+                DINNER // Default to Dinner
+            }
+        }
+    }
 }
 
 /**
