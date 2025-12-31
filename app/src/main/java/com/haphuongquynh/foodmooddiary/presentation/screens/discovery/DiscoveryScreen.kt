@@ -1,792 +1,407 @@
-package com.haphuongquynh.foodmooddiary.presentation.screens.discovery
+package com.haphuongquynh.foodmooddiary.presentation.viewmodel
 
-import android.content.Intent
-import android.net.Uri
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.haphuongquynh.foodmooddiary.domain.model.Meal
-import com.haphuongquynh.foodmooddiary.presentation.viewmodel.DiscoveryViewModel
-import com.haphuongquynh.foodmooddiary.ui.theme.*
+import com.haphuongquynh.foodmooddiary.domain.repository.MealRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
- * Discovery Screen
+ * ViewModel for Discovery feature
+ *
+ * - Giữ nguyên logic Favorites cho tab "Món đã lưu"
+ * - Tab "Khám phá món ăn" dùng danh sách 20 món Việt cố định (local)
  */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DiscoveryScreen(
-    onNavigateBack: (() -> Unit)? = null,
-    viewModel: DiscoveryViewModel = hiltViewModel()
-) {
-    val currentMeal by viewModel.currentMeal.collectAsState()
-    val favorites by viewModel.favorites.collectAsState()
-    val searchResults by viewModel.searchResults.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.error.collectAsState()
+@HiltViewModel
+class DiscoveryViewModel @Inject constructor(
+    private val mealRepository: MealRepository
+) : ViewModel() {
 
-    var selectedTab by remember { mutableStateOf(1) } // Default to "Khám phá món ăn"
-    // (giữ var này để không phá cấu trúc cũ)
-    var selectedCategory by remember { mutableStateOf("Tất cả") }
+    /* =============================
+       OLD STATES (giữ để không phá các nơi khác đang gọi)
+       ============================= */
 
-    val context = LocalContext.current
+    private val _currentMeal = MutableStateFlow<Meal?>(null)
+    val currentMeal: StateFlow<Meal?> = _currentMeal.asStateFlow()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BlackPrimary)
-    ) {
-        // Header
-        Text(
-            text = "Khám phá món ăn",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
-        )
+    private val _favorites = MutableStateFlow<List<Meal>>(emptyList())
+    val favorites: StateFlow<List<Meal>> = _favorites.asStateFlow()
 
-        // Tab Row
-        TabRow(
-            selectedTabIndex = selectedTab,
-            containerColor = BlackPrimary,
-            contentColor = PastelGreen
-        ) {
-            Tab(
-                selected = selectedTab == 0,
-                onClick = { selectedTab = 0 },
-                text = {
-                    Text(
-                        "Gợi ý cho bạn",
-                        color = if (selectedTab == 0) PastelGreen else Color.Gray,
-                        fontSize = 14.sp
-                    )
-                }
-            )
-            Tab(
-                selected = selectedTab == 1,
-                onClick = { selectedTab = 1 },
-                text = {
-                    Text(
-                        "Khám phá món ăn",
-                        color = if (selectedTab == 1) PastelGreen else Color.Gray,
-                        fontSize = 14.sp
-                    )
-                }
-            )
-            Tab(
-                selected = selectedTab == 2,
-                onClick = { selectedTab = 2 },
-                text = {
-                    Text(
-                        "Món đã lưu",
-                        color = if (selectedTab == 2) PastelGreen else Color.Gray,
-                        fontSize = 14.sp
-                    )
-                }
-            )
-        }
+    private val _searchResults = MutableStateFlow<List<Meal>>(emptyList())
+    val searchResults: StateFlow<List<Meal>> = _searchResults.asStateFlow()
 
-        Spacer(modifier = Modifier.height(16.dp))
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-        // Content
-        when {
-            isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = PastelGreen)
-                }
-            }
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
 
-            error != null -> {
-                ErrorMessage(
-                    message = error ?: "Unknown error",
-                    onRetry = {
-                        viewModel.clearError()
-                        viewModel.loadRandomMeal()
-                    }
-                )
-            }
+    private val _categories = MutableStateFlow<List<String>>(emptyList())
+    val categories: StateFlow<List<String>> = _categories.asStateFlow()
 
-            selectedTab == 0 -> {
-                // Suggestions for you (GIỮ NGUYÊN)
-                SuggestionsTab()
-            }
+    private val _areas = MutableStateFlow<List<String>>(emptyList())
+    val areas: StateFlow<List<String>> = _areas.asStateFlow()
 
-            selectedTab == 1 -> {
-                // Discover Meals (ĐÃ ĐỔI THEO YÊU CẦU)
-                DiscoverVietnamMealsTab(
-                    onOpenYoutube = { url ->
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                        context.startActivity(intent)
-                    }
-                )
-            }
+    /* =============================
+       NEW STATES for Vietnamese Discover
+       ============================= */
 
-            selectedTab == 2 -> {
-                // Saved Meals (GIỮ NGUYÊN)
-                SavedMealsTab(favorites = favorites)
-            }
-        }
+    enum class VietnamMealType { MON_NUOC, MON_KHO, MON_BANH }
+
+    enum class VietnamCakeSubType { BANH_DAN_GIAN, BANH_VIET_NAM }
+
+    data class VietnamMeal(
+        val name: String,
+        val type: VietnamMealType,
+        val subType: VietnamCakeSubType? = null,
+        val thumbUrl: String,
+        val youtubeUrl: String,
+    )
+
+    private val _vietnamMeals = MutableStateFlow<List<VietnamMeal>>(emptyList())
+    val vietnamMeals: StateFlow<List<VietnamMeal>> = _vietnamMeals.asStateFlow()
+
+    private val _filteredVietnamMeals = MutableStateFlow<List<VietnamMeal>>(emptyList())
+    val filteredVietnamMeals: StateFlow<List<VietnamMeal>> = _filteredVietnamMeals.asStateFlow()
+
+    private val _selectedMainCategory = MutableStateFlow("Tất cả") // Tất cả / Món nước / Món khô / Món bánh
+    val selectedMainCategory: StateFlow<String> = _selectedMainCategory.asStateFlow()
+
+    private val _selectedCakeSubCategory = MutableStateFlow("Tất cả") // Tất cả / Bánh dân gian / Bánh Việt Nam
+    val selectedCakeSubCategory: StateFlow<String> = _selectedCakeSubCategory.asStateFlow()
+
+    init {
+        // Giữ nguyên tab Saved Meals
+        loadFavorites()
+
+        // Khám phá mới (local)
+        loadVietnamMeals()
+        applyVietnamFilter("Tất cả", "Tất cả")
+
+        // Không auto gọi API random/categories/areas nữa để tránh loading + call thừa
+        _isLoading.value = false
+        _error.value = null
     }
-}
 
-/* =========================================================
-   TAB 1: KHÁM PHÁ MÓN ĂN (ĐỔI THÀNH 20 MÓN THUẦN VIỆT)
-   ========================================================= */
+    /* =============================
+       Vietnamese Discover logic
+       ============================= */
 
-private data class VietnamMealItem(
-    val name: String,
-    val type: VietnamMealType,
-    val subType: VietnamCakeSubType? = null,
-    val thumbUrl: String,
-    val youtubeUrl: String,
-)
+    fun setVietnamCategory(main: String) {
+        _selectedMainCategory.value = main
+        if (main != "Món bánh") {
+            _selectedCakeSubCategory.value = "Tất cả"
+        }
+        applyVietnamFilter(_selectedMainCategory.value, _selectedCakeSubCategory.value)
+    }
 
-private enum class VietnamMealType { MON_NUOC, MON_KHO, MON_BANH }
+    fun setVietnamCakeSubCategory(sub: String) {
+        _selectedCakeSubCategory.value = sub
+        applyVietnamFilter(_selectedMainCategory.value, _selectedCakeSubCategory.value)
+    }
 
-private enum class VietnamCakeSubType { BANH_DAN_GIAN, BANH_VIET_NAM }
+    private fun applyVietnamFilter(main: String, sub: String) {
+        val all = _vietnamMeals.value
 
-@Composable
-private fun DiscoverVietnamMealsTab(
-    onOpenYoutube: (String) -> Unit
-) {
-    var selectedMain by remember { mutableStateOf("Tất cả") } // Tất cả / Món nước / Món khô / Món bánh
-    var selectedCakeSub by remember { mutableStateOf("Tất cả") } // Tất cả / Bánh dân gian / Bánh Việt Nam
+        val filtered = when (main) {
+            "Món nước" -> all.filter { it.type == VietnamMealType.MON_NUOC }
+            "Món khô" -> all.filter { it.type == VietnamMealType.MON_KHO }
+            "Món bánh" -> {
+                when (sub) {
+                    "Bánh dân gian" -> all.filter {
+                        it.type == VietnamMealType.MON_BANH && it.subType == VietnamCakeSubType.BANH_DAN_GIAN
+                    }
+                    "Bánh Việt Nam" -> all.filter {
+                        it.type == VietnamMealType.MON_BANH && it.subType == VietnamCakeSubType.BANH_VIET_NAM
+                    }
+                    else -> all.filter { it.type == VietnamMealType.MON_BANH }
+                }
+            }
+            else -> all
+        }
 
-    val vietnamMeals = remember {
-        listOf(
-            // MÓN NƯỚC
-            VietnamMealItem(
+        _filteredVietnamMeals.value = filtered
+    }
+
+    private fun loadVietnamMeals() {
+        _vietnamMeals.value = listOf(
+            // MÓN NƯỚC (8)
+            VietnamMeal(
                 name = "Hủ tiếu Nam Vang",
                 type = VietnamMealType.MON_NUOC,
                 thumbUrl = "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1ch+l%C3%A0m+h%E1%BB%A7+ti%E1%BA%BFu+nam+vang"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Bánh canh cua",
                 type = VietnamMealType.MON_NUOC,
                 thumbUrl = "https://images.unsplash.com/photo-1604908176997-125f25cc500f?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%A1nh+canh+cua+s%C3%A0i+g%C3%B2n+ngon"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Phở bò",
                 type = VietnamMealType.MON_NUOC,
                 thumbUrl = "https://images.unsplash.com/photo-1555126634-323283e090fa?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1ch+l%C3%A0m+ph%E1%BB%9F+b%C3%B2"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Bún bò Huế",
                 type = VietnamMealType.MON_NUOC,
                 thumbUrl = "https://images.unsplash.com/photo-1617093727343-374698b1b08d?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%BAn+b%C3%B2+hu%E1%BA%BF+c%C3%A1ch+l%C3%A0m"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Bún riêu",
                 type = VietnamMealType.MON_NUOC,
                 thumbUrl = "https://images.unsplash.com/photo-1604908554027-1b0bff98982f?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1ch+l%C3%A0m+b%C3%BAn+ri%C3%AAu"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Mì Quảng",
                 type = VietnamMealType.MON_NUOC,
                 thumbUrl = "https://images.unsplash.com/photo-1526318896980-cf78c088247c?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=m%C3%AC+qu%E1%BA%A3ng+c%C3%A1ch+l%C3%A0m"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Bún chả",
                 type = VietnamMealType.MON_NUOC,
                 thumbUrl = "https://images.unsplash.com/photo-1550367363-29a61d1a67a4?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%BAn+ch%E1%BA%A3+h%C3%A0+n%E1%BB%99i+ngon"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Bún thịt nướng",
                 type = VietnamMealType.MON_NUOC,
                 thumbUrl = "https://images.unsplash.com/photo-1541542684-4b26f1c8b3b9?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%BAn+th%E1%BB%8Bt+n%C6%B0%E1%BB%9Bng+c%C3%A1ch+l%C3%A0m"
             ),
 
-            // MÓN KHÔ
-            VietnamMealItem(
+            // MÓN KHÔ (8)
+            VietnamMeal(
                 name = "Cơm sườn (Sài Gòn)",
                 type = VietnamMealType.MON_KHO,
                 thumbUrl = "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=top+qu%C3%A1n+c%C6%A1m+s%C6%B0%E1%BB%9Dn+s%C3%A0i+g%C3%B2n"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Cơm tấm bì chả",
                 type = VietnamMealType.MON_KHO,
                 thumbUrl = "https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1ch+l%C3%A0m+c%C6%A1m+t%E1%BA%A5m+s%C6%B0%E1%BB%9Dn+b%C3%AC+ch%E1%BA%A3"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Bánh mì thịt",
                 type = VietnamMealType.MON_KHO,
                 thumbUrl = "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=top+b%C3%A1nh+m%C3%AC+vi%E1%BB%87t+nam+ngon"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Gỏi cuốn",
                 type = VietnamMealType.MON_KHO,
                 thumbUrl = "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1ch+l%C3%A0m+g%E1%BB%8Fi+cu%E1%BB%91n"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Bò lúc lắc",
                 type = VietnamMealType.MON_KHO,
                 thumbUrl = "https://images.unsplash.com/photo-1604908176997-125f25cc500f?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%B2+l%C3%BAc+l%E1%BA%AFc+c%C3%A1ch+l%C3%A0m"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Cá kho tộ",
                 type = VietnamMealType.MON_KHO,
                 thumbUrl = "https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1+kho+t%E1%BB%99+c%C3%A1ch+l%C3%A0m"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Thịt kho trứng",
                 type = VietnamMealType.MON_KHO,
                 thumbUrl = "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=th%E1%BB%8Bt+kho+tr%E1%BB%A9ng+c%C3%A1ch+l%C3%A0m"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Bún đậu mắm tôm",
                 type = VietnamMealType.MON_KHO,
                 thumbUrl = "https://images.unsplash.com/photo-1550367363-29a61d1a67a4?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%BAn+%C4%91%E1%BA%ADu+m%E1%BA%AFm+t%C3%B4m+ngon"
             ),
 
-            // MÓN BÁNH - BÁNH DÂN GIAN
-            VietnamMealItem(
+            // MÓN BÁNH (4)
+            VietnamMeal(
                 name = "Bánh da lợn",
                 type = VietnamMealType.MON_BANH,
                 subType = VietnamCakeSubType.BANH_DAN_GIAN,
                 thumbUrl = "https://images.unsplash.com/photo-1541781286675-1f2a65d4a78d?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1ch+l%C3%A0m+b%C3%A1nh+da+l%E1%BB%A3n"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Bánh trôi – bánh chay",
                 type = VietnamMealType.MON_BANH,
                 subType = VietnamCakeSubType.BANH_DAN_GIAN,
                 thumbUrl = "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1ch+l%C3%A0m+b%C3%A1nh+tr%C3%B4i+b%C3%A1nh+chay"
             ),
-
-            // MÓN BÁNH - BÁNH VIỆT NAM
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Bánh xèo",
                 type = VietnamMealType.MON_BANH,
                 subType = VietnamCakeSubType.BANH_VIET_NAM,
                 thumbUrl = "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%A1nh+x%C3%A8o+mi%E1%BB%81n+t%C3%A2y+c%C3%A1ch+l%C3%A0m"
             ),
-            VietnamMealItem(
+            VietnamMeal(
                 name = "Bánh bèo",
                 type = VietnamMealType.MON_BANH,
                 subType = VietnamCakeSubType.BANH_VIET_NAM,
                 thumbUrl = "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1200&q=60",
                 youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%A1nh+b%C3%A8o+hu%E1%BA%BF+c%C3%A1ch+l%C3%A0m"
-            )
+            ),
         )
     }
 
-    val filteredMeals = remember(selectedMain, selectedCakeSub) {
-        when (selectedMain) {
-            "Món nước" -> vietnamMeals.filter { it.type == VietnamMealType.MON_NUOC }
-            "Món khô" -> vietnamMeals.filter { it.type == VietnamMealType.MON_KHO }
-            "Món bánh" -> {
-                when (selectedCakeSub) {
-                    "Bánh dân gian" -> vietnamMeals.filter {
-                        it.type == VietnamMealType.MON_BANH && it.subType == VietnamCakeSubType.BANH_DAN_GIAN
+    /* =============================
+       Favorites (GIỮ NGUYÊN)
+       ============================= */
+
+    fun toggleFavorite(meal: Meal) {
+        viewModelScope.launch {
+            if (meal.isFavorite) {
+                mealRepository.removeFromFavorites(meal.id)
+                    .onSuccess {
+                        _currentMeal.value = _currentMeal.value?.copy(isFavorite = false)
+                        loadFavorites()
                     }
-                    "Bánh Việt Nam" -> vietnamMeals.filter {
-                        it.type == VietnamMealType.MON_BANH && it.subType == VietnamCakeSubType.BANH_VIET_NAM
+                    .onFailure { exception ->
+                        _error.value = exception.message ?: "Failed to remove from favorites"
                     }
-                    else -> vietnamMeals.filter { it.type == VietnamMealType.MON_BANH }
-                }
+            } else {
+                mealRepository.addToFavorites(meal)
+                    .onSuccess {
+                        _currentMeal.value = _currentMeal.value?.copy(isFavorite = true)
+                        loadFavorites()
+                    }
+                    .onFailure { exception ->
+                        _error.value = exception.message ?: "Failed to add to favorites"
+                    }
             }
-            else -> vietnamMeals
         }
     }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        item {
-            Text(
-                text = "Khám phá món ăn Việt",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White,
-                modifier = Modifier.padding(vertical = 12.dp)
-            )
-        }
-
-        // Main category chips
-        item {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(bottom = 12.dp)
-            ) {
-                items(listOf("Tất cả", "Món nước", "Món khô", "Món bánh")) { category ->
-                    FilterChip(
-                        selected = category == selectedMain,
-                        onClick = {
-                            selectedMain = category
-                            if (category != "Món bánh") selectedCakeSub = "Tất cả"
-                        },
-                        label = { Text(category, fontSize = 13.sp) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            containerColor = BlackSecondary,
-                            labelColor = Color.Gray,
-                            selectedContainerColor = PastelGreen,
-                            selectedLabelColor = Color.White
-                        ),
-                        border = null
-                    )
-                }
-            }
-        }
-
-        // Sub category chips for "Món bánh"
-        if (selectedMain == "Món bánh") {
-            item {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(bottom = 16.dp)
-                ) {
-                    items(listOf("Tất cả", "Bánh dân gian", "Bánh Việt Nam")) { sub ->
-                        FilterChip(
-                            selected = sub == selectedCakeSub,
-                            onClick = { selectedCakeSub = sub },
-                            label = { Text(sub, fontSize = 13.sp) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                containerColor = BlackSecondary,
-                                labelColor = Color.Gray,
-                                selectedContainerColor = PastelGreen,
-                                selectedLabelColor = Color.White
-                            ),
-                            border = null
-                        )
-                    }
-                }
-            }
-        } else {
-            item { Spacer(modifier = Modifier.height(4.dp)) }
-        }
-
-        items(filteredMeals) { item ->
-            VietnamMealCard(
-                item = item,
-                onClick = { onOpenYoutube(item.youtubeUrl) }
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-
-        item {
-            if (filteredMeals.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 32.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "Chưa có món phù hợp bộ lọc",
-                        color = Color.Gray,
-                        fontSize = 14.sp
-                    )
-                }
+    private fun loadFavorites() {
+        viewModelScope.launch {
+            mealRepository.getFavoriteMeals().collect { meals ->
+                _favorites.value = meals
             }
         }
     }
-}
 
-@Composable
-private fun VietnamMealCard(
-    item: VietnamMealItem,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = BlackSecondary),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Column {
-            Box {
-                AsyncImage(
-                    model = item.thumbUrl,
-                    contentDescription = item.name,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
-                    contentScale = ContentScale.Crop
-                )
+    /* =============================
+       Utils (GIỮ NGUYÊN)
+       ============================= */
 
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(12.dp),
-                    color = PastelGreen.copy(alpha = 0.9f),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Vietnamese",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black
-                        )
-                    }
+    fun clearError() {
+        _error.value = null
+    }
+
+    fun clearSearchResults() {
+        _searchResults.value = emptyList()
+    }
+
+    /* =============================
+       OPTIONAL: nếu còn màn khác dùng API, bà có thể bật lại
+       (hiện tại tab khám phá mới không cần)
+       ============================= */
+
+    fun loadRandomMeal() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            mealRepository.getRandomMeal()
+                .onSuccess { meal ->
+                    _currentMeal.value = meal
+                    _isLoading.value = false
                 }
-            }
-
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    text = item.name,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val typeLabel = when (item.type) {
-                    VietnamMealType.MON_NUOC -> "Món nước"
-                    VietnamMealType.MON_KHO -> "Món khô"
-                    VietnamMealType.MON_BANH -> {
-                        when (item.subType) {
-                            VietnamCakeSubType.BANH_DAN_GIAN -> "Bánh dân gian"
-                            VietnamCakeSubType.BANH_VIET_NAM -> "Bánh Việt Nam"
-                            else -> "Món bánh"
-                        }
-                    }
+                .onFailure { exception ->
+                    _error.value = exception.message ?: "Failed to load random meal"
+                    _isLoading.value = false
                 }
-
-                Text(
-                    text = typeLabel,
-                    fontSize = 13.sp,
-                    color = Color.Gray
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Surface(
-                    color = Color(0xFF3C3C3E),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.PlayArrow,
-                            contentDescription = null,
-                            tint = PastelGreen,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Mở YouTube liên quan",
-                            fontSize = 11.sp,
-                            color = Color.White
-                        )
-                    }
-                }
-            }
         }
     }
-}
 
-/* =========================================================
-   2 TAB CÒN LẠI: GIỮ NGUYÊN CODE
-   ========================================================= */
-
-@Composable
-private fun SuggestionsTab() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                Icons.Default.Lightbulb,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = PastelGreen
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                "Gợi ý dựa trên sở thích của bạn",
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                "Thêm môn ăn vào nhật ký để nhận gợi ý",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
-            )
+    fun searchMealsByName(query: String) {
+        if (query.isBlank()) {
+            _searchResults.value = emptyList()
+            return
         }
-    }
-}
 
-@Composable
-private fun MealDiscoveryCard(
-    meal: Meal,
-    onClick: () -> Unit,
-    onFavoriteClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = BlackSecondary
-        ),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Column {
-            // Image
-            Box {
-                AsyncImage(
-                    model = meal.thumbUrl,
-                    contentDescription = meal.name,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
-                    contentScale = ContentScale.Crop
-                )
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
 
-                // Overlay badge
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(12.dp),
-                    color = PastelGreen.copy(alpha = 0.9f),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = meal.area,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black
-                        )
-                    }
+            mealRepository.searchMealsByName(query)
+                .onSuccess { meals ->
+                    _searchResults.value = meals
+                    _isLoading.value = false
                 }
-            }
-
-            // Content
-            Column(
-                modifier = Modifier.padding(12.dp)
-            ) {
-                Text(
-                    text = meal.name,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Meal description
-                Text(
-                    text = "${meal.category} • ${meal.area}",
-                    fontSize = 13.sp,
-                    color = Color.Gray
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Tags
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Surface(
-                        color = Color(0xFF3C3C3E),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                Icons.Default.Restaurant,
-                                contentDescription = null,
-                                tint = PastelGreen,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                // NOTE: tui giữ nguyên logic cũ, chỉ sửa typo ở text cho đúng tiếng Việt
-                                text = "${meal.ingredients.size} nguyên liệu",
-                                fontSize = 11.sp,
-                                color = Color.White
-                            )
-                        }
-                    }
-
-                    if (meal.isFavorite) {
-                        Surface(
-                            color = Color(0xFF3C3C3E),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Default.Favorite,
-                                    contentDescription = null,
-                                    tint = Color.Red,
-                                    modifier = Modifier.size(12.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = "Favorite",
-                                    fontSize = 11.sp,
-                                    color = Color.White
-                                )
-                            }
-                        }
-                    }
+                .onFailure { exception ->
+                    _error.value = exception.message ?: "Failed to search meals"
+                    _isLoading.value = false
                 }
-            }
         }
     }
-}
 
-@Composable
-private fun SavedMealsTab(favorites: List<Meal>) {
-    if (favorites.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    Icons.Default.BookmarkBorder,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = Color.Gray
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    "Chưa có món ăn được lưu",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.Gray
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "Lưu món ăn yêu thích để xem sau",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
-                )
-            }
-        }
-    } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(favorites) { meal ->
-                MealDiscoveryCard(
-                    meal = meal,
-                    onClick = { },
-                    onFavoriteClick = { }
-                )
-            }
+    fun filterByCategory(category: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            mealRepository.filterByCategory(category)
+                .onSuccess { meals ->
+                    _searchResults.value = meals
+                    _isLoading.value = false
+                }
+                .onFailure { exception ->
+                    _error.value = exception.message ?: "Failed to filter by category"
+                    _isLoading.value = false
+                }
         }
     }
-}
 
-@Composable
-private fun ErrorMessage(
-    message: String,
-    onRetry: () -> Unit
-) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(32.dp)
-        ) {
-            Icon(
-                Icons.Default.Error,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = Color(0xFFFF5252)
-            )
-            Spacer(Modifier.height(16.dp))
-            Text(
-                "Oops!",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
-            )
-            Spacer(Modifier.height(16.dp))
-            Button(
-                onClick = onRetry,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PastelGreen
-                )
-            ) {
-                Icon(Icons.Default.Refresh, "Retry")
-                Spacer(Modifier.width(8.dp))
-                Text("Thử lại")
-            }
+    fun filterByArea(area: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            mealRepository.filterByArea(area)
+                .onSuccess { meals ->
+                    _searchResults.value = meals
+                    _isLoading.value = false
+                }
+                .onFailure { exception ->
+                    _error.value = exception.message ?: "Failed to filter by area"
+                    _isLoading.value = false
+                }
+        }
+    }
+
+    fun loadMealById(id: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            mealRepository.getMealById(id)
+                .onSuccess { meal ->
+                    _currentMeal.value = meal
+                    _isLoading.value = false
+                }
+                .onFailure { exception ->
+                    _error.value = exception.message ?: "Failed to load meal"
+                    _isLoading.value = false
+                }
         }
     }
 }
