@@ -12,14 +12,19 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.haphuongquynh.foodmooddiary.domain.model.Location
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import java.io.IOException
+import java.net.URL
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * Location manager for getting current location
- * Uses FusedLocationProviderClient for efficient location access
+ * Uses IP-based geolocation first (more accurate for emulator/laptop)
+ * Falls back to GPS if IP fails
  */
 @Singleton
 class LocationManager @Inject constructor(
@@ -30,17 +35,25 @@ class LocationManager @Inject constructor(
 
     /**
      * Get current location
-     * @return Location or null if permission denied or location unavailable
+     * Priority: IP-based geolocation -> GPS (for real device)
+     * IP geolocation is more accurate on emulator since GPS returns fake Google HQ location
+     * @return Location or null if all methods fail
      */
     suspend fun getCurrentLocation(): Location? {
+        // Try IP geolocation first - more accurate for emulator/laptop
+        val ipLocation = getLocationFromIP()
+        if (ipLocation != null) {
+            android.util.Log.d("LocationManager", "Got location from IP: ${ipLocation.address}")
+            return ipLocation
+        }
+        
+        // Fall back to GPS if IP fails
         return try {
-            // Check permission
             if (!hasLocationPermission()) {
                 android.util.Log.w("LocationManager", "Location permission not granted")
                 return null
             }
 
-            // Get current location
             val cancellationToken = CancellationTokenSource()
             val androidLocation = fusedLocationClient.getCurrentLocation(
                 Priority.PRIORITY_BALANCED_POWER_ACCURACY,
@@ -48,9 +61,7 @@ class LocationManager @Inject constructor(
             ).await()
 
             androidLocation?.let {
-                // Get address from coordinates
                 val address = getAddressFromLocation(it.latitude, it.longitude)
-                
                 Location(
                     latitude = it.latitude,
                     longitude = it.longitude,
@@ -58,7 +69,90 @@ class LocationManager @Inject constructor(
                 )
             }
         } catch (e: Exception) {
-            android.util.Log.e("LocationManager", "Failed to get location", e)
+            android.util.Log.e("LocationManager", "GPS failed", e)
+            null
+        }
+    }
+
+    /**
+     * Get location from IP address (works on laptop/emulator)
+     * Uses multiple services for reliability
+     */
+    private suspend fun getLocationFromIP(): Location? {
+        return withContext(Dispatchers.IO) {
+            // Try ipinfo.io first (more reliable)
+            tryIpInfo() ?: tryIpApi()
+        }
+    }
+    
+    /**
+     * Try ipinfo.io service
+     */
+    private fun tryIpInfo(): Location? {
+        return try {
+            android.util.Log.d("LocationManager", "Trying ipinfo.io...")
+            val url = URL("https://ipinfo.io/json")
+            val response = url.readText()
+            val json = JSONObject(response)
+            
+            val loc = json.optString("loc", "")
+            if (loc.isNotEmpty() && loc.contains(",")) {
+                val parts = loc.split(",")
+                val lat = parts[0].toDouble()
+                val lon = parts[1].toDouble()
+                val city = json.optString("city", "")
+                val region = json.optString("region", "")
+                val country = json.optString("country", "")
+                
+                val address = listOf(city, region, country)
+                    .filter { it.isNotEmpty() }
+                    .joinToString(", ")
+                
+                android.util.Log.d("LocationManager", "ipinfo.io: $lat, $lon - $address")
+                
+                Location(
+                    latitude = lat,
+                    longitude = lon,
+                    address = address.ifEmpty { "Lat: $lat, Lng: $lon" }
+                )
+            } else null
+        } catch (e: Exception) {
+            android.util.Log.e("LocationManager", "ipinfo.io failed", e)
+            null
+        }
+    }
+    
+    /**
+     * Try ip-api.com service (backup)
+     */
+    private fun tryIpApi(): Location? {
+        return try {
+            android.util.Log.d("LocationManager", "Trying ip-api.com...")
+            val url = URL("http://ip-api.com/json/?fields=status,city,regionName,country,lat,lon")
+            val response = url.readText()
+            val json = JSONObject(response)
+            
+            if (json.getString("status") == "success") {
+                val lat = json.getDouble("lat")
+                val lon = json.getDouble("lon")
+                val city = json.optString("city", "")
+                val region = json.optString("regionName", "")
+                val country = json.optString("country", "")
+                
+                val address = listOf(city, region, country)
+                    .filter { it.isNotEmpty() }
+                    .joinToString(", ")
+                
+                android.util.Log.d("LocationManager", "ip-api.com: $lat, $lon - $address")
+                
+                Location(
+                    latitude = lat,
+                    longitude = lon,
+                    address = address.ifEmpty { "Lat: $lat, Lng: $lon" }
+                )
+            } else null
+        } catch (e: Exception) {
+            android.util.Log.e("LocationManager", "ip-api.com failed", e)
             null
         }
     }

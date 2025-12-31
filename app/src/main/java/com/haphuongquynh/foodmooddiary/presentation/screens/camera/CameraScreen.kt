@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.net.Uri
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.coroutines.resume
@@ -180,4 +182,31 @@ private fun rotateBitmap(bitmap: Bitmap, degrees: Float): Bitmap {
     if (degrees == 0f) return bitmap
     val matrix = Matrix().apply { postRotate(degrees) }
     return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+}
+
+/**
+ * Load image from Gallery URI
+ */
+private fun loadImageFromUri(context: Context, uri: Uri): Pair<File, Bitmap>? {
+    return try {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val bitmap = BitmapFactory.decodeStream(inputStream)
+        inputStream?.close()
+        
+        // Save bitmap to cache file
+        val photoFile = File(
+            context.cacheDir,
+            SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
+                .format(System.currentTimeMillis()) + ".jpg"
+        )
+        
+        FileOutputStream(photoFile).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+        }
+        
+        Pair(photoFile, bitmap)
+    } catch (e: Exception) {
+        android.util.Log.e("CameraScreen", "Failed to load image from gallery", e)
+        null
+    }
 }

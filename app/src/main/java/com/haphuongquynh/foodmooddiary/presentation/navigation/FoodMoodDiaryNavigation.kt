@@ -45,8 +45,21 @@ fun FoodMoodDiaryNavigation() {
             )
         }
 
-        composable(route = Screen.AddEntry.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.entry.AddEntryScreen(navController = navController)
+        composable(
+            route = "${Screen.AddEntry.route}?mood={mood}",
+            arguments = listOf(
+                navArgument("mood") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val preselectedMood = backStackEntry.arguments?.getString("mood")
+            com.haphuongquynh.foodmooddiary.presentation.screens.entry.AddEntryScreen(
+                navController = navController,
+                preselectedMood = preselectedMood
+            )
         }
 
         composable(

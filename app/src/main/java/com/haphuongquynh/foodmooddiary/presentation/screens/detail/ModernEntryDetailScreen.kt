@@ -109,7 +109,7 @@ fun ModernEntryDetailScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "😊",
+                            entry.mood ?: "😊",
                             fontSize = 24.sp
                         )
                     }
@@ -177,21 +177,6 @@ fun ModernEntryDetailScreen(
                         }
                     }
 
-                    // AI Palette Extracted
-                    Text(
-                        "AI Palette Extracted",
-                        color = Color(0xFF9FD4A8),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        PaletteCircle(Color(0xFFD32F2F))
-                        PaletteCircle(Color(0xFFFBC02D))
-                        PaletteCircle(Color(0xFF8D6E63))
-                    }
-
                     // AI Suggestion
                     Text(
                         "AI Suggestion",
@@ -254,16 +239,6 @@ private fun InfoColumn(label: String, value: String) {
             fontSize = 14.sp
         )
     }
-}
-
-@Composable
-private fun PaletteCircle(color: Color) {
-    Box(
-        modifier = Modifier
-            .size(48.dp)
-            .clip(CircleShape)
-            .background(color)
-    )
 }
 
 private fun formatDateTime(timestamp: Long): String {

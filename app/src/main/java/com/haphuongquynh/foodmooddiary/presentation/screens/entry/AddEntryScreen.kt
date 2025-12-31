@@ -38,6 +38,7 @@ import java.io.File
 @Composable
 fun AddEntryScreen(
     navController: NavController,
+    preselectedMood: String? = null,
     viewModel: FoodEntryViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -47,7 +48,17 @@ fun AddEntryScreen(
     var notes by remember { mutableStateOf("") }
     var showCamera by remember { mutableStateOf(false) }
     var showPhotoSourceDialog by remember { mutableStateOf(false) }
-    var selectedMood by remember { mutableStateOf("😊") }
+    
+    // Map preselected mood from text to emoji
+    val initialMood = when (preselectedMood?.lowercase()) {
+        "sad" -> "😢"
+        "meh" -> "😔"
+        "okay" -> "😐"
+        "good" -> "😊"
+        "great" -> "🥰"
+        else -> "😊"
+    }
+    var selectedMood by remember { mutableStateOf(initialMood) }
     var selectedMealType by remember { mutableStateOf("Dinner") }
     var rating by remember { mutableStateOf(0) }
     var selectedColor by remember { mutableStateOf(android.graphics.Color.parseColor("#FFA726")) }
@@ -304,7 +315,14 @@ private fun EntryFormStep(
     onBack: () -> Unit,
     isLoading: Boolean
 ) {
-    val moods = listOf("😊", "😌", "😔", "😫", "🎉", "💪")
+    // 5 Core Moods: Happy, Sad, Angry, Tired, Energetic
+    val moods = listOf(
+        "😊" to "Vui vẻ",
+        "😢" to "Buồn",
+        "😠" to "Tức giận",
+        "😫" to "Mệt mỏi",
+        "💪" to "Năng lượng"
+    )
     val mealTypes = listOf("Breakfast", "Lunch", "Dinner", "Snack")
     val scrollState = rememberScrollState()
 
@@ -383,16 +401,25 @@ private fun EntryFormStep(
                         .padding(12.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    moods.forEach { mood ->
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = if (mood == selectedMood) PastelGreenDark else Color.Transparent,
-                            modifier = Modifier.clickable { onMoodSelect(mood) }
+                    moods.forEach { (emoji, label) ->
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.clickable { onMoodSelect(emoji) }
                         ) {
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (emoji == selectedMood) PastelGreenDark else Color.Transparent
+                            ) {
+                                Text(
+                                    emoji,
+                                    fontSize = 28.sp,
+                                    modifier = Modifier.padding(8.dp)
+                                )
+                            }
                             Text(
-                                mood,
-                                fontSize = 32.sp,
-                                modifier = Modifier.padding(8.dp)
+                                label,
+                                fontSize = 10.sp,
+                                color = DarkText
                             )
                         }
                     }
