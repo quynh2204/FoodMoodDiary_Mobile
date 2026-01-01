@@ -365,7 +365,7 @@ fun FoodCard(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(0.85f)
+            .aspectRatio(0.75f)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         color = BlackSecondary
@@ -394,24 +394,24 @@ fun FoodCard(
                                 Color.Transparent,
                                 Color.Black.copy(alpha = 0.7f)
                             ),
-                            startY = 100f
+                            startY = 80f
                         )
                     )
             )
 
-            // Save Button (top left) - consistent with RecommendedFoodCard
+            // Save Button (top left)
             IconButton(
                 onClick = onSaveClick,
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(8.dp)
-                    .size(40.dp)
+                    .size(36.dp)
             ) {
                 Icon(
                     imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                     contentDescription = if (isSaved) "Bỏ lưu" else "Lưu",
                     tint = if (isSaved) PastelGreen else WhiteText,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(26.dp)
                 )
             }
 
