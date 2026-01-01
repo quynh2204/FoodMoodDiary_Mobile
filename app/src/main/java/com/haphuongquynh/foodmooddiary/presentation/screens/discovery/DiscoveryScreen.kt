@@ -163,12 +163,12 @@ fun RecommendationsTab(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Compact Reason Header
+        // Compact Reason Header - matches ExploreTab's LazyRow vertical padding
         if (reasonSummary.isNotEmpty()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -195,7 +195,7 @@ fun RecommendationsTab(
             }
         }
 
-        // Recommendations Grid
+        // Recommendations Grid - matches ExploreTab grid padding
         if (recommendations.isEmpty()) {
             EmptyState(
                 icon = Icons.Default.Restaurant,
@@ -205,7 +205,7 @@ fun RecommendationsTab(
         } else {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -282,7 +282,7 @@ fun ExploreTab(
         } else {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -318,7 +318,7 @@ fun SavedMealsTab(
                 subtitle = "Nhấn vào biểu tượng bookmark để lưu món ăn yêu thích"
             )
         } else {
-            // Header with count
+            // Header with count - matches other tabs' header padding
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -328,14 +328,14 @@ fun SavedMealsTab(
             ) {
                 Text(
                     text = "${savedMeals.size} món đã lưu",
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     color = GrayText
                 )
             }
 
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
