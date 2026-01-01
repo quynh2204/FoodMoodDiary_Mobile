@@ -2,13 +2,17 @@ package com.haphuongquynh.foodmooddiary.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.haphuongquynh.foodmooddiary.domain.model.FoodEntry
 import com.haphuongquynh.foodmooddiary.domain.model.Meal
+import com.haphuongquynh.foodmooddiary.domain.repository.FoodEntryRepository
 import com.haphuongquynh.foodmooddiary.domain.repository.MealRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import javax.inject.Inject
 
 /**
@@ -19,7 +23,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class DiscoveryViewModel @Inject constructor(
-    private val mealRepository: MealRepository
+    private val mealRepository: MealRepository,
+    private val foodEntryRepository: FoodEntryRepository
 ) : ViewModel() {
 
     /* =============================
@@ -51,16 +56,24 @@ class DiscoveryViewModel @Inject constructor(
        NEW STATES for Vietnamese Discover
        ============================= */
 
-    enum class VietnamMealType { MON_NUOC, MON_KHO, MON_BANH }
-
-    enum class VietnamCakeSubType { BANH_DAN_GIAN, BANH_VIET_NAM }
+    enum class VietnamMealType(val displayName: String) {
+        MON_NUOC("Món nước"),
+        MON_KHO("Món khô"),
+        TRANG_MIENG("Tráng miệng")
+    }
 
     data class VietnamMeal(
+        val id: String,
         val name: String,
         val type: VietnamMealType,
-        val subType: VietnamCakeSubType? = null,
         val thumbUrl: String,
-        val youtubeUrl: String,
+        val youtubeUrl: String
+    )
+
+    data class RecommendedMeal(
+        val meal: VietnamMeal,
+        val reason: String,
+        val score: Float
     )
 
     private val _vietnamMeals = MutableStateFlow<List<VietnamMeal>>(emptyList())
@@ -69,21 +82,20 @@ class DiscoveryViewModel @Inject constructor(
     private val _filteredVietnamMeals = MutableStateFlow<List<VietnamMeal>>(emptyList())
     val filteredVietnamMeals: StateFlow<List<VietnamMeal>> = _filteredVietnamMeals.asStateFlow()
 
-    private val _selectedMainCategory = MutableStateFlow("Tất cả") // Tất cả / Món nước / Món khô / Món bánh
+    private val _selectedMainCategory = MutableStateFlow("Tất cả")
     val selectedMainCategory: StateFlow<String> = _selectedMainCategory.asStateFlow()
 
-    private val _selectedCakeSubCategory = MutableStateFlow("Tất cả") // Tất cả / Bánh dân gian / Bánh Việt Nam
-    val selectedCakeSubCategory: StateFlow<String> = _selectedCakeSubCategory.asStateFlow()
+    private val _recommendations = MutableStateFlow<List<RecommendedMeal>>(emptyList())
+    val recommendations: StateFlow<List<RecommendedMeal>> = _recommendations.asStateFlow()
+
+    private val _recommendationReason = MutableStateFlow("")
+    val recommendationReason: StateFlow<String> = _recommendationReason.asStateFlow()
 
     init {
-        // Giữ nguyên tab Saved Meals
         loadFavorites()
-
-        // Khám phá mới (local)
         loadVietnamMeals()
-        applyVietnamFilter("Tất cả", "Tất cả")
-
-        // Không auto gọi API random/categories/areas nữa để tránh loading + call thừa
+        applyVietnamFilter("Tất cả")
+        generateRecommendations()
         _isLoading.value = false
         _error.value = null
     }
@@ -92,173 +104,287 @@ class DiscoveryViewModel @Inject constructor(
        Vietnamese Discover logic
        ============================= */
 
-    fun setVietnamCategory(main: String) {
-        _selectedMainCategory.value = main
-        if (main != "Món bánh") {
-            _selectedCakeSubCategory.value = "Tất cả"
-        }
-        applyVietnamFilter(_selectedMainCategory.value, _selectedCakeSubCategory.value)
+    fun setVietnamCategory(category: String) {
+        _selectedMainCategory.value = category
+        applyVietnamFilter(category)
     }
 
-    fun setVietnamCakeSubCategory(sub: String) {
-        _selectedCakeSubCategory.value = sub
-        applyVietnamFilter(_selectedMainCategory.value, _selectedCakeSubCategory.value)
-    }
-
-    private fun applyVietnamFilter(main: String, sub: String) {
+    private fun applyVietnamFilter(category: String) {
         val all = _vietnamMeals.value
-
-        val filtered = when (main) {
+        val filtered = when (category) {
             "Món nước" -> all.filter { it.type == VietnamMealType.MON_NUOC }
             "Món khô" -> all.filter { it.type == VietnamMealType.MON_KHO }
-            "Món bánh" -> {
-                when (sub) {
-                    "Bánh dân gian" -> all.filter {
-                        it.type == VietnamMealType.MON_BANH && it.subType == VietnamCakeSubType.BANH_DAN_GIAN
-                    }
-                    "Bánh Việt Nam" -> all.filter {
-                        it.type == VietnamMealType.MON_BANH && it.subType == VietnamCakeSubType.BANH_VIET_NAM
-                    }
-                    else -> all.filter { it.type == VietnamMealType.MON_BANH }
-                }
-            }
+            "Tráng miệng" -> all.filter { it.type == VietnamMealType.TRANG_MIENG }
             else -> all
         }
-
         _filteredVietnamMeals.value = filtered
+    }
+
+    /* =============================
+       Recommendation Algorithm
+       ============================= */
+
+    fun generateRecommendations() {
+        viewModelScope.launch {
+            try {
+                val entries = foodEntryRepository.getAllEntries().first()
+                val allMeals = _vietnamMeals.value
+
+                if (entries.isEmpty() || allMeals.isEmpty()) {
+                    // New user - show popular items
+                    _recommendations.value = allMeals.take(6).map {
+                        RecommendedMeal(it, "Món ăn phổ biến", 0.5f)
+                    }
+                    _recommendationReason.value = "Khám phá những món ăn Việt Nam phổ biến"
+                    return@launch
+                }
+
+                val recommendations = computeRecommendations(entries, allMeals)
+                _recommendations.value = recommendations
+                _recommendationReason.value = "Dựa trên lịch sử ăn uống của bạn"
+            } catch (e: Exception) {
+                // Fallback to popular items
+                _recommendations.value = _vietnamMeals.value.take(6).map {
+                    RecommendedMeal(it, "Món ăn phổ biến", 0.5f)
+                }
+                _recommendationReason.value = "Khám phá những món ăn Việt Nam phổ biến"
+            }
+        }
+    }
+
+    private fun computeRecommendations(
+        entries: List<FoodEntry>,
+        allMeals: List<VietnamMeal>
+    ): List<RecommendedMeal> {
+        val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+
+        // Get user's recent food names (lowercase for matching)
+        val recentFoods = entries.take(20).map { it.foodName.lowercase() }
+        val foodFrequency = recentFoods.groupingBy { it }.eachCount()
+
+        // Determine preferred type based on time of day
+        val timeBasedType = when (currentHour) {
+            in 6..10 -> VietnamMealType.MON_NUOC      // Breakfast - soups
+            in 11..14 -> VietnamMealType.MON_KHO      // Lunch - main dishes
+            in 15..17 -> VietnamMealType.TRANG_MIENG  // Afternoon - desserts
+            in 18..21 -> VietnamMealType.MON_KHO      // Dinner - main dishes
+            else -> VietnamMealType.MON_NUOC          // Late night - soups
+        }
+
+        return allMeals.map { meal ->
+            var score = 0f
+            var reason = ""
+
+            // 1. Food name matching (40% weight)
+            val nameMatch = recentFoods.any { recent ->
+                meal.name.lowercase().contains(recent) ||
+                recent.contains(meal.name.lowercase().take(4))
+            }
+            if (nameMatch) {
+                score += 0.4f
+                reason = "Tương tự món bạn đã ăn"
+            }
+
+            // 2. Time-based recommendation (30% weight)
+            if (meal.type == timeBasedType) {
+                score += 0.3f
+                if (reason.isEmpty()) {
+                    reason = when (timeBasedType) {
+                        VietnamMealType.MON_NUOC -> "Phù hợp cho bữa sáng"
+                        VietnamMealType.MON_KHO -> "Phù hợp cho bữa chính"
+                        VietnamMealType.TRANG_MIENG -> "Thích hợp cho buổi chiều"
+                    }
+                }
+            }
+
+            // 3. Variety bonus (30% weight) - items not eaten recently
+            val notRecentlyEaten = !recentFoods.any { recent ->
+                meal.name.lowercase().contains(recent) ||
+                recent.contains(meal.name.lowercase())
+            }
+            if (notRecentlyEaten) {
+                score += 0.3f
+                if (reason.isEmpty()) {
+                    reason = "Thử món mới"
+                }
+            }
+
+            // Default reason
+            if (reason.isEmpty()) {
+                reason = "Gợi ý cho bạn"
+            }
+
+            RecommendedMeal(meal, reason, score)
+        }.sortedByDescending { it.score }.take(6)
     }
 
     private fun loadVietnamMeals() {
         _vietnamMeals.value = listOf(
-            // MÓN NƯỚC (8)
+            // ═══════════════════════════════════════════
+            // MÓN NƯỚC (8) - Soup/Noodle dishes
+            // ═══════════════════════════════════════════
             VietnamMeal(
-                name = "Hủ tiếu Nam Vang",
-                type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1ch+l%C3%A0m+h%E1%BB%A7+ti%E1%BA%BFu+nam+vang"
-            ),
-            VietnamMeal(
-                name = "Bánh canh cua",
-                type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1604908176997-125f25cc500f?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%A1nh+canh+cua+s%C3%A0i+g%C3%B2n+ngon"
-            ),
-            VietnamMeal(
+                id = "pho_bo",
                 name = "Phở bò",
                 type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1555126634-323283e090fa?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1ch+l%C3%A0m+ph%E1%BB%9F+b%C3%B2"
+                thumbUrl = "https://images.unsplash.com/photo-1555126634-323283e090fa?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=fKpMJHvN7-E"
             ),
             VietnamMeal(
+                id = "bun_bo_hue",
                 name = "Bún bò Huế",
                 type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1617093727343-374698b1b08d?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%BAn+b%C3%B2+hu%E1%BA%BF+c%C3%A1ch+l%C3%A0m"
+                thumbUrl = "https://images.unsplash.com/photo-1617093727343-374698b1b08d?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=u0_x0nZQKQw"
             ),
             VietnamMeal(
-                name = "Bún riêu",
+                id = "bun_rieu",
+                name = "Bún riêu cua",
                 type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1604908554027-1b0bff98982f?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1ch+l%C3%A0m+b%C3%BAn+ri%C3%AAu"
+                thumbUrl = "https://images.unsplash.com/photo-1604908554027-1b0bff98982f?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=_YDPPaXiHzE"
             ),
             VietnamMeal(
+                id = "mi_quang",
                 name = "Mì Quảng",
                 type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1526318896980-cf78c088247c?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=m%C3%AC+qu%E1%BA%A3ng+c%C3%A1ch+l%C3%A0m"
+                thumbUrl = "https://images.unsplash.com/photo-1526318896980-cf78c088247c?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=VfqHKjYz3gA"
             ),
             VietnamMeal(
-                name = "Bún chả",
+                id = "hu_tieu",
+                name = "Hủ tiếu Nam Vang",
                 type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1550367363-29a61d1a67a4?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%BAn+ch%E1%BA%A3+h%C3%A0+n%E1%BB%99i+ngon"
+                thumbUrl = "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=wQy7aCMd9uA"
             ),
             VietnamMeal(
+                id = "banh_canh",
+                name = "Bánh canh cua",
+                type = VietnamMealType.MON_NUOC,
+                thumbUrl = "https://images.unsplash.com/photo-1604908176997-125f25cc500f?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=YgVCVzJlzPQ"
+            ),
+            VietnamMeal(
+                id = "bun_cha",
+                name = "Bún chả Hà Nội",
+                type = VietnamMealType.MON_NUOC,
+                thumbUrl = "https://images.unsplash.com/photo-1550367363-29a61d1a67a4?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=RBXBwSi4CIU"
+            ),
+            VietnamMeal(
+                id = "bun_thit_nuong",
                 name = "Bún thịt nướng",
                 type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1541542684-4b26f1c8b3b9?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%BAn+th%E1%BB%8Bt+n%C6%B0%E1%BB%9Bng+c%C3%A1ch+l%C3%A0m"
+                thumbUrl = "https://images.unsplash.com/photo-1541542684-4b26f1c8b3b9?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=p79TfThEV3o"
             ),
 
-            // MÓN KHÔ (8)
+            // ═══════════════════════════════════════════
+            // MÓN KHÔ (8) - Main dishes
+            // ═══════════════════════════════════════════
             VietnamMeal(
-                name = "Cơm sườn (Sài Gòn)",
+                id = "com_tam",
+                name = "Cơm tấm sườn bì chả",
                 type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=top+qu%C3%A1n+c%C6%A1m+s%C6%B0%E1%BB%9Dn+s%C3%A0i+g%C3%B2n"
+                thumbUrl = "https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=M7gLg1z3M6w"
             ),
             VietnamMeal(
-                name = "Cơm tấm bì chả",
-                type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1ch+l%C3%A0m+c%C6%A1m+t%E1%BA%A5m+s%C6%B0%E1%BB%9Dn+b%C3%AC+ch%E1%BA%A3"
-            ),
-            VietnamMeal(
+                id = "banh_mi",
                 name = "Bánh mì thịt",
                 type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=top+b%C3%A1nh+m%C3%AC+vi%E1%BB%87t+nam+ngon"
+                thumbUrl = "https://images.unsplash.com/photo-1600454309261-3e59309e23af?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=RkXJx5Q6VQk"
             ),
             VietnamMeal(
-                name = "Gỏi cuốn",
+                id = "goi_cuon",
+                name = "Gỏi cuốn tôm thịt",
                 type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1ch+l%C3%A0m+g%E1%BB%8Fi+cu%E1%BB%91n"
+                thumbUrl = "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=y5HLDhPQCp4"
             ),
             VietnamMeal(
+                id = "bo_luc_lac",
                 name = "Bò lúc lắc",
                 type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1604908176997-125f25cc500f?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%B2+l%C3%BAc+l%E1%BA%AFc+c%C3%A1ch+l%C3%A0m"
+                thumbUrl = "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=yC-IhU5u5jw"
             ),
             VietnamMeal(
+                id = "ca_kho_to",
                 name = "Cá kho tộ",
                 type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1+kho+t%E1%BB%99+c%C3%A1ch+l%C3%A0m"
+                thumbUrl = "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=cNJBKvYBlew"
             ),
             VietnamMeal(
+                id = "thit_kho_trung",
                 name = "Thịt kho trứng",
                 type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=th%E1%BB%8Bt+kho+tr%E1%BB%A9ng+c%C3%A1ch+l%C3%A0m"
+                thumbUrl = "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=B_xfD9q9H-0"
             ),
             VietnamMeal(
+                id = "bun_dau",
                 name = "Bún đậu mắm tôm",
                 type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1550367363-29a61d1a67a4?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%BAn+%C4%91%E1%BA%ADu+m%E1%BA%AFm+t%C3%B4m+ngon"
+                thumbUrl = "https://images.unsplash.com/photo-1562967916-eb82221dfb92?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=E_5BpLk7bR8"
+            ),
+            VietnamMeal(
+                id = "com_suon",
+                name = "Cơm sườn nướng",
+                type = VietnamMealType.MON_KHO,
+                thumbUrl = "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=_6v_LY2_nrE"
             ),
 
-            // MÓN BÁNH (4)
+            // ═══════════════════════════════════════════
+            // TRÁNG MIỆNG (6) - Desserts
+            // ═══════════════════════════════════════════
             VietnamMeal(
+                id = "che_ba_mau",
+                name = "Chè ba màu",
+                type = VietnamMealType.TRANG_MIENG,
+                thumbUrl = "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=nQvQB8cYJXA"
+            ),
+            VietnamMeal(
+                id = "banh_flan",
+                name = "Bánh flan caramen",
+                type = VietnamMealType.TRANG_MIENG,
+                thumbUrl = "https://images.unsplash.com/photo-1528207776546-365bb710ee93?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=dKEPJgHMDQg"
+            ),
+            VietnamMeal(
+                id = "banh_da_lon",
                 name = "Bánh da lợn",
-                type = VietnamMealType.MON_BANH,
-                subType = VietnamCakeSubType.BANH_DAN_GIAN,
-                thumbUrl = "https://images.unsplash.com/photo-1541781286675-1f2a65d4a78d?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1ch+l%C3%A0m+b%C3%A1nh+da+l%E1%BB%A3n"
+                type = VietnamMealType.TRANG_MIENG,
+                thumbUrl = "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=GLpSElmgDCs"
             ),
             VietnamMeal(
-                name = "Bánh trôi – bánh chay",
-                type = VietnamMealType.MON_BANH,
-                subType = VietnamCakeSubType.BANH_DAN_GIAN,
-                thumbUrl = "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=c%C3%A1ch+l%C3%A0m+b%C3%A1nh+tr%C3%B4i+b%C3%A1nh+chay"
+                id = "banh_troi",
+                name = "Bánh trôi bánh chay",
+                type = VietnamMealType.TRANG_MIENG,
+                thumbUrl = "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=VvPXqDvD3hQ"
             ),
             VietnamMeal(
-                name = "Bánh xèo",
-                type = VietnamMealType.MON_BANH,
-                subType = VietnamCakeSubType.BANH_VIET_NAM,
-                thumbUrl = "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%A1nh+x%C3%A8o+mi%E1%BB%81n+t%C3%A2y+c%C3%A1ch+l%C3%A0m"
+                id = "banh_xeo",
+                name = "Bánh xèo miền Tây",
+                type = VietnamMealType.TRANG_MIENG,
+                thumbUrl = "https://images.unsplash.com/photo-1590301157890-4810ed352733?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=n5mJMu-tVno"
             ),
             VietnamMeal(
-                name = "Bánh bèo",
-                type = VietnamMealType.MON_BANH,
-                subType = VietnamCakeSubType.BANH_VIET_NAM,
-                thumbUrl = "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1200&q=60",
-                youtubeUrl = "https://www.youtube.com/results?search_query=b%C3%A1nh+b%C3%A8o+hu%E1%BA%BF+c%C3%A1ch+l%C3%A0m"
-            ),
+                id = "banh_beo",
+                name = "Bánh bèo Huế",
+                type = VietnamMealType.TRANG_MIENG,
+                thumbUrl = "https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=800&q=80",
+                youtubeUrl = "https://www.youtube.com/watch?v=EF1NrJlrz1I"
+            )
         )
     }
 
