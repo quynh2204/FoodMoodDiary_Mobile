@@ -227,57 +227,57 @@ class DiscoveryViewModel @Inject constructor(
                 id = "pho_bo",
                 name = "Phở bò",
                 type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1555126634-323283e090fa?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=fKpMJHvN7-E"
+                thumbUrl = "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?q=80&w=1674&auto=format&fit=crop",
+                youtubeUrl = "https://www.youtube.com/watch?v=99tOr7JSr0k"
             ),
             VietnamMeal(
                 id = "bun_bo_hue",
                 name = "Bún bò Huế",
                 type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1617093727343-374698b1b08d?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=u0_x0nZQKQw"
+                thumbUrl = "https://images.unsplash.com/photo-1597345637412-9fd611e758f3?q=80&w=2070&auto=format&fit=crop",
+                youtubeUrl = "https://www.youtube.com/watch?v=A_o2qfaTgKs"
             ),
             VietnamMeal(
                 id = "bun_rieu",
                 name = "Bún riêu cua",
                 type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1604908554027-1b0bff98982f?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=_YDPPaXiHzE"
+                thumbUrl = "https://cdn.tgdd.vn/2020/08/CookProduct/Untitled-1-1200x676-10.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=CiPDEMxUfTY"
             ),
             VietnamMeal(
                 id = "mi_quang",
                 name = "Mì Quảng",
                 type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1526318896980-cf78c088247c?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=VfqHKjYz3gA"
+                thumbUrl = "https://daivietourist.vn/wp-content/uploads/2025/06/mi-quang-hoi-an-2.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=g3V_oNeMdHs"
             ),
             VietnamMeal(
                 id = "hu_tieu",
                 name = "Hủ tiếu Nam Vang",
                 type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=wQy7aCMd9uA"
+                thumbUrl = "https://i-giadinh.vnecdn.net/2023/05/15/Buoc-8-Thanh-pham-1-8-8366-1684125654.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=fziqSn-xkws"
             ),
             VietnamMeal(
                 id = "banh_canh",
                 name = "Bánh canh cua",
                 type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1604908176997-125f25cc500f?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=YgVCVzJlzPQ"
+                thumbUrl = "https://cdn.tgdd.vn/2021/05/CookProduct/thumbcmscn-1200x676-4.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=uTIZmap4UnQ"
             ),
             VietnamMeal(
                 id = "bun_cha",
                 name = "Bún chả Hà Nội",
                 type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1550367363-29a61d1a67a4?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=RBXBwSi4CIU"
+                thumbUrl = "https://cdn.zsoft.solutions/poseidon-web/app/media/uploaded-files/090724-bun-cha-ha-noi-buffet-poseidon-1.jpeg",
+                youtubeUrl = "https://www.youtube.com/watch?v=tcbSm6nSUhM"
             ),
             VietnamMeal(
                 id = "bun_thit_nuong",
                 name = "Bún thịt nướng",
                 type = VietnamMealType.MON_NUOC,
-                thumbUrl = "https://images.unsplash.com/photo-1541542684-4b26f1c8b3b9?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=p79TfThEV3o"
+                thumbUrl = "https://cooponline.vn/tin-tuc/wp-content/uploads/2025/10/cach-lam-bun-thit-nuong-chuan-vi-sai-gon-thom-ngon-dam-da-kho-cuong.png",
+                youtubeUrl = "https://www.youtube.com/watch?v=emlDazeUIMM"
             ),
 
             // ═══════════════════════════════════════════

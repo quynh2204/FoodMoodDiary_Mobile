@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -83,12 +84,9 @@ fun DiscoveryScreen(
         TabRow(
             selectedTabIndex = selectedTab,
             containerColor = BlackSecondary,
-            contentColor = PastelGreen,
-            indicator = { tabPositions ->
-                TabRowDefaults.SecondaryIndicator(
-                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                    color = PastelGreen
-                )
+            contentColor = WhiteText,
+            divider = {
+                HorizontalDivider(color = CharcoalGray, thickness = 1.dp)
             }
         ) {
             tabs.forEachIndexed { index, title ->
@@ -99,11 +97,10 @@ fun DiscoveryScreen(
                         Text(
                             text = title,
                             fontSize = 14.sp,
-                            fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal
+                            fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
+                            color = if (selectedTab == index) PastelGreen else GrayText
                         )
-                    },
-                    selectedContentColor = PastelGreen,
-                    unselectedContentColor = GrayText
+                    }
                 )
             }
         }
@@ -245,11 +242,9 @@ fun ExploreTab(
                         containerColor = BlackSecondary,
                         labelColor = WhiteText
                     ),
-                    border = FilterChipDefaults.filterChipBorder(
-                        borderColor = CharcoalGray,
-                        selectedBorderColor = PastelGreen,
-                        enabled = true,
-                        selected = selectedCategory == category
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = if (selectedCategory == category) PastelGreen else CharcoalGray
                     )
                 )
             }
