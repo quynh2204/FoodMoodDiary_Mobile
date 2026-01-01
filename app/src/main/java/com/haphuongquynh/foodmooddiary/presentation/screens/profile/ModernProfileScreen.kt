@@ -18,9 +18,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -63,9 +65,19 @@ fun ModernProfileScreen(
     val profileUpdateState by authViewModel.profileUpdateState.collectAsState()
 
     var currentStreak by remember { mutableStateOf(0) }
+    var totalMeals by remember { mutableStateOf(0) }
+    var topFood by remember { mutableStateOf<String?>(null) }
+    var avgMood by remember { mutableStateOf(0f) }
+
     var showClearDataDialog by remember { mutableStateOf(false) }
     var showEditNameDialog by remember { mutableStateOf(false) }
     var editNameText by remember { mutableStateOf(currentUser?.displayName ?: "") }
+
+    // Stat dialog states
+    var showStreakDialog by remember { mutableStateOf(false) }
+    var showMealsDialog by remember { mutableStateOf(false) }
+    var showTopFoodDialog by remember { mutableStateOf(false) }
+    var showMoodDialog by remember { mutableStateOf(false) }
 
     // Gallery launcher for profile image
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -91,10 +103,19 @@ fun ModernProfileScreen(
         }
     }
 
-    // Load streak on init
+    // Load all stats on init
     LaunchedEffect(Unit) {
         statisticsViewModel.getCurrentStreak { streak ->
             currentStreak = streak
+        }
+        statisticsViewModel.getTotalMeals { count ->
+            totalMeals = count
+        }
+        statisticsViewModel.getTopFood { food ->
+            topFood = food
+        }
+        statisticsViewModel.getAverageMood { mood ->
+            avgMood = mood
         }
     }
 
@@ -214,6 +235,64 @@ fun ModernProfileScreen(
         )
     }
 
+    // Streak stat dialog
+    if (showStreakDialog) {
+        StatDialog(
+            title = "Your Streak",
+            icon = Icons.Default.LocalFireDepartment,
+            iconTint = StreakOrange,
+            statValue = "$currentStreak days",
+            description = if (currentStreak > 0)
+                "You've logged meals for $currentStreak consecutive days! Keep it up!"
+                else "Start logging meals daily to build your streak!",
+            onDismiss = { showStreakDialog = false }
+        )
+    }
+
+    // Meals stat dialog
+    if (showMealsDialog) {
+        StatDialog(
+            title = "Meals Tracked",
+            icon = Icons.Default.Restaurant,
+            iconTint = PastelGreen,
+            statValue = "$totalMeals meals",
+            description = "You've logged $totalMeals meals in total. Every meal counts!",
+            onDismiss = { showMealsDialog = false }
+        )
+    }
+
+    // Top food stat dialog
+    if (showTopFoodDialog) {
+        StatDialog(
+            title = "Favourite Food",
+            icon = Icons.Default.Favorite,
+            iconTint = OrangeAccent,
+            statValue = topFood ?: "No data",
+            description = if (topFood != null)
+                "\"$topFood\" is your most logged food. It seems to be your favourite!"
+                else "Start logging meals to discover your favourite food!",
+            onDismiss = { showTopFoodDialog = false }
+        )
+    }
+
+    // Mood stat dialog
+    if (showMoodDialog) {
+        StatDialog(
+            title = "Average Mood",
+            icon = Icons.Default.Mood,
+            iconTint = GoldPrimary,
+            statValue = if (avgMood > 0) String.format("%.1f/10", avgMood) else "No data",
+            description = when {
+                avgMood >= 8 -> "Your average mood is excellent! Your food choices seem to make you happy."
+                avgMood >= 6 -> "Your average mood is good. Keep tracking to find what makes you happiest!"
+                avgMood >= 4 -> "Your mood is moderate. Try experimenting with different foods!"
+                avgMood > 0 -> "Your mood could be better. Consider trying foods that boost your spirits!"
+                else -> "Start logging meals with mood colors to track your emotional wellbeing!"
+            },
+            onDismiss = { showMoodDialog = false }
+        )
+    }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = BlackPrimary
@@ -257,6 +336,18 @@ fun ModernProfileScreen(
                         streakDays = currentStreak,
                         onEditName = { showEditNameDialog = true },
                         onEditPhoto = { galleryLauncher.launch("image/*") }
+                    )
+
+                    // Stats Grid - 4 buttons
+                    StatsButtonsGrid(
+                        streakDays = currentStreak,
+                        totalMeals = totalMeals,
+                        topFood = topFood,
+                        avgMood = avgMood,
+                        onStreakClick = { showStreakDialog = true },
+                        onMealsClick = { showMealsDialog = true },
+                        onTopFoodClick = { showTopFoodDialog = true },
+                        onMoodClick = { showMoodDialog = true }
                     )
 
                     // Data Management
@@ -522,4 +613,153 @@ private fun StreakChip(streakDays: Int) {
             )
         }
     }
+}
+
+@Composable
+private fun StatsButtonsGrid(
+    streakDays: Int,
+    totalMeals: Int,
+    topFood: String?,
+    avgMood: Float,
+    onStreakClick: () -> Unit,
+    onMealsClick: () -> Unit,
+    onTopFoodClick: () -> Unit,
+    onMoodClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        StatButton(
+            modifier = Modifier.weight(1f),
+            icon = Icons.Default.LocalFireDepartment,
+            iconTint = StreakOrange,
+            label = "Streak",
+            value = "$streakDays",
+            onClick = onStreakClick
+        )
+        StatButton(
+            modifier = Modifier.weight(1f),
+            icon = Icons.Default.Restaurant,
+            iconTint = PastelGreen,
+            label = "Meals",
+            value = "$totalMeals",
+            onClick = onMealsClick
+        )
+        StatButton(
+            modifier = Modifier.weight(1f),
+            icon = Icons.Default.Favorite,
+            iconTint = OrangeAccent,
+            label = "Top Food",
+            value = topFood?.take(8) ?: "-",
+            onClick = onTopFoodClick
+        )
+        StatButton(
+            modifier = Modifier.weight(1f),
+            icon = Icons.Default.Mood,
+            iconTint = GoldPrimary,
+            label = "Mood",
+            value = if (avgMood > 0) String.format("%.1f", avgMood) else "-",
+            onClick = onMoodClick
+        )
+    }
+}
+
+@Composable
+private fun StatButton(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    iconTint: androidx.compose.ui.graphics.Color,
+    label: String,
+    value: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = modifier.clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        color = BlackSecondary,
+        border = BorderStroke(1.dp, BlackTertiary)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                icon,
+                contentDescription = label,
+                tint = iconTint,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = value,
+                color = WhiteText,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                maxLines = 1
+            )
+            Text(
+                text = label,
+                color = GrayText,
+                fontSize = 11.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatDialog(
+    title: String,
+    icon: ImageVector,
+    iconTint: androidx.compose.ui.graphics.Color,
+    statValue: String,
+    description: String,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(28.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(title, color = WhiteText, fontWeight = FontWeight.Bold)
+            }
+        },
+        text = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = statValue,
+                    color = iconTint,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = description,
+                    color = GrayText,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close", color = PastelGreen)
+            }
+        },
+        containerColor = BlackSecondary
+    )
 }

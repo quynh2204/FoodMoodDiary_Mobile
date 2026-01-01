@@ -27,7 +27,10 @@ interface FoodEntryDao {
     
     @Query("SELECT * FROM food_entries WHERE userId = :userId ORDER BY timestamp DESC")
     fun getAllEntries(userId: String): Flow<List<FoodEntryEntity>>
-    
+
+    @Query("SELECT * FROM food_entries WHERE userId = :userId ORDER BY timestamp DESC")
+    suspend fun getAllEntriesOnce(userId: String): List<FoodEntryEntity>
+
     @Query("SELECT * FROM food_entries WHERE id = :entryId LIMIT 1")
     fun getEntryById(entryId: String): Flow<FoodEntryEntity?>
     

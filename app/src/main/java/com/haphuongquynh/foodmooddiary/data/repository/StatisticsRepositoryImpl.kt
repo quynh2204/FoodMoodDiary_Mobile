@@ -6,6 +6,7 @@ import com.haphuongquynh.foodmooddiary.data.local.dao.FoodEntryDao
 import com.haphuongquynh.foodmooddiary.domain.model.*
 import com.haphuongquynh.foodmooddiary.domain.repository.StatisticsRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.util.*
 import javax.inject.Inject
@@ -196,10 +197,57 @@ class StatisticsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getCurrentStreak(): Int {
-        val allEntries = foodEntryDao.getAllEntries(currentUserId)
-        // This would need to be calculated properly
-        // For now, return 0 as placeholder
-        return 0
+        val allEntries = foodEntryDao.getAllEntriesOnce(currentUserId)
+        if (allEntries.isEmpty()) return 0
+
+        // Calculate streak: consecutive days with entries ending today
+        val sortedDays = allEntries
+            .map { getDayStartTimestamp(it.timestamp) }
+            .distinct()
+            .sortedDescending()
+
+        val today = getDayStartTimestamp(System.currentTimeMillis())
+        val oneDayMs = 24 * 60 * 60 * 1000L
+
+        // If no entry today, streak is 0
+        if (sortedDays.firstOrNull() != today) return 0
+
+        var streak = 1
+        var expectedDay = today - oneDayMs
+
+        for (i in 1 until sortedDays.size) {
+            if (sortedDays[i] == expectedDay) {
+                streak++
+                expectedDay -= oneDayMs
+            } else {
+                break
+            }
+        }
+
+        return streak
+    }
+
+    override fun getTotalEntryCount(): Flow<Int> = flow {
+        val entries = foodEntryDao.getAllEntriesOnce(currentUserId)
+        emit(entries.size)
+    }
+
+    override fun getTopFoodAllTime(): Flow<String?> = flow {
+        val entries = foodEntryDao.getAllEntriesOnce(currentUserId)
+        val topFood = entries.groupBy { it.foodName.lowercase().trim() }
+            .maxByOrNull { it.value.size }
+            ?.key
+            ?.replaceFirstChar { it.uppercase() }
+        emit(topFood)
+    }
+
+    override fun getAverageMoodAllTime(): Flow<Float> = flow {
+        val entries = foodEntryDao.getAllEntriesOnce(currentUserId)
+        if (entries.isEmpty()) {
+            emit(0f)
+        } else {
+            emit(calculateAverageMoodScore(entries.map { it.moodColor }))
+        }
     }
 
     /**

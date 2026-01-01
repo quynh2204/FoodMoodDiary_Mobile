@@ -122,6 +122,39 @@ class StatisticsViewModel @Inject constructor(
             callback(streak)
         }
     }
+
+    /**
+     * Get total meal count (all time)
+     */
+    fun getTotalMeals(callback: (Int) -> Unit) {
+        viewModelScope.launch {
+            statisticsRepository.getTotalEntryCount().collect { count ->
+                callback(count)
+            }
+        }
+    }
+
+    /**
+     * Get top food name (most logged)
+     */
+    fun getTopFood(callback: (String?) -> Unit) {
+        viewModelScope.launch {
+            statisticsRepository.getTopFoodAllTime().collect { foodName ->
+                callback(foodName)
+            }
+        }
+    }
+
+    /**
+     * Get average mood score (all time)
+     */
+    fun getAverageMood(callback: (Float) -> Unit) {
+        viewModelScope.launch {
+            statisticsRepository.getAverageMoodAllTime().collect { score ->
+                callback(score)
+            }
+        }
+    }
 }
 
 /**
