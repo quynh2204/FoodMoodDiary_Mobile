@@ -1,7 +1,9 @@
 package com.haphuongquynh.foodmooddiary.presentation.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.storage.FirebaseStorage
 import com.haphuongquynh.foodmooddiary.domain.model.User
 import com.haphuongquynh.foodmooddiary.domain.repository.AuthRepository
 import com.haphuongquynh.foodmooddiary.domain.usecase.auth.GetCurrentUserUseCase
@@ -14,6 +16,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.io.File
+import java.util.UUID
 import javax.inject.Inject
 
 /**
@@ -27,7 +32,8 @@ class AuthViewModel @Inject constructor(
     private val registerUseCase: RegisterUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val storage: FirebaseStorage
 ) : ViewModel() {
 
     // UI State for Login/Register screens
@@ -37,6 +43,10 @@ class AuthViewModel @Inject constructor(
     // Current user state
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
+
+    // Profile update state
+    private val _profileUpdateState = MutableStateFlow<ProfileUpdateState>(ProfileUpdateState.Idle)
+    val profileUpdateState: StateFlow<ProfileUpdateState> = _profileUpdateState.asStateFlow()
 
     init {
         observeCurrentUser()
@@ -138,6 +148,81 @@ class AuthViewModel @Inject constructor(
             authRepository.updateThemePreference(theme)
         }
     }
+
+    /**
+     * Update user's display name
+     */
+    fun updateDisplayName(displayName: String) {
+        viewModelScope.launch {
+            _profileUpdateState.value = ProfileUpdateState.Loading
+
+            val result = authRepository.updateProfile(displayName = displayName, photoUrl = null)
+
+            _profileUpdateState.value = when (result) {
+                is Resource.Success -> ProfileUpdateState.Success
+                is Resource.Error -> ProfileUpdateState.Error(result.message)
+                is Resource.Loading -> ProfileUpdateState.Loading
+            }
+        }
+    }
+
+    /**
+     * Upload profile image to Firebase Storage and update user profile
+     */
+    fun updateProfileImage(localPath: String) {
+        viewModelScope.launch {
+            _profileUpdateState.value = ProfileUpdateState.Loading
+
+            try {
+                val file = File(localPath)
+                if (!file.exists()) {
+                    _profileUpdateState.value = ProfileUpdateState.Error("Image file not found")
+                    return@launch
+                }
+
+                val userId = _currentUser.value?.uid ?: run {
+                    _profileUpdateState.value = ProfileUpdateState.Error("User not logged in")
+                    return@launch
+                }
+
+                // Upload to Firebase Storage
+                val fileName = "profile_photos/${userId}/${UUID.randomUUID()}.jpg"
+                val storageRef = storage.reference.child(fileName)
+
+                val uri = Uri.fromFile(file)
+                val uploadTask = storageRef.putFile(uri).await()
+                val downloadUrl = uploadTask.storage.downloadUrl.await().toString()
+
+                // Update user profile with new photo URL
+                val result = authRepository.updateProfile(displayName = null, photoUrl = downloadUrl)
+
+                _profileUpdateState.value = when (result) {
+                    is Resource.Success -> ProfileUpdateState.Success
+                    is Resource.Error -> ProfileUpdateState.Error(result.message)
+                    is Resource.Loading -> ProfileUpdateState.Loading
+                }
+            } catch (e: Exception) {
+                _profileUpdateState.value = ProfileUpdateState.Error("Upload failed: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    /**
+     * Reset profile update state
+     */
+    fun resetProfileUpdateState() {
+        _profileUpdateState.value = ProfileUpdateState.Idle
+    }
+}
+
+/**
+ * Sealed class representing profile update states
+ */
+sealed class ProfileUpdateState {
+    data object Idle : ProfileUpdateState()
+    data object Loading : ProfileUpdateState()
+    data object Success : ProfileUpdateState()
+    data class Error(val message: String) : ProfileUpdateState()
 }
 
 /**
