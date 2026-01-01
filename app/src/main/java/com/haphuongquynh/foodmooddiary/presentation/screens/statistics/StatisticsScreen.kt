@@ -631,9 +631,11 @@ fun MoodDistributionCards(
     moodTrend: List<MoodTrendPoint>,
     modifier: Modifier = Modifier
 ) {
-    val happy = moodTrend.count { it.averageMoodScore >= 8f }
-    val neutral = moodTrend.count { it.averageMoodScore in 5f..7.9f }
-    val sad = moodTrend.count { it.averageMoodScore < 5f }
+    // Thresholds: Vui vẻ ≥7, Bình thường 4-7, Buồn <4
+    // Based on MoodType.score values (HAPPY=7.5, SAD=2.0, ANGRY=3.5, TIRED=4.5, ENERGETIC=9.0)
+    val happy = moodTrend.count { it.averageMoodScore >= 7f }
+    val neutral = moodTrend.count { it.averageMoodScore in 4f..6.99f }
+    val sad = moodTrend.count { it.averageMoodScore < 4f }
     val total = happy + neutral + sad
 
     Row(
