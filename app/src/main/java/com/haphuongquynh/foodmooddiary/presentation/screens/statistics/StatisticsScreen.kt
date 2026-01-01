@@ -26,6 +26,32 @@ import com.haphuongquynh.foodmooddiary.presentation.viewmodel.DateRange
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.StatisticsViewModel
 import com.haphuongquynh.foodmooddiary.ui.theme.*
 
+/* ======================= HELPERS ======================= */
+
+private fun moodColorFromScore(score: Float): Color = when {
+    score >= 8f -> MoodType.HAPPY.color
+    score >= 6f -> MoodType.ENERGETIC.color
+    score >= 4f -> MoodType.TIRED.color
+    score > 0f -> MoodType.SAD.color
+    else -> Color(0xFF3C3C3E)
+}
+
+private fun moodTypeFromScore(score: Float): MoodType? {
+    return MoodType.entries
+        .minByOrNull { kotlin.math.abs(it.score - score) }
+}
+
+
+/* ======================= CONSTANTS ======================= */
+
+private val periodOptions = listOf(
+    DateRange.LAST_7_DAYS to "7 ngày",
+    DateRange.LAST_30_DAYS to "30 ngày",
+    DateRange.LAST_90_DAYS to "90 ngày",
+    DateRange.LAST_YEAR to "12 tháng",
+    DateRange.ALL_TIME to "Tất cả"
+)
+
 /**
  * Statistics Screen - Thống kê nhật ký tâm trạng và thói quen ăn uống
  */
@@ -155,10 +181,27 @@ fun OverviewTab(
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            val periodOptions = listOf(
-                DateRange.LAST_7_DAYS to "7 ngày",
-                DateRange.LAST_30_DAYS to "30 ngày"
-            )
+            val currentIndex = periodOptions.indexOfFirst { it.first == selectedRange }
+val currentLabel = periodOptions
+    .getOrNull(currentIndex)
+    ?.second
+    ?: ""
+
+DateRangeSelector(
+    currentRange = currentLabel,
+    onPreviousClick = {
+        if (currentIndex > 0) {
+            onPeriodChange(periodOptions[currentIndex - 1].first)
+        }
+    },
+    onNextClick = {
+        if (currentIndex < periodOptions.lastIndex) {
+            onPeriodChange(periodOptions[currentIndex + 1].first)
+        }
+    },
+    modifier = Modifier.padding(horizontal = 16.dp)
+)
+
 
             periodOptions.forEach { (range, label) ->
                 PeriodButton(
@@ -170,18 +213,7 @@ fun OverviewTab(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Date Range Selector
-        DateRangeSelector(
-            currentRange = "15/12 - 21/12",
-            onPreviousClick = { },
-            onNextClick = { },
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
+        
         // Mood Trend Chart Section
         Text(
             text = "Xu hướng tâm trạng theo $periodLabel",
@@ -196,8 +228,10 @@ fun OverviewTab(
         // Chart
         MoodTrendChart(
             moodTrend = moodTrend,
+            selectedRange = selectedRange,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
+
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -315,8 +349,52 @@ fun DateRangeSelector(
 @Composable
 fun MoodTrendChart(
     moodTrend: List<MoodTrendPoint>,
+    selectedRange: DateRange,
     modifier: Modifier = Modifier
 ) {
+    // 1️⃣ Chuẩn bị data cho chart theo DateRange
+    val chartData: List<Pair<String, Float>> = when (selectedRange) {
+
+        DateRange.LAST_7_DAYS -> {
+            moodTrend
+                .takeLast(7)
+                .mapIndexed { index, point ->
+                    val label = when (index) {
+                        0 -> "T2"
+                        1 -> "T3"
+                        2 -> "T4"
+                        3 -> "T5"
+                        4 -> "T6"
+                        5 -> "T7"
+                        else -> "CN"
+                    }
+                    label to point.averageMoodScore
+                }
+        }
+
+        DateRange.LAST_30_DAYS -> {
+            moodTrend
+                .takeLast(30)
+                .chunked(7)
+                .mapIndexed { index, week ->
+                    "Tuần ${index + 1}" to
+                        week.map { it.averageMoodScore }.average().toFloat()
+                }
+        }
+
+        DateRange.LAST_90_DAYS -> {
+            moodTrend
+                .takeLast(90)
+                .chunked(7)
+                .mapIndexed { index, week ->
+                    "Tuần ${index + 1}" to
+                        week.map { it.averageMoodScore }.average().toFloat()
+                }
+        }
+
+        else -> emptyList()
+    }
+
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -338,10 +416,8 @@ fun MoodTrendChart(
                     fontSize = 14.sp,
                     color = Color.Gray
                 )
-                
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Box(
                         modifier = Modifier
                             .size(12.dp)
@@ -355,10 +431,10 @@ fun MoodTrendChart(
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
-            // Bar chart
+
+            // 2️⃣ Vẽ chart theo chartData (KHÔNG cố định 7 cột)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -366,12 +442,9 @@ fun MoodTrendChart(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.Bottom
             ) {
-                val days = listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
-                
-                days.forEachIndexed { index, day ->
-                    val moodValue = if (index < moodTrend.size) moodTrend[index].averageMoodScore else 0f
+                chartData.forEach { (label, moodValue) ->
                     val barHeight = (moodValue * 20).dp.coerceAtLeast(4.dp)
-                    
+
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Bottom,
@@ -386,12 +459,17 @@ fun MoodTrendChart(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                         }
-                        
+
                         Box(
                             modifier = Modifier
-                                .width(32.dp)
+                                .width(28.dp)
                                 .height(barHeight)
-                                .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                                .clip(
+                                    RoundedCornerShape(
+                                        topStart = 4.dp,
+                                        topEnd = 4.dp
+                                    )
+                                )
                                 .background(
                                     when {
                                         moodValue >= 8f -> Color(0xFF4CAF50)
@@ -401,12 +479,12 @@ fun MoodTrendChart(
                                     }
                                 )
                         )
-                        
+
                         Spacer(modifier = Modifier.height(8.dp))
-                        
+
                         Text(
-                            text = day,
-                            fontSize = 12.sp,
+                            text = label,
+                            fontSize = 11.sp,
                             color = Color.Gray
                         )
                     }
@@ -553,41 +631,18 @@ fun MoodDistributionCards(
     moodTrend: List<MoodTrendPoint>,
     modifier: Modifier = Modifier
 ) {
-    val happyCount = moodTrend.count { it.averageMoodScore >= 8f }
-    val neutralCount = moodTrend.count { it.averageMoodScore in 5f..7.9f }
-    val sadCount = moodTrend.count { it.averageMoodScore in 1f..4.9f }
-    val total = happyCount + neutralCount + sadCount
-    
+    val happy = moodTrend.count { it.averageMoodScore >= 8f }
+    val neutral = moodTrend.count { it.averageMoodScore in 5f..7.9f }
+    val sad = moodTrend.count { it.averageMoodScore < 5f }
+    val total = happy + neutral + sad
+
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        MoodTypeCard(
-            emoji = "😊",
-            label = "Vui vẻ",
-            count = happyCount,
-            percentage = if (total > 0) (happyCount * 100 / total) else 0,
-            color = Color(0xFF4CAF50),
-            modifier = Modifier.weight(1f)
-        )
-        
-        MoodTypeCard(
-            emoji = "😐",
-            label = "Bình thường",
-            count = neutralCount,
-            percentage = if (total > 0) (neutralCount * 100 / total) else 0,
-            color = PastelGreen,
-            modifier = Modifier.weight(1f)
-        )
-        
-        MoodTypeCard(
-            emoji = "😔",
-            label = "Buồn",
-            count = sadCount,
-            percentage = if (total > 0) (sadCount * 100 / total) else 0,
-            color = Color(0xFFFF9800),
-            modifier = Modifier.weight(1f)
-        )
+        MoodTypeCard("😊", "Vui vẻ", happy, total, MoodType.HAPPY.color, Modifier.weight(1f))
+        MoodTypeCard("😐", "Bình thường", neutral, total, MoodType.TIRED.color, Modifier.weight(1f))
+        MoodTypeCard("😔", "Buồn", sad, total, MoodType.SAD.color, Modifier.weight(1f))
     }
 }
 
@@ -596,48 +651,25 @@ fun MoodTypeCard(
     emoji: String,
     label: String,
     count: Int,
-    percentage: Int,
+    total: Int,
     color: Color,
     modifier: Modifier = Modifier
 ) {
+    val percent = if (total == 0) 0 else (count * 100 / total)
+
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = BlackSecondary
-        ),
+        colors = CardDefaults.cardColors(containerColor = BlackSecondary),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = emoji,
-                fontSize = 32.sp
-            )
-            
-            Text(
-                text = label,
-                fontSize = 13.sp,
-                color = Color.Gray
-            )
-            
-            Text(
-                text = "$count ngày",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-            
-            Text(
-                text = "$percentage%",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = color
-            )
+            Text(emoji, fontSize = 32.sp)
+            Text(label, fontSize = 13.sp, color = Color.Gray)
+            Text("$count ngày", fontWeight = FontWeight.Bold, color = Color.White)
+            Text("$percent%", color = color)
         }
     }
 }

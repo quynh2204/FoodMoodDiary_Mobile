@@ -1,9 +1,11 @@
 package com.haphuongquynh.foodmooddiary.presentation.screens.statistics
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -27,28 +29,36 @@ import com.haphuongquynh.foodmooddiary.domain.model.MoodTrendPoint
 import com.haphuongquynh.foodmooddiary.ui.theme.*
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.YearMonth
+import java.time.ZoneId
 import java.time.format.TextStyle
 import java.util.*
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CalendarTab(moodTrend: List<MoodTrendPoint>) {
+fun CalendarTab(
+    moodTrend: List<MoodTrendPoint>,
+    onViewAllMeals: (LocalDate) -> Unit = {}
+) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
+
     val entriesByDate = remember(moodTrend) {
         moodTrend.associateBy { point ->
-            Instant.ofEpochMilli(point.date).atZone(ZoneId.systemDefault()).toLocalDate()
+            Instant.ofEpochMilli(point.date)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
         }
     }
-    
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        // Month Navigation
+
+        /* ================= MONTH NAV ================= */
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = BlackSecondary),
@@ -61,72 +71,56 @@ fun CalendarTab(moodTrend: List<MoodTrendPoint>) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
-                    onClick = { currentMonth = currentMonth.minusMonths(1) }
-                ) {
-                    Icon(
-                        Icons.Default.ChevronLeft,
-                        contentDescription = "Previous Month",
-                        tint = PastelGreen
-                    )
+                IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
+                    Icon(Icons.Default.ChevronLeft, null, tint = PastelGreen)
                 }
-                
+
                 Text(
                     text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale("vi"))} ${currentMonth.year}",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = WhiteText
                 )
-                
-                IconButton(
-                    onClick = { currentMonth = currentMonth.plusMonths(1) }
-                ) {
-                    Icon(
-                        Icons.Default.ChevronRight,
-                        contentDescription = "Next Month",
-                        tint = PastelGreen
-                    )
+
+                IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
+                    Icon(Icons.Default.ChevronRight, null, tint = PastelGreen)
                 }
             }
         }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Calendar Grid
+
+        Spacer(Modifier.height(16.dp))
+
+        /* ================= CALENDAR GRID ================= */
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = BlackSecondary),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                // Week Day Headers
+            Column(Modifier.padding(16.dp)) {
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN").forEach { day ->
+                    listOf("T2","T3","T4","T5","T6","T7","CN").forEach {
                         Text(
-                            text = day,
-                            fontSize = 12.sp,
-                            color = Color.Gray,
-                            fontWeight = FontWeight.Bold,
+                            text = it,
                             modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Gray
                         )
                     }
                 }
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                // Calendar Days
+
+                Spacer(Modifier.height(12.dp))
+
                 val daysInMonth = currentMonth.lengthOfMonth()
                 val firstDayOfMonth = currentMonth.atDay(1).dayOfWeek.value
-                val totalCells = if ((daysInMonth + firstDayOfMonth - 1) <= 35) 35 else 42
-                
+                val totalCells =
+                    if (daysInMonth + firstDayOfMonth - 1 <= 35) 35 else 42
+
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(7),
                     modifier = Modifier.height(350.dp),
@@ -135,157 +129,183 @@ fun CalendarTab(moodTrend: List<MoodTrendPoint>) {
                 ) {
                     items((1..totalCells).toList()) { index ->
                         val dayNumber = index - firstDayOfMonth + 1
+
                         if (dayNumber in 1..daysInMonth) {
                             val date = currentMonth.atDay(dayNumber)
                             val isToday = date == LocalDate.now()
                             val isSelected = date == selectedDate
                             val dayData = entriesByDate[date]
-                            val hasMeals = dayData?.entryCount?.let { it > 0 } == true
-                            
+
                             CalendarDayCell(
                                 day = dayNumber,
                                 isToday = isToday,
                                 isSelected = isSelected,
-                                hasMeals = hasMeals,
+                                hasMeals = (dayData?.entryCount ?: 0) > 0,
                                 mealCount = dayData?.entryCount ?: 0,
                                 onClick = { selectedDate = date }
                             )
                         } else {
-                            Box(modifier = Modifier.size(44.dp))
+                            Box(Modifier.size(44.dp))
                         }
                     }
                 }
             }
         }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Legend
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = BlackSecondary),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-            ) {
-                Text(
-                    text = "Chú thích",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = WhiteText
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .background(PastelGreen)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Ngày hôm nay",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .border(1.dp, GoldPrimary, CircleShape)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Có bữa ăn ghi nhận",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
-                }
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Selected Date Details
+
+        Spacer(Modifier.height(24.dp))
+
+        /* ================= LEGEND ================= */
+Card(
+    modifier = Modifier.fillMaxWidth(),
+    colors = CardDefaults.cardColors(containerColor = BlackSecondary),
+    shape = RoundedCornerShape(16.dp)
+) {
+    Column(Modifier.padding(20.dp)) {
+        Text(
+            text = "Chú thích",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = WhiteText
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        LegendItem(
+            color = PastelGreen,
+            label = "Ngày hôm nay"
+        )
+
+        LegendItem(
+            color = GoldPrimary,
+            label = "Có bữa ăn ghi nhận",
+            border = true
+        )
+    }
+}
+
+Spacer(Modifier.height(24.dp))
+
+
+        /* ================= SELECTED DATE ================= */
         selectedDate?.let { date ->
             val dayData = entriesByDate[date]
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = BlackSecondary),
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.CalendarToday,
-                            contentDescription = null,
-                            tint = PastelGreen,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "${date.dayOfMonth} ${date.month.getDisplayName(TextStyle.FULL, Locale("vi"))} ${date.year}",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = WhiteText
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    Divider(color = BlackTertiary)
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
+                Column(Modifier.padding(20.dp)) {
+
+                    Text(
+                        text = "${date.dayOfMonth} ${date.month.getDisplayName(TextStyle.FULL, Locale("vi"))} ${date.year}",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = WhiteText
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceAround
                     ) {
-                        DayStat(
-                            icon = Icons.Default.Restaurant,
-                            value = dayData?.entryCount?.takeIf { it > 0 }?.toString() ?: "--",
-                            label = "Bữa ăn"
+                        DayStat(Icons.Default.Restaurant, dayData?.entryCount?.toString() ?: "--", "Bữa ăn")
+                        DayStat(Icons.Default.SentimentSatisfiedAlt,
+                            dayData?.averageMoodScore?.let { String.format("%.1f", it) } ?: "--",
+                            "Tâm trạng"
                         )
-                        DayStat(
-                            icon = Icons.Default.SentimentSatisfiedAlt,
-                            value = dayData?.averageMoodScore?.let {
-                                String.format(Locale.getDefault(), "%.1f", it)
-                            } ?: "--",
-                            label = "Tâm trạng"
+                        DayStat(Icons.Default.Photo, dayData?.entryCount?.toString() ?: "--", "Ảnh")
+                    }
+
+                    /* ================= MEAL PREVIEW ================= */
+                    if ((dayData?.entryCount ?: 0) > 0) {
+                        Spacer(Modifier.height(20.dp))
+                        Divider(color = BlackTertiary)
+                        Spacer(Modifier.height(16.dp))
+
+                        Text(
+                            text = "Bữa ăn trong ngày",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = WhiteText
                         )
-                        DayStat(
-                            icon = Icons.Default.Photo,
-                            value = dayData?.entryCount?.takeIf { it > 0 }?.toString() ?: "--",
-                            label = "Ảnh"
-                        )
+
+                        Spacer(Modifier.height(12.dp))
+
+                        LazyColumn(
+                            modifier = Modifier.heightIn(max = 220.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(minOf(dayData!!.entryCount, 3)) { index ->
+                                MealPreviewItem(
+                                    title = "Bữa ăn ${index + 1}",
+                                    subtitle = "Nhấn để xem chi tiết",
+                                    moodScore = (5..9).random()
+                                )
+                            }
+                        }
+
+                        Spacer(Modifier.height(12.dp))
+
+                        TextButton(
+                            onClick = { onViewAllMeals(date) },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text("Xem tất cả →", color = PastelGreen)
+                        }
                     }
                 }
             }
         }
-        
-        Spacer(modifier = Modifier.height(32.dp))
+
+        Spacer(Modifier.height(32.dp))
     }
 }
+
+/* ================= PREVIEW ITEM ================= */
+
+@Composable
+fun MealPreviewItem(
+    title: String,
+    subtitle: String,
+    moodScore: Int
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = BlackTertiary),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.Restaurant,
+                null,
+                tint = PastelGreen,
+                modifier = Modifier.size(28.dp)
+            )
+
+            Spacer(Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, fontWeight = FontWeight.Bold, color = WhiteText)
+                Text(subtitle, fontSize = 12.sp, color = Color.Gray)
+            }
+
+            Text(
+                text = "$moodScore/10",
+                fontWeight = FontWeight.Bold,
+                color = PastelGreen
+            )
+        }
+    }
+}
+
+/* ================= COMPONENTS ================= */
 
 @Composable
 fun CalendarDayCell(
@@ -308,42 +328,20 @@ fun CalendarDayCell(
                 }
             )
             .border(
-                width = if (hasMeals) 1.dp else 0.dp,
-                color = if (hasMeals) GoldPrimary else Color.Transparent,
-                shape = CircleShape
+                if (hasMeals) 1.dp else 0.dp,
+                if (hasMeals) GoldPrimary else Color.Transparent,
+                CircleShape
             )
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = day.toString(),
                 fontSize = 14.sp,
                 fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
                 color = if (isToday) PastelGreen else WhiteText
             )
-            
-            if (hasMeals) {
-                Spacer(modifier = Modifier.height(2.dp))
-                Row(
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    val dots = mealCount.coerceIn(1, 3)
-                    repeat(dots) {
-                        Box(
-                            modifier = Modifier
-                                .size(4.dp)
-                                .clip(CircleShape)
-                                .background(GoldPrimary)
-                        )
-                        if (it < dots - 1) {
-                            Spacer(modifier = Modifier.width(2.dp))
-                        }
-                    }
-                }
-            }
         }
     }
 }
@@ -354,27 +352,42 @@ fun DayStat(
     value: String,
     label: String
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(icon, null, tint = PastelGreen, modifier = Modifier.size(28.dp))
+        Spacer(Modifier.height(6.dp))
+        Text(value, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = WhiteText)
+        Text(label, fontSize = 12.sp, color = Color.Gray)
+    }
+}
+
+@Composable
+fun LegendItem(
+    color: Color,
+    label: String,
+    border: Boolean = false
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(vertical = 6.dp)
     ) {
-        Icon(
-            icon,
-            contentDescription = null,
-            tint = PastelGreen,
-            modifier = Modifier.size(28.dp)
+        Box(
+            modifier = Modifier
+                .size(14.dp)
+                .clip(CircleShape)
+                .background(color)
+                .then(
+                    if (border)
+                        Modifier.border(1.dp, color, CircleShape)
+                    else Modifier
+                )
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = value,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = WhiteText
-        )
-        Spacer(modifier = Modifier.height(4.dp))
+
+        Spacer(Modifier.width(10.dp))
+
         Text(
             text = label,
-            fontSize = 12.sp,
-            color = Color.Gray
+            fontSize = 14.sp,
+            color = WhiteText
         )
     }
 }
