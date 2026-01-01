@@ -168,5 +168,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.leakcanary)
 
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+    // Google AI Generative AI SDK - Version 0.7.0 stable với v1 API
+    implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
 }

@@ -15,23 +15,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.ai.client.generativeai.GenerativeModel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import org.json.JSONArray
+import java.io.IOException
 
 @Composable
 fun ChatScreen() {
-    // Model AI & Key cứng (để test)
-    val generativeModel = remember {
-        GenerativeModel(
-            modelName = "gemini-1.5-flash",
-            apiKey = "AIzaSyBsQQPvN3KcSBcujgvy-jHDTVLCcBM4Q5A"
-        )
-    }
-
+    val apiKey = "AIzaSyAR1Y8EUJsZlPTb5sIzKvVPopth1JBUfZU"
+    
     var inputText by remember { mutableStateOf("") }
     var messages by remember { mutableStateOf(listOf<Pair<String, Boolean>>()) }
     var isLoading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    
+    // Test connection khi khởi động
+    LaunchedEffect(Unit) {
+        messages = listOf("👋 Xin chào! Mình là trợ lý cảm xúc AI. Hãy chia sẻ cảm xúc của bạn!" to false)
+    }
 
     Column(
         modifier = Modifier
@@ -95,7 +101,7 @@ fun ChatScreen() {
             )
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(
-                enabled = !isLoading,
+                enabled = !isLoading && inputText.isNotBlank(),
                 modifier = Modifier
                     .size(50.dp)
                     .background(Color(0xFF4CAF50), RoundedCornerShape(25.dp)),
@@ -107,12 +113,62 @@ fun ChatScreen() {
                     isLoading = true
                     scope.launch {
                         try {
-                            val response = generativeModel.generateContent(userMessage)
-                            messages = messages + ((response.text ?: "...") to false)
+                            // Gọi API trong IO thread
+                            val result = withContext(Dispatchers.IO) {
+                                val client = OkHttpClient()
+                                
+                                val systemPrompt = """
+                                    Bạn là trợ lý cảm xúc AI thấu hiểu. Hãy phản chiếu và xác nhận cảm xúc người dùng, 
+                                    giúp họ nhận diện cảm xúc rõ ràng hơn (đặc biệt về thói quen ăn uống).
+                                    Trả lời ấm áp, thấu hiểu, đặt câu hỏi mở (2-4 câu ngắn gọn bằng tiếng Việt).
+                                """.trimIndent()
+                                
+                                val jsonBody = JSONObject().apply {
+                                    put("contents", JSONArray().apply {
+                                        put(JSONObject().apply {
+                                            put("parts", JSONArray().apply {
+                                                put(JSONObject().put("text", "$systemPrompt\n\nNgười dùng: $userMessage"))
+                                            })
+                                        })
+                                    })
+                                }
+                                
+                                // Thử v1beta với gemini-2.5-flash (model mới nhất)
+                                val request = Request.Builder()
+                                    .url("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey")
+                                    .post(jsonBody.toString().toRequestBody("application/json".toMediaType()))
+                                    .build()
+                                
+                                client.newCall(request).execute()
+                            }
+                            
+                            val responseBody = result.body?.string()
+                            android.util.Log.d("ChatScreen", "API Response Code: ${result.code}")
+                            android.util.Log.d("ChatScreen", "API Response: $responseBody")
+                            
+                            if (result.isSuccessful && responseBody != null) {
+                                val jsonResponse = JSONObject(responseBody)
+                                val aiText = jsonResponse
+                                    .getJSONArray("candidates")
+                                    .getJSONObject(0)
+                                    .getJSONObject("content")
+                                    .getJSONArray("parts")
+                                    .getJSONObject(0)
+                                    .getString("text")
+                                messages = messages + (aiText to false)
+                            } else {
+                                val errorMsg = "Lỗi API ${result.code}: $responseBody"
+                                android.util.Log.e("ChatScreen", errorMsg)
+                                messages = messages + (errorMsg to false)
+                            }
                         } catch (e: Exception) {
-                            messages = messages + ("Lỗi: ${e.message}" to false)
+                            val errorMessage = "Lỗi: ${e.message}"
+                            android.util.Log.e("ChatScreen", "API Error", e)
+                            e.printStackTrace()
+                            messages = messages + (errorMessage to false)
+                        } finally {
+                            isLoading = false
                         }
-                        isLoading = false
                     }
                 }
             ) {
