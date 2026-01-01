@@ -187,26 +187,79 @@ class DiscoveryViewModel @Inject constructor(
                 val entries = foodEntryRepository.getAllEntries().first()
                 val allMeals = _vietnamMeals.value
 
-                if (entries.isEmpty() || allMeals.isEmpty()) {
-                    // New user - show popular items
-                    _recommendations.value = allMeals.take(6).map {
-                        RecommendedMeal(it, "Phổ biến", 0.5f)
-                    }
-                    _recommendationReason.value = "Khám phá những món ăn Việt Nam phổ biến"
+                if (allMeals.isEmpty()) {
+                    return@launch
+                }
+
+                if (entries.isEmpty()) {
+                    // New user - use time-based recommendations
+                    val recommendations = computeTimeBasedRecommendations(allMeals)
+                    _recommendations.value = recommendations
+                    _recommendationReason.value = getTimeBasedMessage()
                     return@launch
                 }
 
                 val recommendations = computeRecommendations(entries, allMeals)
                 _recommendations.value = recommendations
-                _recommendationReason.value = "Dựa trên lịch sử ăn uống của bạn"
+                _recommendationReason.value = "Gợi ý dựa trên sở thích của bạn"
             } catch (e: Exception) {
-                // Fallback to popular items
-                _recommendations.value = _vietnamMeals.value.take(6).map {
-                    RecommendedMeal(it, "Phổ biến", 0.5f)
+                // Fallback to time-based
+                val allMeals = _vietnamMeals.value
+                if (allMeals.isNotEmpty()) {
+                    _recommendations.value = computeTimeBasedRecommendations(allMeals)
+                    _recommendationReason.value = getTimeBasedMessage()
                 }
-                _recommendationReason.value = "Khám phá những món ăn Việt Nam phổ biến"
             }
         }
+    }
+
+    private fun getTimeBasedMessage(): String {
+        val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        return when (currentHour) {
+            in 6..10 -> "Món ngon cho bữa sáng"
+            in 11..14 -> "Món ngon cho bữa trưa"
+            in 15..17 -> "Món ngon buổi chiều"
+            in 18..21 -> "Món ngon cho bữa tối"
+            else -> "Món ngon đêm khuya"
+        }
+    }
+
+    private fun computeTimeBasedRecommendations(allMeals: List<VietnamMeal>): List<RecommendedMeal> {
+        val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+
+        val timeBasedType = when (currentHour) {
+            in 6..10 -> VietnamMealType.MON_NUOC
+            in 11..14 -> VietnamMealType.MON_KHO
+            in 15..17 -> VietnamMealType.TRANG_MIENG
+            in 18..21 -> VietnamMealType.MON_KHO
+            else -> VietnamMealType.MON_NUOC
+        }
+
+        val timeLabel = when (currentHour) {
+            in 6..10 -> "Bữa sáng"
+            in 11..14 -> "Bữa trưa"
+            in 15..17 -> "Buổi chiều"
+            in 18..21 -> "Bữa tối"
+            else -> "Đêm khuya"
+        }
+
+        // Prioritize time-appropriate meals, then add variety from other categories
+        val primaryMeals = allMeals.filter { it.type == timeBasedType }.shuffled()
+        val secondaryMeals = allMeals.filter { it.type != timeBasedType }.shuffled()
+
+        val result = mutableListOf<RecommendedMeal>()
+
+        // Add 4 from primary category
+        primaryMeals.take(4).forEach { meal ->
+            result.add(RecommendedMeal(meal, timeLabel, 0.8f))
+        }
+
+        // Add 2 from other categories for variety
+        secondaryMeals.take(2).forEach { meal ->
+            result.add(RecommendedMeal(meal, "Món mới", 0.5f))
+        }
+
+        return result.take(6)
     }
 
     private fun computeRecommendations(

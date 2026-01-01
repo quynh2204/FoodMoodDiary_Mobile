@@ -161,49 +161,39 @@ fun RecommendationsTab(
     onRefresh: () -> Unit
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Reason Card
+        // Compact Reason Header
         if (reasonSummary.isNotEmpty()) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                color = BlackSecondary
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Icon(
+                    imageVector = Icons.Default.ThumbUp,
+                    contentDescription = null,
+                    tint = PastelGreen,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = reasonSummary,
+                    fontSize = 13.sp,
+                    color = GrayText,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                TextButton(
+                    onClick = onRefresh,
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.ThumbUp,
-                        contentDescription = null,
-                        tint = PastelGreen,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Gợi ý hôm nay",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = WhiteText
-                        )
-                        Text(
-                            text = reasonSummary,
-                            fontSize = 13.sp,
-                            color = GrayText
-                        )
-                    }
-                    TextButton(onClick = onRefresh) {
-                        Text("Làm mới", color = PastelGreen, fontSize = 12.sp)
-                    }
+                    Text("Làm mới", color = PastelGreen, fontSize = 12.sp)
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         // Recommendations Grid
         if (recommendations.isEmpty()) {
@@ -215,6 +205,7 @@ fun RecommendationsTab(
         } else {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
