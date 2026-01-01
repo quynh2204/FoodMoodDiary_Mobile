@@ -3,6 +3,7 @@ package com.haphuongquynh.foodmooddiary.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.haphuongquynh.foodmooddiary.domain.model.User
+import com.haphuongquynh.foodmooddiary.domain.repository.AuthRepository
 import com.haphuongquynh.foodmooddiary.domain.usecase.auth.GetCurrentUserUseCase
 import com.haphuongquynh.foodmooddiary.domain.usecase.auth.LoginUseCase
 import com.haphuongquynh.foodmooddiary.domain.usecase.auth.LogoutUseCase
@@ -25,7 +26,8 @@ class AuthViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
     private val registerUseCase: RegisterUseCase,
     private val logoutUseCase: LogoutUseCase,
-    private val getCurrentUserUseCase: GetCurrentUserUseCase
+    private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     // UI State for Login/Register screens
@@ -125,6 +127,16 @@ class AuthViewModel @Inject constructor(
      */
     fun resetAuthState() {
         _authState.value = AuthState.Idle
+    }
+
+    /**
+     * Update user's theme preference
+     * @param theme Theme preference: "Light", "Dark", or "Auto"
+     */
+    fun updateThemePreference(theme: String) {
+        viewModelScope.launch {
+            authRepository.updateThemePreference(theme)
+        }
     }
 }
 
