@@ -471,14 +471,14 @@ class DiscoveryViewModel @Inject constructor(
                 id = "banh_da_lon",
                 name = "Bánh da lợn",
                 type = VietnamMealType.TRANG_MIENG,
-                thumbUrl = "https://upload.wikimedia.org/wikipedia/commons/b/b3/B%C3%A1nh_da_l%C6%A1n_%C4%91%E1%BA%ADu_xanh_v%C3%A0_l%C3%A1_d%E1%BB%A9a..jpg",
+                thumbUrl = "https://bactom.com/wp-content/uploads/2024/11/2-6.jpg",
                 youtubeUrl = "https://www.youtube.com/watch?v=8_xg7sOx3ys"
             ),
             VietnamMeal(
                 id = "banh_troi",
                 name = "Bánh trôi bánh chay",
                 type = VietnamMealType.TRANG_MIENG,
-                thumbUrl = "https://upload.wikimedia.org/wikipedia/commons/b/ba/Banhchay.JPG",
+                thumbUrl = "https://cdn.tgdd.vn/2021/03/CookRecipe/GalleryStep/tha%CC%80nh-pha%CC%89m-29.jpg",
                 youtubeUrl = "https://www.youtube.com/watch?v=hVa8e9zQI6U"
             ),
             VietnamMeal(
