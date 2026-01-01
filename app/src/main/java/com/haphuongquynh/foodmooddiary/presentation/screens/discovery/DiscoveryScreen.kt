@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.ThumbUp
@@ -43,7 +45,7 @@ import com.haphuongquynh.foodmooddiary.ui.theme.*
 
 /**
  * Discovery Screen - Khám phá món ăn Việt Nam
- * 2 tabs: "Gợi ý cho bạn" và "Khám phá món ăn"
+ * 3 tabs: "Gợi ý cho bạn", "Khám phá món ăn", "Món đã lưu"
  */
 @Composable
 fun DiscoveryScreen(
@@ -54,9 +56,14 @@ fun DiscoveryScreen(
     val selectedCategory by viewModel.selectedMainCategory.collectAsStateWithLifecycle()
     val recommendations by viewModel.recommendations.collectAsStateWithLifecycle()
     val recommendationReason by viewModel.recommendationReason.collectAsStateWithLifecycle()
+    val savedMealIds by viewModel.savedVietnamMeals.collectAsStateWithLifecycle()
+    val allMeals by viewModel.vietnamMeals.collectAsStateWithLifecycle()
+
+    // Derive saved meals list
+    val savedMeals = allMeals.filter { savedMealIds.contains(it.id) }
 
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Gợi ý cho bạn", "Khám phá món ăn")
+    val tabs = listOf("Gợi ý cho bạn", "Khám phá", "Đã lưu")
     val context = LocalContext.current
 
     Column(
@@ -96,7 +103,7 @@ fun DiscoveryScreen(
                     text = {
                         Text(
                             text = title,
-                            fontSize = 14.sp,
+                            fontSize = 13.sp,
                             fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
                             color = if (selectedTab == index) PastelGreen else GrayText
                         )
@@ -110,14 +117,23 @@ fun DiscoveryScreen(
             0 -> RecommendationsTab(
                 recommendations = recommendations,
                 reasonSummary = recommendationReason,
+                savedMealIds = savedMealIds,
                 onMealClick = { meal -> openYouTube(context, meal.youtubeUrl) },
+                onSaveClick = { meal -> viewModel.toggleSaveVietnamMeal(meal.id) },
                 onRefresh = { viewModel.generateRecommendations() }
             )
             1 -> ExploreTab(
                 meals = filteredMeals,
                 selectedCategory = selectedCategory,
+                savedMealIds = savedMealIds,
                 onCategorySelected = { viewModel.setVietnamCategory(it) },
-                onMealClick = { meal -> openYouTube(context, meal.youtubeUrl) }
+                onMealClick = { meal -> openYouTube(context, meal.youtubeUrl) },
+                onSaveClick = { meal -> viewModel.toggleSaveVietnamMeal(meal.id) }
+            )
+            2 -> SavedMealsTab(
+                savedMeals = savedMeals,
+                onMealClick = { meal -> openYouTube(context, meal.youtubeUrl) },
+                onRemoveClick = { meal -> viewModel.toggleSaveVietnamMeal(meal.id) }
             )
         }
     }
@@ -130,7 +146,9 @@ fun DiscoveryScreen(
 fun RecommendationsTab(
     recommendations: List<RecommendedMeal>,
     reasonSummary: String,
+    savedMealIds: Set<String>,
     onMealClick: (VietnamMeal) -> Unit,
+    onSaveClick: (VietnamMeal) -> Unit,
     onRefresh: () -> Unit
 ) {
     Column(
@@ -194,7 +212,9 @@ fun RecommendationsTab(
                 items(recommendations) { recommendedMeal ->
                     RecommendedFoodCard(
                         recommendedMeal = recommendedMeal,
-                        onClick = { onMealClick(recommendedMeal.meal) }
+                        isSaved = savedMealIds.contains(recommendedMeal.meal.id),
+                        onClick = { onMealClick(recommendedMeal.meal) },
+                        onSaveClick = { onSaveClick(recommendedMeal.meal) }
                     )
                 }
             }
@@ -209,8 +229,10 @@ fun RecommendationsTab(
 fun ExploreTab(
     meals: List<VietnamMeal>,
     selectedCategory: String,
+    savedMealIds: Set<String>,
     onCategorySelected: (String) -> Unit,
-    onMealClick: (VietnamMeal) -> Unit
+    onMealClick: (VietnamMeal) -> Unit,
+    onSaveClick: (VietnamMeal) -> Unit
 ) {
     val categories = listOf("Tất cả", "Món nước", "Món khô", "Tráng miệng")
 
@@ -267,7 +289,62 @@ fun ExploreTab(
                 items(meals) { meal ->
                     FoodCard(
                         meal = meal,
-                        onClick = { onMealClick(meal) }
+                        isSaved = savedMealIds.contains(meal.id),
+                        onClick = { onMealClick(meal) },
+                        onSaveClick = { onSaveClick(meal) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Tab 3: Saved Meals - Món đã lưu
+ */
+@Composable
+fun SavedMealsTab(
+    savedMeals: List<VietnamMeal>,
+    onMealClick: (VietnamMeal) -> Unit,
+    onRemoveClick: (VietnamMeal) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        if (savedMeals.isEmpty()) {
+            EmptyState(
+                icon = Icons.Default.Bookmark,
+                title = "Chưa có món đã lưu",
+                subtitle = "Nhấn vào biểu tượng bookmark để lưu món ăn yêu thích"
+            )
+        } else {
+            // Header with count
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "${savedMeals.size} món đã lưu",
+                    fontSize = 14.sp,
+                    color = GrayText
+                )
+            }
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(savedMeals) { meal ->
+                    FoodCard(
+                        meal = meal,
+                        isSaved = true,
+                        onClick = { onMealClick(meal) },
+                        onSaveClick = { onRemoveClick(meal) }
                     )
                 }
             }
@@ -281,7 +358,9 @@ fun ExploreTab(
 @Composable
 fun FoodCard(
     meal: VietnamMeal,
-    onClick: () -> Unit
+    isSaved: Boolean = false,
+    onClick: () -> Unit,
+    onSaveClick: () -> Unit = {}
 ) {
     Surface(
         modifier = Modifier
@@ -320,6 +399,26 @@ fun FoodCard(
                     )
             )
 
+            // Save Button (top right)
+            IconButton(
+                onClick = onSaveClick,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(4.dp)
+                    .size(36.dp)
+                    .background(
+                        color = BlackPrimary.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(18.dp)
+                    )
+            ) {
+                Icon(
+                    imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                    contentDescription = if (isSaved) "Bỏ lưu" else "Lưu",
+                    tint = if (isSaved) PastelGreen else WhiteText,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
             // Play Button
             Icon(
                 imageVector = Icons.Default.PlayArrow,
@@ -357,7 +456,9 @@ fun FoodCard(
 @Composable
 fun RecommendedFoodCard(
     recommendedMeal: RecommendedMeal,
-    onClick: () -> Unit
+    isSaved: Boolean = false,
+    onClick: () -> Unit,
+    onSaveClick: () -> Unit = {}
 ) {
     val meal = recommendedMeal.meal
 
@@ -398,21 +499,45 @@ fun RecommendedFoodCard(
                     )
             )
 
-            // Reason Badge
-            Surface(
+            // Top Row: Save Button + Reason Badge
+            Row(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
+                    .fillMaxWidth()
                     .padding(8.dp),
-                shape = RoundedCornerShape(8.dp),
-                color = PastelGreen.copy(alpha = 0.9f)
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                Text(
-                    text = recommendedMeal.reason,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = BlackPrimary,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                )
+                // Save Button (top left)
+                IconButton(
+                    onClick = onSaveClick,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(
+                            color = BlackPrimary.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                ) {
+                    Icon(
+                        imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                        contentDescription = if (isSaved) "Bỏ lưu" else "Lưu",
+                        tint = if (isSaved) PastelGreen else WhiteText,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+
+                // Reason Badge (top right)
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = PastelGreen.copy(alpha = 0.9f)
+                ) {
+                    Text(
+                        text = recommendedMeal.reason,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = BlackPrimary,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
             }
 
             // Play Button

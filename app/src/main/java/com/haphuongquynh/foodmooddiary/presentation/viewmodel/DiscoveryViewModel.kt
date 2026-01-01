@@ -91,6 +91,10 @@ class DiscoveryViewModel @Inject constructor(
     private val _recommendationReason = MutableStateFlow("")
     val recommendationReason: StateFlow<String> = _recommendationReason.asStateFlow()
 
+    // Saved Vietnamese meals (local favorites)
+    private val _savedVietnamMeals = MutableStateFlow<Set<String>>(emptySet())
+    val savedVietnamMeals: StateFlow<Set<String>> = _savedVietnamMeals.asStateFlow()
+
     init {
         loadFavorites()
         loadVietnamMeals()
@@ -118,6 +122,28 @@ class DiscoveryViewModel @Inject constructor(
             else -> all
         }
         _filteredVietnamMeals.value = filtered
+    }
+
+    /* =============================
+       Saved Vietnamese Meals
+       ============================= */
+
+    fun toggleSaveVietnamMeal(mealId: String) {
+        val current = _savedVietnamMeals.value.toMutableSet()
+        if (current.contains(mealId)) {
+            current.remove(mealId)
+        } else {
+            current.add(mealId)
+        }
+        _savedVietnamMeals.value = current
+    }
+
+    fun isVietnamMealSaved(mealId: String): Boolean {
+        return _savedVietnamMeals.value.contains(mealId)
+    }
+
+    fun getSavedVietnamMealsList(): List<VietnamMeal> {
+        return _vietnamMeals.value.filter { _savedVietnamMeals.value.contains(it.id) }
     }
 
     /* =============================
@@ -287,57 +313,57 @@ class DiscoveryViewModel @Inject constructor(
                 id = "com_tam",
                 name = "Cơm tấm sườn bì chả",
                 type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=M7gLg1z3M6w"
+                thumbUrl = "https://i-giadinh.vnecdn.net/2024/03/07/7Honthinthnhphm1-1709800144-8583-1709800424.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=OVb5uoDWspM"
             ),
             VietnamMeal(
                 id = "banh_mi",
                 name = "Bánh mì thịt",
                 type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1600454309261-3e59309e23af?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=RkXJx5Q6VQk"
+                thumbUrl = "https://www.huongnghiepaau.com/wp-content/uploads/2019/08/banh-mi-kep-thit-nuong-thom-phuc.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=5dX-hXxKM8E"
             ),
             VietnamMeal(
                 id = "goi_cuon",
                 name = "Gỏi cuốn tôm thịt",
                 type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=y5HLDhPQCp4"
+                thumbUrl = "https://cdn.netspace.edu.vn/images/2020/04/25/cach-lam-goi-cuon-tom-thit-cuc-ki-hap-dan-245587-800.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=LJ_3BeqH63w"
             ),
             VietnamMeal(
                 id = "bo_luc_lac",
                 name = "Bò lúc lắc",
                 type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=yC-IhU5u5jw"
+                thumbUrl = "https://cdn.netspace.edu.vn/images/2020/04/28/cach-lam-bo-luc-lac-ngon-244971-800.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=0X5m98q3Pn0"
             ),
             VietnamMeal(
                 id = "ca_kho_to",
                 name = "Cá kho tộ",
                 type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=cNJBKvYBlew"
+                thumbUrl = "https://cdnv2.tgdd.vn/mwg-static/common/Common/05052025%20-%202025-05-09T154044.858.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=zvlct2ZXhj8"
             ),
             VietnamMeal(
                 id = "thit_kho_trung",
                 name = "Thịt kho trứng",
                 type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=B_xfD9q9H-0"
+                thumbUrl = "https://cdn.tgdd.vn/Files/2017/03/28/965845/cach-lam-thit-kho-trung-5_760x450.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=Ef2KDf7x1BY"
             ),
             VietnamMeal(
                 id = "bun_dau",
                 name = "Bún đậu mắm tôm",
                 type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1562967916-eb82221dfb92?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=E_5BpLk7bR8"
+                thumbUrl = "https://cdn.tgdd.vn/2021/12/CookRecipe/GalleryStep/thanh-pham-1032.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=wiy_GKcrkxk"
             ),
             VietnamMeal(
                 id = "com_suon",
                 name = "Cơm sườn nướng",
                 type = VietnamMealType.MON_KHO,
-                thumbUrl = "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=_6v_LY2_nrE"
+                thumbUrl = "https://cdn.tgdd.vn/2021/08/CookProduct/t1-1200x676.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=cJu6tFJe_Gc"
             ),
 
             // ═══════════════════════════════════════════
@@ -347,43 +373,43 @@ class DiscoveryViewModel @Inject constructor(
                 id = "che_ba_mau",
                 name = "Chè ba màu",
                 type = VietnamMealType.TRANG_MIENG,
-                thumbUrl = "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=nQvQB8cYJXA"
+                thumbUrl = "https://helenrecipes.com/wp-content/uploads/2015/03/IMG_9091.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=x9pUWnYw470"
             ),
             VietnamMeal(
                 id = "banh_flan",
                 name = "Bánh flan caramen",
                 type = VietnamMealType.TRANG_MIENG,
-                thumbUrl = "https://images.unsplash.com/photo-1528207776546-365bb710ee93?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=dKEPJgHMDQg"
+                thumbUrl = "https://chefdzung.com.vn/uploads/images/ngoc-linh/banh-caramen.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=xBCp5-bzfZQ"
             ),
             VietnamMeal(
                 id = "banh_da_lon",
                 name = "Bánh da lợn",
                 type = VietnamMealType.TRANG_MIENG,
-                thumbUrl = "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=GLpSElmgDCs"
+                thumbUrl = "https://upload.wikimedia.org/wikipedia/commons/b/b3/B%C3%A1nh_da_l%C6%A1n_%C4%91%E1%BA%ADu_xanh_v%C3%A0_l%C3%A1_d%E1%BB%A9a..jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=8_xg7sOx3ys"
             ),
             VietnamMeal(
                 id = "banh_troi",
                 name = "Bánh trôi bánh chay",
                 type = VietnamMealType.TRANG_MIENG,
-                thumbUrl = "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=VvPXqDvD3hQ"
+                thumbUrl = "https://upload.wikimedia.org/wikipedia/commons/b/ba/Banhchay.JPG",
+                youtubeUrl = "https://www.youtube.com/watch?v=hVa8e9zQI6U"
             ),
             VietnamMeal(
                 id = "banh_xeo",
                 name = "Bánh xèo miền Tây",
                 type = VietnamMealType.TRANG_MIENG,
-                thumbUrl = "https://images.unsplash.com/photo-1590301157890-4810ed352733?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=n5mJMu-tVno"
+                thumbUrl = "https://i-giadinh.vnecdn.net/2023/09/19/Buoc-10-Thanh-pham-1-1-5225-1695107554.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=GOUmS6kRoGw"
             ),
             VietnamMeal(
                 id = "banh_beo",
                 name = "Bánh bèo Huế",
                 type = VietnamMealType.TRANG_MIENG,
-                thumbUrl = "https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=800&q=80",
-                youtubeUrl = "https://www.youtube.com/watch?v=EF1NrJlrz1I"
+                thumbUrl = "https://daylambanh.edu.vn/wp-content/uploads/2017/08/luu-y-khi-lam-banh-beo-hue.jpg",
+                youtubeUrl = "https://www.youtube.com/watch?v=rafBOn2wOS0"
             )
         )
     }
