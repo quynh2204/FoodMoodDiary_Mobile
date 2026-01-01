@@ -1,5 +1,6 @@
 package com.haphuongquynh.foodmooddiary.presentation.screens.profile
 
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.widget.Toast
@@ -398,6 +399,28 @@ fun ModernProfileScreen(
                         }
                     )
 
+                    // Follow Us Section
+                    Text(
+                        "Follow FoodMoodDiary",
+                        color = PastelGreen,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    SocialMediaButtons(
+                        onFacebookClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com"))
+                            context.startActivity(intent)
+                        },
+                        onInstagramClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.instagram.com"))
+                            context.startActivity(intent)
+                        },
+                        onTikTokClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.tiktok.com"))
+                            context.startActivity(intent)
+                        }
+                    )
+
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Logout Button
@@ -762,4 +785,74 @@ private fun StatDialog(
         },
         containerColor = BlackSecondary
     )
+}
+
+@Composable
+private fun SocialMediaButtons(
+    onFacebookClick: () -> Unit,
+    onInstagramClick: () -> Unit,
+    onTikTokClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        SocialButton(
+            modifier = Modifier.weight(1f),
+            name = "Facebook",
+            color = androidx.compose.ui.graphics.Color(0xFF1877F2),
+            onClick = onFacebookClick
+        )
+        SocialButton(
+            modifier = Modifier.weight(1f),
+            name = "Instagram",
+            color = androidx.compose.ui.graphics.Color(0xFFE4405F),
+            onClick = onInstagramClick
+        )
+        SocialButton(
+            modifier = Modifier.weight(1f),
+            name = "TikTok",
+            color = WhiteText,
+            onClick = onTikTokClick
+        )
+    }
+}
+
+@Composable
+private fun SocialButton(
+    modifier: Modifier = Modifier,
+    name: String,
+    color: androidx.compose.ui.graphics.Color,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = modifier.clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        color = BlackSecondary,
+        border = BorderStroke(1.dp, color.copy(alpha = 0.5f))
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = when (name) {
+                    "Facebook" -> "f"
+                    "Instagram" -> "IG"
+                    "TikTok" -> "TT"
+                    else -> ""
+                },
+                color = color,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = name,
+                color = GrayText,
+                fontSize = 11.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
 }
