@@ -385,7 +385,7 @@ class DiscoveryViewModel @Inject constructor(
             VietnamMeal(
                 id = "bun_thit_nuong",
                 name = "Bún thịt nướng",
-                type = VietnamMealType.MON_NUOC,
+                type = VietnamMealType.MON_KHO,
                 thumbUrl = "https://cooponline.vn/tin-tuc/wp-content/uploads/2025/10/cach-lam-bun-thit-nuong-chuan-vi-sai-gon-thom-ngon-dam-da-kho-cuong.png",
                 youtubeUrl = "https://www.youtube.com/watch?v=emlDazeUIMM"
             ),
