@@ -130,7 +130,7 @@ fun CalendarTab(
                     }
                 }
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(20.dp))
 
                 val daysInMonth = currentMonth.lengthOfMonth()
                 val firstDayOfMonth = currentMonth.atDay(1).dayOfWeek.value
@@ -430,13 +430,8 @@ fun ExpandableMealCard(
     )
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple(color = PastelGreen),
-                onClick = onToggleExpand
-            ),
+        onClick = onToggleExpand,
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = BlackTertiary),
         shape = RoundedCornerShape(12.dp)
     ) {

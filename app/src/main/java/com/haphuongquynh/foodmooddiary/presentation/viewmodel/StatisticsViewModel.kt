@@ -167,23 +167,37 @@ class StatisticsViewModel @Inject constructor(
                 calendar.timeInMillis = now
                 calendar.add(Calendar.DAY_OF_YEAR, -dayOffset)
 
-                // 1-3 meals per day
-                val mealsPerDay = (1..3).random()
+                // Vary meals per day: some days have 5-7 meals to test "View all" feature
+                val mealsPerDay = when (dayOffset) {
+                    0, 3, 7 -> (5..7).random()  // Today, 3 days ago, 1 week ago: many meals
+                    1, 5 -> (4..5).random()     // Some days with 4-5 meals
+                    else -> (1..3).random()     // Normal days: 1-3 meals
+                }
 
                 for (mealIndex in 0 until mealsPerDay) {
                     val (foodName, mealType) = foods.random()
                     val mood = moods.random()
 
-                    // Set time based on meal type
-                    when (mealType) {
-                        "Breakfast" -> calendar.set(Calendar.HOUR_OF_DAY, (7..9).random())
-                        "Lunch" -> calendar.set(Calendar.HOUR_OF_DAY, (11..13).random())
-                        "Dinner" -> calendar.set(Calendar.HOUR_OF_DAY, (18..20).random())
-                        else -> calendar.set(Calendar.HOUR_OF_DAY, (14..16).random())
+                    // Set time based on meal index to spread throughout the day
+                    val hour = when {
+                        mealIndex == 0 -> (7..9).random()      // Breakfast
+                        mealIndex == 1 -> (11..13).random()    // Lunch
+                        mealIndex == 2 -> (14..16).random()    // Snack
+                        mealIndex == 3 -> (18..20).random()    // Dinner
+                        else -> (10..21).random()              // Extra meals spread throughout
                     }
+                    calendar.set(Calendar.HOUR_OF_DAY, hour)
                     calendar.set(Calendar.MINUTE, (0..59).random())
 
                     val timestamp = calendar.timeInMillis
+
+                    // Assign mealType based on time
+                    val assignedMealType = when (hour) {
+                        in 6..10 -> "Breakfast"
+                        in 11..14 -> "Lunch"
+                        in 15..17 -> "Snack"
+                        else -> "Dinner"
+                    }
 
                     entries.add(
                         FoodEntryEntity(
@@ -195,7 +209,7 @@ class StatisticsViewModel @Inject constructor(
                             localPhotoPath = null,
                             moodColor = mood.colorInt,
                             mood = mood.emoji,
-                            mealType = mealType,
+                            mealType = assignedMealType,
                             location = null,
                             timestamp = timestamp,
                             createdAt = timestamp,
