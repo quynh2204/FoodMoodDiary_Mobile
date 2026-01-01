@@ -439,27 +439,69 @@ fun MoodTrendChart(
             modifier = Modifier.padding(16.dp)
         ) {
             // Chart title
+            Text(
+                text = "Điểm tâm trạng (1-10)",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Legend row with all 3 mood levels
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text(
-                    text = "Điểm tâm trạng (1-10)",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Vui vẻ (≥8)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     Box(
                         modifier = Modifier
-                            .size(12.dp)
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF4CAF50))
+                    )
+                    Text(
+                        text = "Vui vẻ (≥8)",
+                        fontSize = 11.sp,
+                        color = Color.Gray
+                    )
+                }
+
+                // Bình thường (5-7)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
                             .clip(CircleShape)
                             .background(PastelGreen)
                     )
                     Text(
-                        text = "Trung bình",
-                        fontSize = 12.sp,
+                        text = "Bình thường (5-7)",
+                        fontSize = 11.sp,
+                        color = Color.Gray
+                    )
+                }
+
+                // Buồn (<5)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFFF9800))
+                    )
+                    Text(
+                        text = "Buồn (<5)",
+                        fontSize = 11.sp,
                         color = Color.Gray
                     )
                 }

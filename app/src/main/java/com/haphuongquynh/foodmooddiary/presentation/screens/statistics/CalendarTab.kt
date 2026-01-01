@@ -55,7 +55,7 @@ fun CalendarTab(
     onEntryClick: (String) -> Unit = {}
 ) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
-    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
+    var selectedDate by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
     var showAllMeals by remember { mutableStateOf(false) }
     var expandedEntryId by remember { mutableStateOf<String?>(null) }
 
@@ -130,16 +130,18 @@ fun CalendarTab(
                     }
                 }
 
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(12.dp))
 
                 val daysInMonth = currentMonth.lengthOfMonth()
                 val firstDayOfMonth = currentMonth.atDay(1).dayOfWeek.value
                 val totalCells =
                     if (daysInMonth + firstDayOfMonth - 1 <= 35) 35 else 42
 
+                // Add contentPadding to prevent scaled (1.1x) selected dates from being clipped
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(7),
-                    modifier = Modifier.height(350.dp),
+                    modifier = Modifier.height(360.dp),
+                    contentPadding = PaddingValues(vertical = 6.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
@@ -429,10 +431,16 @@ fun ExpandableMealCard(
         label = "rotation"
     )
 
-    Card(
-        onClick = onToggleExpand,
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = BlackTertiary),
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onToggleExpand
+            ),
+        color = BlackTertiary,
         shape = RoundedCornerShape(12.dp)
     ) {
         Column {
