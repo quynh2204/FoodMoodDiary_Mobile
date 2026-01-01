@@ -2,6 +2,9 @@ package com.haphuongquynh.foodmooddiary.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.haphuongquynh.foodmooddiary.data.local.dao.FoodEntryDao
+import com.haphuongquynh.foodmooddiary.data.local.entity.FoodEntryEntity
 import com.haphuongquynh.foodmooddiary.domain.model.*
 import com.haphuongquynh.foodmooddiary.domain.repository.StatisticsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +19,9 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class StatisticsViewModel @Inject constructor(
-    private val statisticsRepository: StatisticsRepository
+    private val statisticsRepository: StatisticsRepository,
+    private val foodEntryDao: FoodEntryDao,
+    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
 
     // Date range for filtering
@@ -120,6 +125,99 @@ class StatisticsViewModel @Inject constructor(
         viewModelScope.launch {
             val streak = statisticsRepository.getCurrentStreak()
             callback(streak)
+        }
+    }
+
+    /**
+     * DEBUG: Generate fake test data for multiple days
+     * Call this to populate the database with sample entries
+     */
+    fun generateTestData() {
+        val userId = firebaseAuth.currentUser?.uid ?: return
+
+        viewModelScope.launch {
+            val calendar = Calendar.getInstance()
+            val now = System.currentTimeMillis()
+
+            // Sample foods with Vietnamese names
+            val foods = listOf(
+                "Phở bò" to "Breakfast",
+                "Bánh mì" to "Breakfast",
+                "Cơm tấm" to "Lunch",
+                "Bún chả" to "Lunch",
+                "Cơm gà" to "Dinner",
+                "Hủ tiếu" to "Dinner",
+                "Trà sữa" to "Snack",
+                "Bánh tráng trộn" to "Snack"
+            )
+
+            // MoodType emojis and their colors
+            val moods = listOf(
+                MoodType.HAPPY,
+                MoodType.SAD,
+                MoodType.ANGRY,
+                MoodType.TIRED,
+                MoodType.ENERGETIC
+            )
+
+            val entries = mutableListOf<FoodEntryEntity>()
+
+            // Generate entries for past 14 days
+            for (dayOffset in 0..13) {
+                calendar.timeInMillis = now
+                calendar.add(Calendar.DAY_OF_YEAR, -dayOffset)
+
+                // 1-3 meals per day
+                val mealsPerDay = (1..3).random()
+
+                for (mealIndex in 0 until mealsPerDay) {
+                    val (foodName, mealType) = foods.random()
+                    val mood = moods.random()
+
+                    // Set time based on meal type
+                    when (mealType) {
+                        "Breakfast" -> calendar.set(Calendar.HOUR_OF_DAY, (7..9).random())
+                        "Lunch" -> calendar.set(Calendar.HOUR_OF_DAY, (11..13).random())
+                        "Dinner" -> calendar.set(Calendar.HOUR_OF_DAY, (18..20).random())
+                        else -> calendar.set(Calendar.HOUR_OF_DAY, (14..16).random())
+                    }
+                    calendar.set(Calendar.MINUTE, (0..59).random())
+
+                    val timestamp = calendar.timeInMillis
+
+                    entries.add(
+                        FoodEntryEntity(
+                            id = UUID.randomUUID().toString(),
+                            userId = userId,
+                            foodName = foodName,
+                            notes = "Test entry",
+                            photoUrl = null,
+                            localPhotoPath = null,
+                            moodColor = mood.colorInt,
+                            mood = mood.emoji,
+                            mealType = mealType,
+                            location = null,
+                            timestamp = timestamp,
+                            createdAt = timestamp,
+                            updatedAt = timestamp,
+                            isSynced = false
+                        )
+                    )
+                }
+            }
+
+            // Insert all entries
+            foodEntryDao.insertEntries(entries)
+        }
+    }
+
+    /**
+     * DEBUG: Clear all test data
+     */
+    fun clearTestData() {
+        val userId = firebaseAuth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            foodEntryDao.deleteAllEntriesForUser(userId)
         }
     }
 }

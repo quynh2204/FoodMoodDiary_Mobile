@@ -43,7 +43,8 @@ import java.util.*
 @Composable
 fun CalendarTab(
     moodTrend: List<MoodTrendPoint>,
-    onViewAllMeals: (LocalDate) -> Unit = {}
+    onViewAllMeals: (LocalDate) -> Unit = {},
+    onEntryClick: (String) -> Unit = {} // Entry ID
 ) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
@@ -245,7 +246,10 @@ Spacer(Modifier.height(24.dp))
                             val entriesToShow = dayData!!.entries.take(3)
                             items(entriesToShow.size) { index ->
                                 val entry = entriesToShow[index]
-                                MealPreviewItemWithPhoto(entry = entry)
+                                MealPreviewItemWithPhoto(
+                                    entry = entry,
+                                    onClick = { onEntryClick(entry.id) }
+                                )
                             }
                         }
 
@@ -269,11 +273,16 @@ Spacer(Modifier.height(24.dp))
 /* ================= PREVIEW ITEM ================= */
 
 @Composable
-fun MealPreviewItemWithPhoto(entry: DayEntry) {
+fun MealPreviewItemWithPhoto(
+    entry: DayEntry,
+    onClick: () -> Unit = {}
+) {
     val photoPath = entry.localPhotoPath ?: entry.photoUrl
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = BlackTertiary),
         shape = RoundedCornerShape(12.dp)
     ) {

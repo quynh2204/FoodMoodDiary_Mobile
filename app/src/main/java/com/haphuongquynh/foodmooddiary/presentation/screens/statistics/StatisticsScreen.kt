@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,7 +58,9 @@ private val periodOptions = listOf(
  */
 @Composable
 fun StatisticsScreen(
-    viewModel: StatisticsViewModel = hiltViewModel()
+    viewModel: StatisticsViewModel = hiltViewModel(),
+    onNavigateToEntry: (String) -> Unit = {}, // Navigate to entry detail by ID
+    onNavigateToDateEntries: (Long) -> Unit = {} // Navigate to entries list for a date (timestamp)
 ) {
     val moodTrend by viewModel.moodTrend.collectAsStateWithLifecycle()
     val topFoods by viewModel.topFoods.collectAsStateWithLifecycle()
@@ -65,7 +68,7 @@ fun StatisticsScreen(
     val colorDistribution by viewModel.colorDistribution.collectAsStateWithLifecycle()
     val insights by viewModel.insights.collectAsStateWithLifecycle()
     val weeklySummary by viewModel.weeklySummary.collectAsStateWithLifecycle()
-    
+
     var selectedRange by remember { mutableStateOf(DateRange.LAST_7_DAYS) }
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Tổng quan", "Biểu đồ", "Lịch", "AI Insights")
@@ -79,7 +82,7 @@ fun StatisticsScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Header
+        // Header with debug buttons
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -87,16 +90,36 @@ fun StatisticsScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(modifier = Modifier.size(40.dp))
-            
+            // DEBUG: Add test data button
+            IconButton(
+                onClick = { viewModel.generateTestData() },
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add test data",
+                    tint = PastelGreen
+                )
+            }
+
             Text(
                 text = "Thống kê nhật ký",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
-            
-            Box(modifier = Modifier.size(40.dp))
+
+            // DEBUG: Clear test data button
+            IconButton(
+                onClick = { viewModel.clearTestData() },
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Clear test data",
+                    tint = Color.Red.copy(alpha = 0.7f)
+                )
+            }
         }
         
         // Tabs
@@ -139,7 +162,17 @@ fun StatisticsScreen(
                 selectedRange = selectedRange,
                 onPeriodChange = { selectedRange = it }
             )
-            2 -> CalendarTab(moodTrend = moodTrend)
+            2 -> CalendarTab(
+                moodTrend = moodTrend,
+                onViewAllMeals = { date ->
+                    // Convert LocalDate to timestamp and navigate
+                    val timestamp = date.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+                    onNavigateToDateEntries(timestamp)
+                },
+                onEntryClick = { entryId ->
+                    onNavigateToEntry(entryId)
+                }
+            )
             3 -> AIInsightsTab(insights = insights)
         }
     }
@@ -660,18 +693,49 @@ fun MoodTypeCard(
     val percent = if (total == 0) 0 else (count * 100 / total)
 
     Card(
-        modifier = modifier,
+        modifier = modifier.height(150.dp),
         colors = CardDefaults.cardColors(containerColor = BlackSecondary),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Text(emoji, fontSize = 32.sp)
-            Text(label, fontSize = 13.sp, color = Color.Gray)
-            Text("$count ngày", fontWeight = FontWeight.Bold, color = Color.White)
-            Text("$percent%", color = color)
+            Text(
+                text = emoji,
+                fontSize = 36.sp
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = label,
+                fontSize = 13.sp,
+                color = Color.Gray,
+                textAlign = TextAlign.Center,
+                maxLines = 1
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "$count ngày",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                textAlign = TextAlign.Center
+            )
+
+            Text(
+                text = "$percent%",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = color,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
