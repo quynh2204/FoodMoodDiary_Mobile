@@ -468,6 +468,10 @@ fun MoodTrendChart(
             Spacer(modifier = Modifier.height(16.dp))
 
             // 2️⃣ Vẽ chart theo chartData (KHÔNG cố định 7 cột)
+            // Reserve space: 20dp for score text + 4dp spacer + bar + 8dp spacer + 16dp label = ~48dp overhead
+            // Max bar height = 200 - 48 = ~152dp for score 10
+            val maxBarHeight = 140.dp
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -476,7 +480,8 @@ fun MoodTrendChart(
                 verticalAlignment = Alignment.Bottom
             ) {
                 chartData.forEach { (label, moodValue) ->
-                    val barHeight = (moodValue * 20).dp.coerceAtLeast(4.dp)
+                    // Scale bar height proportionally: score 10 = maxBarHeight, score 0 = 4dp
+                    val barHeight = ((moodValue / 10f) * maxBarHeight.value).dp.coerceAtLeast(4.dp)
 
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -676,7 +681,7 @@ fun MoodDistributionCards(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         MoodTypeCard("😊", "Vui vẻ", happy, total, MoodType.HAPPY.color, Modifier.weight(1f))
-        MoodTypeCard("😐", "Bình thường", neutral, total, MoodType.TIRED.color, Modifier.weight(1f))
+        MoodTypeCard("😐", "Thường", neutral, total, MoodType.TIRED.color, Modifier.weight(1f))
         MoodTypeCard("😔", "Buồn", sad, total, MoodType.SAD.color, Modifier.weight(1f))
     }
 }
