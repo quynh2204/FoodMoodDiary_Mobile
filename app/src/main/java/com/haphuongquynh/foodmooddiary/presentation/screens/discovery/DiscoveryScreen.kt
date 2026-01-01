@@ -399,11 +399,11 @@ fun FoodCard(
                     )
             )
 
-            // Save Button (top right) - no background, larger icon
+            // Save Button (top left) - consistent with RecommendedFoodCard
             IconButton(
                 onClick = onSaveClick,
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
+                    .align(Alignment.TopStart)
                     .padding(8.dp)
                     .size(40.dp)
             ) {
