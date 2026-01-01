@@ -6,6 +6,7 @@ import com.haphuongquynh.foodmooddiary.domain.model.FoodEntry
 import com.haphuongquynh.foodmooddiary.domain.model.Meal
 import com.haphuongquynh.foodmooddiary.domain.repository.FoodEntryRepository
 import com.haphuongquynh.foodmooddiary.domain.repository.MealRepository
+import com.haphuongquynh.foodmooddiary.domain.repository.SavedVietnamMealRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +25,8 @@ import javax.inject.Inject
 @HiltViewModel
 class DiscoveryViewModel @Inject constructor(
     private val mealRepository: MealRepository,
-    private val foodEntryRepository: FoodEntryRepository
+    private val foodEntryRepository: FoodEntryRepository,
+    private val savedVietnamMealRepository: SavedVietnamMealRepository
 ) : ViewModel() {
 
     /* =============================
@@ -100,8 +102,20 @@ class DiscoveryViewModel @Inject constructor(
         loadVietnamMeals()
         applyVietnamFilter("Tất cả")
         generateRecommendations()
+        loadSavedVietnamMeals()
         _isLoading.value = false
         _error.value = null
+    }
+
+    /**
+     * Load saved Vietnam meals from Firebase (real-time)
+     */
+    private fun loadSavedVietnamMeals() {
+        viewModelScope.launch {
+            savedVietnamMealRepository.getSavedMealIds().collect { mealIds ->
+                _savedVietnamMeals.value = mealIds
+            }
+        }
     }
 
     /* =============================
@@ -125,17 +139,34 @@ class DiscoveryViewModel @Inject constructor(
     }
 
     /* =============================
-       Saved Vietnamese Meals
+       Saved Vietnamese Meals (Firebase)
        ============================= */
 
     fun toggleSaveVietnamMeal(mealId: String) {
-        val current = _savedVietnamMeals.value.toMutableSet()
-        if (current.contains(mealId)) {
-            current.remove(mealId)
-        } else {
-            current.add(mealId)
+        viewModelScope.launch {
+            // Optimistic UI update
+            val current = _savedVietnamMeals.value.toMutableSet()
+            val wasContained = current.contains(mealId)
+            if (wasContained) {
+                current.remove(mealId)
+            } else {
+                current.add(mealId)
+            }
+            _savedVietnamMeals.value = current
+
+            // Persist to Firebase
+            val result = savedVietnamMealRepository.toggleSave(mealId)
+            if (result.isFailure) {
+                // Revert on failure
+                val reverted = _savedVietnamMeals.value.toMutableSet()
+                if (wasContained) {
+                    reverted.add(mealId)
+                } else {
+                    reverted.remove(mealId)
+                }
+                _savedVietnamMeals.value = reverted
+            }
         }
-        _savedVietnamMeals.value = current
     }
 
     fun isVietnamMealSaved(mealId: String): Boolean {

@@ -399,23 +399,19 @@ fun FoodCard(
                     )
             )
 
-            // Save Button (top right)
+            // Save Button (top right) - no background, larger icon
             IconButton(
                 onClick = onSaveClick,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(4.dp)
-                    .size(36.dp)
-                    .background(
-                        color = BlackPrimary.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(18.dp)
-                    )
+                    .padding(8.dp)
+                    .size(40.dp)
             ) {
                 Icon(
                     imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                     contentDescription = if (isSaved) "Bỏ lưu" else "Lưu",
                     tint = if (isSaved) PastelGreen else WhiteText,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(28.dp)
                 )
             }
 
@@ -507,21 +503,16 @@ fun RecommendedFoodCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                // Save Button (top left)
+                // Save Button (top left) - no background, larger icon
                 IconButton(
                     onClick = onSaveClick,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(
-                            color = BlackPrimary.copy(alpha = 0.5f),
-                            shape = RoundedCornerShape(16.dp)
-                        )
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
                         imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                         contentDescription = if (isSaved) "Bỏ lưu" else "Lưu",
                         tint = if (isSaved) PastelGreen else WhiteText,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(26.dp)
                     )
                 }
 
