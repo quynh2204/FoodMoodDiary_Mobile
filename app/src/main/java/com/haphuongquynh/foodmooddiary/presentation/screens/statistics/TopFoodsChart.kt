@@ -79,11 +79,11 @@ fun TopFoodsChart(
             }
 
             val dataSet = BarDataSet(entries, "Food Frequency").apply {
-                // Color by mood score
+                // Color by mood score (consistent thresholds: ≥7 happy, ≥4 neutral, <4 sad)
                 colors = data.map { food ->
                     when {
                         food.averageMoodScore >= 7f -> Color.parseColor("#4CAF50") // Green (Happy)
-                        food.averageMoodScore >= 5f -> Color.parseColor("#FFC107") // Yellow (Neutral)
+                        food.averageMoodScore >= 4f -> Color.parseColor("#FFC107") // Yellow (Neutral)
                         else -> Color.parseColor("#F44336") // Red (Sad)
                     }
                 }

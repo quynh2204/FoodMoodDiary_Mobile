@@ -30,10 +30,9 @@ import com.haphuongquynh.foodmooddiary.ui.theme.*
 /* ======================= HELPERS ======================= */
 
 private fun moodColorFromScore(score: Float): Color = when {
-    score >= 8f -> MoodType.HAPPY.color
-    score >= 6f -> MoodType.ENERGETIC.color
-    score >= 4f -> MoodType.TIRED.color
-    score > 0f -> MoodType.SAD.color
+    score >= 7f -> Color(0xFF4CAF50)  // Happy (green)
+    score >= 4f -> MoodType.TIRED.color  // Neutral
+    score > 0f -> MoodType.SAD.color     // Sad
     else -> Color(0xFF3C3C3E)
 }
 
@@ -82,45 +81,14 @@ fun StatisticsScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Header with debug buttons
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // DEBUG: Add test data button
-            IconButton(
-                onClick = { viewModel.generateTestData() },
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = "Add test data",
-                    tint = PastelGreen
-                )
-            }
-
-            Text(
-                text = "Thống kê nhật ký",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            // DEBUG: Clear test data button
-            IconButton(
-                onClick = { viewModel.clearTestData() },
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "Clear test data",
-                    tint = Color.Red.copy(alpha = 0.7f)
-                )
-            }
-        }
+        // Header
+        Text(
+            text = "Thống kê nhật ký",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(16.dp)
+        )
         
         // Tabs
         TabRow(
@@ -452,7 +420,7 @@ fun MoodTrendChart(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                // Vui vẻ (≥8)
+                // Vui vẻ (≥7)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -464,13 +432,13 @@ fun MoodTrendChart(
                             .background(Color(0xFF4CAF50))
                     )
                     Text(
-                        text = "Vui vẻ (≥8)",
+                        text = "Vui vẻ (≥7)",
                         fontSize = 11.sp,
                         color = Color.Gray
                     )
                 }
 
-                // Bình thường (5-7)
+                // Bình thường (4-6)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -482,13 +450,13 @@ fun MoodTrendChart(
                             .background(PastelGreen)
                     )
                     Text(
-                        text = "Bình thường (5-7)",
+                        text = "Bình thường (4-6)",
                         fontSize = 11.sp,
                         color = Color.Gray
                     )
                 }
 
-                // Buồn (<5)
+                // Buồn (<4)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -500,7 +468,7 @@ fun MoodTrendChart(
                             .background(Color(0xFFFF9800))
                     )
                     Text(
-                        text = "Buồn (<5)",
+                        text = "Buồn (<4)",
                         fontSize = 11.sp,
                         color = Color.Gray
                     )
@@ -552,9 +520,9 @@ fun MoodTrendChart(
                                 )
                                 .background(
                                     when {
-                                        moodValue >= 8f -> Color(0xFF4CAF50)
-                                        moodValue >= 5f -> PastelGreen
-                                        moodValue > 0f -> Color(0xFFFF9800)
+                                        moodValue >= 7f -> Color(0xFF4CAF50)  // Happy
+                                        moodValue >= 4f -> PastelGreen        // Neutral
+                                        moodValue > 0f -> Color(0xFFFF9800)   // Sad
                                         else -> Color(0xFF3C3C3E)
                                     }
                                 )
@@ -602,9 +570,9 @@ fun EntrySummaryCards(
                 icon = Icons.Default.Mood,
                 modifier = Modifier.weight(1f),
                 iconColor = when {
-                    avgMoodScore >= 8 -> Color(0xFF4CAF50)
-                    avgMoodScore >= 5 -> PastelGreen
-                    avgMoodScore > 0 -> Color(0xFFFF9800)
+                    avgMoodScore >= 7 -> Color(0xFF4CAF50)  // Happy
+                    avgMoodScore >= 4 -> PastelGreen        // Neutral
+                    avgMoodScore > 0 -> Color(0xFFFF9800)   // Sad
                     else -> Color.Gray
                 }
             )
