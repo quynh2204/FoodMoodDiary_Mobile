@@ -341,14 +341,32 @@ fun ModernProfileScreen(
 
                     // Stats Grid - 4 buttons
                     StatsButtonsGrid(
-                        streakDays = currentStreak,
-                        totalMeals = totalMeals,
-                        topFood = topFood,
-                        avgMood = avgMood,
                         onStreakClick = { showStreakDialog = true },
                         onMealsClick = { showMealsDialog = true },
                         onTopFoodClick = { showTopFoodDialog = true },
                         onMoodClick = { showMoodDialog = true }
+                    )
+
+                    // Follow Us Section
+                    Text(
+                        "Follow FoodMoodDiary",
+                        color = PastelGreen,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    SocialMediaButtons(
+                        onTikTokClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.tiktok.com"))
+                            context.startActivity(intent)
+                        },
+                        onFacebookClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com"))
+                            context.startActivity(intent)
+                        },
+                        onInstagramClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.instagram.com"))
+                            context.startActivity(intent)
+                        }
                     )
 
                     // Data Management
@@ -396,28 +414,6 @@ fun ModernProfileScreen(
                         text = "Privacy Policy",
                         onClick = {
                             Toast.makeText(context, "Coming Soon", Toast.LENGTH_SHORT).show()
-                        }
-                    )
-
-                    // Follow Us Section
-                    Text(
-                        "Follow FoodMoodDiary",
-                        color = PastelGreen,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    SocialMediaButtons(
-                        onFacebookClick = {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com"))
-                            context.startActivity(intent)
-                        },
-                        onInstagramClick = {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.instagram.com"))
-                            context.startActivity(intent)
-                        },
-                        onTikTokClick = {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.tiktok.com"))
-                            context.startActivity(intent)
                         }
                     )
 
@@ -640,10 +636,6 @@ private fun StreakChip(streakDays: Int) {
 
 @Composable
 private fun StatsButtonsGrid(
-    streakDays: Int,
-    totalMeals: Int,
-    topFood: String?,
-    avgMood: Float,
     onStreakClick: () -> Unit,
     onMealsClick: () -> Unit,
     onTopFoodClick: () -> Unit,
@@ -653,36 +645,36 @@ private fun StatsButtonsGrid(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // Streak - matches dialog: LocalFireDepartment, StreakOrange
         StatButton(
             modifier = Modifier.weight(1f),
             icon = Icons.Default.LocalFireDepartment,
             iconTint = StreakOrange,
-            label = "Streak",
-            value = "$streakDays",
+            hasCircle = true,
             onClick = onStreakClick
         )
+        // Meals - matches dialog: Restaurant, PastelGreen
         StatButton(
             modifier = Modifier.weight(1f),
             icon = Icons.Default.Restaurant,
             iconTint = PastelGreen,
-            label = "Meals",
-            value = "$totalMeals",
+            hasCircle = true,
             onClick = onMealsClick
         )
+        // Top Food - matches dialog: Favorite, OrangeAccent
         StatButton(
             modifier = Modifier.weight(1f),
             icon = Icons.Default.Favorite,
             iconTint = OrangeAccent,
-            label = "Top Food",
-            value = topFood?.take(8) ?: "-",
+            hasCircle = true,
             onClick = onTopFoodClick
         )
+        // Mood - matches dialog: Mood, GoldPrimary
         StatButton(
             modifier = Modifier.weight(1f),
             icon = Icons.Default.Mood,
             iconTint = GoldPrimary,
-            label = "Mood",
-            value = if (avgMood > 0) String.format("%.1f", avgMood) else "-",
+            hasCircle = true,
             onClick = onMoodClick
         )
     }
@@ -693,41 +685,43 @@ private fun StatButton(
     modifier: Modifier = Modifier,
     icon: ImageVector,
     iconTint: androidx.compose.ui.graphics.Color,
-    label: String,
-    value: String,
+    hasCircle: Boolean,
     onClick: () -> Unit
 ) {
     Surface(
-        modifier = modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        color = BlackSecondary,
-        border = BorderStroke(1.dp, BlackTertiary)
+        modifier = modifier
+            .aspectRatio(1f)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        color = BlackSecondary
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            Icon(
-                icon,
-                contentDescription = label,
-                tint = iconTint,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = value,
-                color = WhiteText,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                maxLines = 1
-            )
-            Text(
-                text = label,
-                color = GrayText,
-                fontSize = 11.sp,
-                textAlign = TextAlign.Center
-            )
+            if (hasCircle) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(iconTint.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        icon,
+                        contentDescription = null,
+                        tint = iconTint,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            } else {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
         }
     }
 }
@@ -789,9 +783,9 @@ private fun StatDialog(
 
 @Composable
 private fun SocialMediaButtons(
+    onTikTokClick: () -> Unit,
     onFacebookClick: () -> Unit,
-    onInstagramClick: () -> Unit,
-    onTikTokClick: () -> Unit
+    onInstagramClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -799,21 +793,21 @@ private fun SocialMediaButtons(
     ) {
         SocialButton(
             modifier = Modifier.weight(1f),
-            name = "Facebook",
-            color = androidx.compose.ui.graphics.Color(0xFF1877F2),
+            icon = Icons.Default.MusicNote,
+            label = "Tiktok",
+            onClick = onTikTokClick
+        )
+        SocialButton(
+            modifier = Modifier.weight(1f),
+            icon = Icons.Default.Facebook,
+            label = "Facebook",
             onClick = onFacebookClick
         )
         SocialButton(
             modifier = Modifier.weight(1f),
-            name = "Instagram",
-            color = androidx.compose.ui.graphics.Color(0xFFE4405F),
+            icon = Icons.Default.CameraAlt,
+            label = "Instagram",
             onClick = onInstagramClick
-        )
-        SocialButton(
-            modifier = Modifier.weight(1f),
-            name = "TikTok",
-            color = WhiteText,
-            onClick = onTikTokClick
         )
     }
 }
@@ -821,36 +815,30 @@ private fun SocialMediaButtons(
 @Composable
 private fun SocialButton(
     modifier: Modifier = Modifier,
-    name: String,
-    color: androidx.compose.ui.graphics.Color,
+    icon: ImageVector,
+    label: String,
     onClick: () -> Unit
 ) {
     Surface(
         modifier = modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        color = BlackSecondary,
-        border = BorderStroke(1.dp, color.copy(alpha = 0.5f))
+        shape = RoundedCornerShape(16.dp),
+        color = BlackSecondary
     ) {
         Column(
-            modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp),
+            modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = when (name) {
-                    "Facebook" -> "f"
-                    "Instagram" -> "IG"
-                    "TikTok" -> "TT"
-                    else -> ""
-                },
-                color = color,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
+            Icon(
+                icon,
+                contentDescription = label,
+                tint = GrayText,
+                modifier = Modifier.size(28.dp)
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = name,
+                text = label,
                 color = GrayText,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 textAlign = TextAlign.Center
             )
         }
