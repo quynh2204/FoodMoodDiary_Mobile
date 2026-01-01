@@ -6,11 +6,25 @@ package com.haphuongquynh.foodmooddiary.domain.model
 
 /**
  * Mood trend data point for line chart
+ * Includes individual entries for calendar day preview
  */
 data class MoodTrendPoint(
     val date: Long,
     val averageMoodScore: Float,
-    val entryCount: Int
+    val entryCount: Int,
+    val entries: List<DayEntry> = emptyList()
+)
+
+/**
+ * Individual entry data for calendar day preview
+ */
+data class DayEntry(
+    val id: String,
+    val foodName: String,
+    val mood: String?,        // emoji
+    val photoUrl: String?,
+    val localPhotoPath: String?,
+    val timestamp: Long
 )
 
 /**

@@ -22,11 +22,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.haphuongquynh.foodmooddiary.domain.model.DayEntry
 import com.haphuongquynh.foodmooddiary.domain.model.MoodTrendPoint
 import com.haphuongquynh.foodmooddiary.ui.theme.*
+import java.io.File
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
@@ -234,15 +239,13 @@ Spacer(Modifier.height(24.dp))
                         Spacer(Modifier.height(12.dp))
 
                         LazyColumn(
-                            modifier = Modifier.heightIn(max = 220.dp),
+                            modifier = Modifier.heightIn(max = 280.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            items(minOf(dayData!!.entryCount, 3)) { index ->
-                                MealPreviewItem(
-                                    title = "Bữa ăn ${index + 1}",
-                                    subtitle = "Nhấn để xem chi tiết",
-                                    moodScore = (5..9).random()
-                                )
+                            val entriesToShow = dayData!!.entries.take(3)
+                            items(entriesToShow.size) { index ->
+                                val entry = entriesToShow[index]
+                                MealPreviewItemWithPhoto(entry = entry)
                             }
                         }
 
@@ -264,6 +267,75 @@ Spacer(Modifier.height(24.dp))
 }
 
 /* ================= PREVIEW ITEM ================= */
+
+@Composable
+fun MealPreviewItemWithPhoto(entry: DayEntry) {
+    val photoPath = entry.localPhotoPath ?: entry.photoUrl
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = BlackTertiary),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Photo or placeholder
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0xFF2C2C2E)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (photoPath != null) {
+                    AsyncImage(
+                        model = if (photoPath.startsWith("/")) File(photoPath) else photoPath,
+                        contentDescription = entry.foodName,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        Icons.Default.Restaurant,
+                        null,
+                        tint = PastelGreen,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+
+            Spacer(Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = entry.foodName,
+                    fontWeight = FontWeight.Bold,
+                    color = WhiteText,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+                        .format(java.util.Date(entry.timestamp)),
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
+
+            // Mood emoji
+            entry.mood?.let { mood ->
+                Text(
+                    text = mood,
+                    fontSize = 24.sp
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun MealPreviewItem(
