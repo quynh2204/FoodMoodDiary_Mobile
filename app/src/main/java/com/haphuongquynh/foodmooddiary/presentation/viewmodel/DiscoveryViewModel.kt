@@ -190,7 +190,7 @@ class DiscoveryViewModel @Inject constructor(
                 if (entries.isEmpty() || allMeals.isEmpty()) {
                     // New user - show popular items
                     _recommendations.value = allMeals.take(6).map {
-                        RecommendedMeal(it, "Món ăn phổ biến", 0.5f)
+                        RecommendedMeal(it, "Phổ biến", 0.5f)
                     }
                     _recommendationReason.value = "Khám phá những món ăn Việt Nam phổ biến"
                     return@launch
@@ -202,7 +202,7 @@ class DiscoveryViewModel @Inject constructor(
             } catch (e: Exception) {
                 // Fallback to popular items
                 _recommendations.value = _vietnamMeals.value.take(6).map {
-                    RecommendedMeal(it, "Món ăn phổ biến", 0.5f)
+                    RecommendedMeal(it, "Phổ biến", 0.5f)
                 }
                 _recommendationReason.value = "Khám phá những món ăn Việt Nam phổ biến"
             }
@@ -239,7 +239,7 @@ class DiscoveryViewModel @Inject constructor(
             }
             if (nameMatch) {
                 score += 0.4f
-                reason = "Tương tự món bạn đã ăn"
+                reason = "Tương tự"
             }
 
             // 2. Time-based recommendation (30% weight)
@@ -247,9 +247,9 @@ class DiscoveryViewModel @Inject constructor(
                 score += 0.3f
                 if (reason.isEmpty()) {
                     reason = when (timeBasedType) {
-                        VietnamMealType.MON_NUOC -> "Phù hợp cho bữa sáng"
-                        VietnamMealType.MON_KHO -> "Phù hợp cho bữa chính"
-                        VietnamMealType.TRANG_MIENG -> "Thích hợp cho buổi chiều"
+                        VietnamMealType.MON_NUOC -> "Bữa sáng"
+                        VietnamMealType.MON_KHO -> "Bữa chính"
+                        VietnamMealType.TRANG_MIENG -> "Buổi chiều"
                     }
                 }
             }
@@ -262,13 +262,13 @@ class DiscoveryViewModel @Inject constructor(
             if (notRecentlyEaten) {
                 score += 0.3f
                 if (reason.isEmpty()) {
-                    reason = "Thử món mới"
+                    reason = "Món mới"
                 }
             }
 
             // Default reason
             if (reason.isEmpty()) {
-                reason = "Gợi ý cho bạn"
+                reason = "Gợi ý"
             }
 
             RecommendedMeal(meal, reason, score)

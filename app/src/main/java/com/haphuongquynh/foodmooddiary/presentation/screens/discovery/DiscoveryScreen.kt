@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -66,6 +67,14 @@ fun DiscoveryScreen(
     val tabs = listOf("Gợi ý cho bạn", "Khám phá", "Đã lưu")
     val context = LocalContext.current
 
+    // Helper to toggle save with toast
+    fun handleSaveClick(meal: VietnamMeal) {
+        val wasSaved = savedMealIds.contains(meal.id)
+        viewModel.toggleSaveVietnamMeal(meal.id)
+        val message = if (wasSaved) "Đã bỏ lưu ${meal.name}" else "Đã lưu ${meal.name}"
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -119,7 +128,7 @@ fun DiscoveryScreen(
                 reasonSummary = recommendationReason,
                 savedMealIds = savedMealIds,
                 onMealClick = { meal -> openYouTube(context, meal.youtubeUrl) },
-                onSaveClick = { meal -> viewModel.toggleSaveVietnamMeal(meal.id) },
+                onSaveClick = { meal -> handleSaveClick(meal) },
                 onRefresh = { viewModel.generateRecommendations() }
             )
             1 -> ExploreTab(
@@ -128,12 +137,12 @@ fun DiscoveryScreen(
                 savedMealIds = savedMealIds,
                 onCategorySelected = { viewModel.setVietnamCategory(it) },
                 onMealClick = { meal -> openYouTube(context, meal.youtubeUrl) },
-                onSaveClick = { meal -> viewModel.toggleSaveVietnamMeal(meal.id) }
+                onSaveClick = { meal -> handleSaveClick(meal) }
             )
             2 -> SavedMealsTab(
                 savedMeals = savedMeals,
                 onMealClick = { meal -> openYouTube(context, meal.youtubeUrl) },
-                onRemoveClick = { meal -> viewModel.toggleSaveVietnamMeal(meal.id) }
+                onRemoveClick = { meal -> handleSaveClick(meal) }
             )
         }
     }

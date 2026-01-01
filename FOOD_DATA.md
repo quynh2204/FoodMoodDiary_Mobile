@@ -51,9 +51,3 @@ Fill in the YouTube URL and Image URL for each dish. Leave blank if you want me 
 
 ---
 
-## Notes
-- You can add/remove dishes if needed
-- For Unsplash images, use format: `https://images.unsplash.com/photo-XXXXX?auto=format&fit=crop&w=800&q=80`
-- For YouTube, just paste the video URL from your browser
-
-When you're done, let me know and I'll update the code!
