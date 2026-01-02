@@ -32,7 +32,6 @@
 - 📸 **Visual-First**: Chụp hoặc chọn ảnh món ăn đẹp mắt
 - 🎨 **Smart Color Analysis**: Tự động phân tích màu sắc để gợi ý tâm trạng (Palette API)
 - ☁️ **Cloud Sync**: Đồng bộ dữ liệu đa thiết bị qua Firebase
-- 🗺️ **Location Aware**: Tự động ghi nhận vị trí GPS
 - 📊 **AI Insights**: Phân tích xu hướng ăn uống theo cảm xúc
 - 🌍 **Discovery**: Khám phá món ăn mới từ API bên ngoài
 
@@ -56,7 +55,6 @@
 - **Chụp ảnh** từ camera hoặc **chọn từ thư viện**
 - **Phân tích màu sắc** tự động bằng Palette API
 - **Gợi ý tâm trạng** dựa trên màu sắc món ăn
-- **Tự động lấy vị trí GPS** và địa chỉ
 - Thông tin đầy đủ: Tên món, Cảm xúc (emoji), Loại bữa, Rating, Notes
 
 ### 📊 Thống kê & Báo cáo
@@ -73,25 +71,13 @@
   - "Khung giờ nào bạn vui nhất?"
   - Suggestions dựa trên data
 
-### 🗺️ Maps & Location
-- Hiển thị vị trí tất cả entries trên bản đồ
-- Heat map: Mật độ món ăn theo khu vực
-- Marker clustering khi zoom out
-- Click marker để xem entry detail
-
 ### 🌍 Discovery (External API)
-- "Hôm nay ăn gì?" - Random meal từ TheMealDB
-- Search món ăn mới
-- Save meal vào favorites
+- "Hôm nay ăn gì?" 
+- Save meal 
 
-### 🔔 Notifications
-- **Daily Reminders**: Nhắc ghi nhật ký vào giờ ăn (12:30 PM, 7:00 PM)
-- **Weekly Insights**: Insights tự động mỗi Chủ nhật
-- **Streak Alerts**: Nhắc duy trì streak
 
 ### 🎨 Advanced Features
-- **Shake to Undo**: Lắc điện thoại để hoàn tác (Accelerometer)
-- **Auto Dark Mode**: Tự động chuyển theme theo ánh sáng môi trường (Light Sensor)
+
 - **Smooth Animations**: Property Animation, Lottie animations
 - **Content Provider**: Chia sẻ data sang app khác
 - **Offline-First**: Hoạt động tốt cả khi không có mạng
@@ -100,7 +86,7 @@
 
 ## 🚀 TECHNICAL STACK
 
-**Kotlin** • **Jetpack Compose** • **Material3** • **Hilt** • **Room** • **Firebase** • **Google Maps** • **Coroutines & Flow**
+**Kotlin** • **Jetpack Compose** • **Material3** • **Hilt** • **Room** • **Firebase** • **Coroutines & Flow**
 
 > 📖 Xem chi tiết trong [ARCHITECTURE.md](ARCHITECTURE.md)
 
@@ -120,8 +106,6 @@
 ### 2. Entry Form
 ![Add Entry - Form](docs/screenshots/add_entry_form.png)
 
-### 3. Entry Detail with Map
-![Entry Detail](docs/screenshots/entry_detail.png)
 
 ### 4. Home Views (Grid/List/Calendar)
 ![Home Grid](docs/screenshots/home_grid.png)
@@ -145,7 +129,6 @@
 - Java 21 LTS
 - Android SDK 26-36
 - Firebase account
-- Google Cloud account (for Maps API)
 
 ### Quick Start
 
@@ -160,13 +143,6 @@
    - Download `google-services.json` và đặt vào `app/`
    - Enable Authentication, Firestore, Storage, Messaging
 
-3. **Setup Google Maps**
-   - Enable Maps SDK tại [Google Cloud Console](https://console.cloud.google.com)
-   - Create API key
-   - Add to `local.properties`:
-     ```properties
-     GOOGLE_MAPS_API_KEY=YOUR_KEY_HERE
-     ```
 
 4. **Sync & Build**
    ```bash
@@ -177,27 +153,17 @@
    - Connect device or start emulator
    - Click Run ▶️ in Android Studio
 
-### Chi tiết hơn
-Xem [QUICK_START.md](./QUICK_START.md) để biết hướng dẫn chi tiết từng bước.
-
 ---
 
 ## 📚 TÀI LIỆU
 
-### Documentation Files
-- **[RULE.md](./RULE.md)** - Technical stack, architecture, coding conventions
-- **[TOPIC_MAPPING.md](./TOPIC_MAPPING.md)** - Chi tiết áp dụng 10 Android topics
-- **[IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md)** - Lộ trình 4 tuần
-- **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)** - Tổng quan project
-- **[QUICK_START.md](./QUICK_START.md)** - Hướng dẫn setup nhanh
 
 ### Android Topics Covered
-1. ✅ Google Maps API - Location, markers, heat map
+
 2. ✅ Threading & Background Tasks - Coroutines, WorkManager, Services
 3. ✅ Multimedia - CameraX, Palette API, Image processing
 4. ✅ Content Provider - Share data to other apps
 5. ✅ Jetpack Compose - Modern declarative UI
-6. ✅ Notifications - Local reminders + FCM push
 7. ✅ RESTful API - Retrofit with external API
 8. ✅ Performance Optimization - Profiler, LeakCanary, indexes
 9. ✅ Animation - Property, Compose, Lottie animations
@@ -234,10 +200,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [Android Jetpack](https://developer.android.com/jetpack) - Modern Android development
 - [Firebase](https://firebase.google.com) - Backend as a Service
-- [TheMealDB](https://www.themealdb.com) - Free meal database API
 - [MPAndroidChart](https://github.com/PhilJay/MPAndroidChart) - Chart library
 - [Lottie](https://airbnb.design/lottie/) - Animation library
-- [Google Maps Platform](https://developers.google.com/maps) - Maps & location services
 
 ---
 
