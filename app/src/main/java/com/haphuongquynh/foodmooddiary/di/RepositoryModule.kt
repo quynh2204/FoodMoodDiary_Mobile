@@ -74,4 +74,14 @@ object RepositoryModule {
             firebaseAuth, firestore
         )
     }
+
+    @Provides
+    @Singleton
+    fun provideVietnameseMealRepository(
+        firestore: FirebaseFirestore
+    ): com.haphuongquynh.foodmooddiary.domain.repository.VietnameseMealRepository {
+        return com.haphuongquynh.foodmooddiary.data.repository.VietnameseMealRepositoryImpl(
+            firestore
+        )
+    }
 }

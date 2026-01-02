@@ -39,9 +39,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.haphuongquynh.foodmooddiary.domain.model.VietnameseMeal
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.DiscoveryViewModel
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.DiscoveryViewModel.RecommendedMeal
-import com.haphuongquynh.foodmooddiary.presentation.viewmodel.DiscoveryViewModel.VietnamMeal
 import com.haphuongquynh.foodmooddiary.ui.theme.*
 
 /**
@@ -68,7 +68,7 @@ fun DiscoveryScreen(
     val context = LocalContext.current
 
     // Helper to toggle save with toast
-    fun handleSaveClick(meal: VietnamMeal) {
+    fun handleSaveClick(meal: VietnameseMeal) {
         val wasSaved = savedMealIds.contains(meal.id)
         viewModel.toggleSaveVietnamMeal(meal.id)
         val message = if (wasSaved) "Đã bỏ lưu ${meal.name}" else "Đã lưu ${meal.name}"
@@ -156,8 +156,8 @@ fun RecommendationsTab(
     recommendations: List<RecommendedMeal>,
     reasonSummary: String,
     savedMealIds: Set<String>,
-    onMealClick: (VietnamMeal) -> Unit,
-    onSaveClick: (VietnamMeal) -> Unit,
+    onMealClick: (VietnameseMeal) -> Unit,
+    onSaveClick: (VietnameseMeal) -> Unit,
     onRefresh: () -> Unit
 ) {
     Column(
@@ -227,12 +227,12 @@ fun RecommendationsTab(
  */
 @Composable
 fun ExploreTab(
-    meals: List<VietnamMeal>,
+    meals: List<VietnameseMeal>,
     selectedCategory: String,
     savedMealIds: Set<String>,
     onCategorySelected: (String) -> Unit,
-    onMealClick: (VietnamMeal) -> Unit,
-    onSaveClick: (VietnamMeal) -> Unit
+    onMealClick: (VietnameseMeal) -> Unit,
+    onSaveClick: (VietnameseMeal) -> Unit
 ) {
     val categories = listOf("Tất cả", "Món nước", "Món khô", "Tráng miệng")
 
@@ -304,9 +304,9 @@ fun ExploreTab(
  */
 @Composable
 fun SavedMealsTab(
-    savedMeals: List<VietnamMeal>,
-    onMealClick: (VietnamMeal) -> Unit,
-    onRemoveClick: (VietnamMeal) -> Unit
+    savedMeals: List<VietnameseMeal>,
+    onMealClick: (VietnameseMeal) -> Unit,
+    onRemoveClick: (VietnameseMeal) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -357,7 +357,7 @@ fun SavedMealsTab(
  */
 @Composable
 fun FoodCard(
-    meal: VietnamMeal,
+    meal: VietnameseMeal,
     isSaved: Boolean = false,
     onClick: () -> Unit,
     onSaveClick: () -> Unit = {}
@@ -374,7 +374,7 @@ fun FoodCard(
             // Food Image
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(meal.thumbUrl)
+                    .data(meal.imageUrl)
                     .crossfade(true)
                     .build(),
                 contentDescription = meal.name,
@@ -470,7 +470,7 @@ fun RecommendedFoodCard(
             // Food Image
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(meal.thumbUrl)
+                    .data(meal.imageUrl)
                     .crossfade(true)
                     .build(),
                 contentDescription = meal.name,
@@ -561,7 +561,7 @@ fun RecommendedFoodCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = meal.type.displayName,
+                    text = meal.category,
                     fontSize = 11.sp,
                     color = PastelGreen
                 )
