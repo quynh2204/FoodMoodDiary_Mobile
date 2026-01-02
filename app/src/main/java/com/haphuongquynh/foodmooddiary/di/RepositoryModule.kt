@@ -54,18 +54,6 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideMealRepository(
-        mealApiService: com.haphuongquynh.foodmooddiary.data.remote.MealApiService,
-        favoriteMealDao: com.haphuongquynh.foodmooddiary.data.local.dao.FavoriteMealDao,
-        firebaseAuth: FirebaseAuth
-    ): com.haphuongquynh.foodmooddiary.domain.repository.MealRepository {
-        return com.haphuongquynh.foodmooddiary.data.repository.MealRepositoryImpl(
-            mealApiService, favoriteMealDao, firebaseAuth
-        )
-    }
-
-    @Provides
-    @Singleton
     fun provideSavedVietnamMealRepository(
         firebaseAuth: FirebaseAuth,
         firestore: FirebaseFirestore
