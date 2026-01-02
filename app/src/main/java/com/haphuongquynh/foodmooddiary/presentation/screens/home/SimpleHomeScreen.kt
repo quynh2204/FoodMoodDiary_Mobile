@@ -65,8 +65,7 @@ fun SimpleHomeScreen(
     var quickSelectedMood by remember { mutableStateOf<String?>(null) }
     val entries by viewModel.entries.collectAsState()
     
-    // AI States
-    val aiInsightState by aiViewModel.aiInsight.collectAsState()
+    // AI States (for color analysis feature)
     val colorAnalysisState by aiViewModel.colorAnalysis.collectAsState()
     
     // Trigger AI analysis on screen load and when entries change
@@ -116,33 +115,14 @@ fun SimpleHomeScreen(
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        // 4. AI Quick Insight (powered by Gemini)
-        AIQuickInsightCard(
-            insightState = aiInsightState,
-            onRetry = { aiViewModel.generateAIInsight() },
-            onClick = { navController.navigate(Screen.Statistics.route) }
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // 5. Mood Statistics Widget (restored)
+        // 4. Mood Statistics Widget (restored)
         MoodStatisticsCard(
             entries = entries
         )
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        // 6. AI Color Palette - Coming Soon
-        ComingSoonCard(
-            title = "AI Color Palette",
-            subtitle = "Phân tích màu sắc món ăn",
-            emoji = "🎨",
-            accentColor = AccentCyan
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // 7. Recent Entries Gallery
+        // 5. Recent Entries Gallery
         RecentEntriesGallery(
             entries = entries,
             onEntryClick = { entry ->
@@ -1059,16 +1039,25 @@ private fun AIQuickInsightCard(
 
 @Composable
 private fun MoodStatisticsCard(entries: List<FoodEntry>) {
+    // Debug log
+    android.util.Log.d("MoodStats", "Total entries received: ${entries.size}")
+    entries.take(5).forEach { entry ->
+        android.util.Log.d("MoodStats", "Entry: id=${entry.id}, mood=${entry.mood}, moodColor=${entry.moodColor}")
+    }
+    
     // Get mood distribution from recent entries
     val moodCounts = entries
         .sortedByDescending { it.timestamp }
         .take(50)
         .mapNotNull { entry ->
-            MoodType.fromEmoji(entry.mood ?: "") ?: MoodType.fromColorInt(entry.moodColor)
+            val result = MoodType.fromEmoji(entry.mood ?: "") ?: MoodType.fromColorInt(entry.moodColor)
+            android.util.Log.d("MoodStats", "Entry ${entry.id}: mood=${entry.mood}, color=${entry.moodColor}, result=$result")
+            result
         }
         .groupingBy { it }
         .eachCount()
     
+    android.util.Log.d("MoodStats", "MoodCounts: $moodCounts")
     val totalMoods = moodCounts.values.sum()
     
     Surface(
@@ -1672,16 +1661,17 @@ private fun RecentEntriesGallery(
     entries: List<FoodEntry>,
     onEntryClick: (FoodEntry) -> Unit
 ) {
+    var isGridView by remember { mutableStateOf(true) }
     val recentEntries = entries
         .sortedByDescending { it.timestamp }
-        .take(6)
+        .take(12) // Show more entries in list view
     
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
     ) {
-        // Header
+        // Header with view toggle
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -1699,11 +1689,53 @@ private fun RecentEntriesGallery(
                     fontWeight = FontWeight.Bold
                 )
             }
-            Text(
-                text = "${entries.size} total",
-                color = GrayText,
-                fontSize = 12.sp
-            )
+            
+            // View toggle buttons
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "${entries.size} total",
+                    color = GrayText,
+                    fontSize = 12.sp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                // Grid view button
+                Surface(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clickable { isGridView = true },
+                    shape = RoundedCornerShape(8.dp),
+                    color = if (isGridView) PastelGreen.copy(alpha = 0.3f) else Color.Transparent
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            Icons.Default.GridView,
+                            contentDescription = "Grid View",
+                            tint = if (isGridView) PastelGreen else GrayText,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+                // List view button
+                Surface(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clickable { isGridView = false },
+                    shape = RoundedCornerShape(8.dp),
+                    color = if (!isGridView) PastelGreen.copy(alpha = 0.3f) else Color.Transparent
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            Icons.Default.ViewList,
+                            contentDescription = "List View",
+                            tint = if (!isGridView) PastelGreen else GrayText,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
         }
         
         Spacer(modifier = Modifier.height(12.dp))
@@ -1735,10 +1767,11 @@ private fun RecentEntriesGallery(
                     )
                 }
             }
-        } else {
-            // Grid of recent entries (2 columns, 3 rows max)
+        } else if (isGridView) {
+            // Grid view (2 columns)
+            val displayEntries = recentEntries.take(6)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                recentEntries.chunked(2).forEach { rowEntries ->
+                displayEntries.chunked(2).forEach { rowEntries ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -1757,6 +1790,132 @@ private fun RecentEntriesGallery(
                     }
                 }
             }
+        } else {
+            // List view
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                recentEntries.forEach { entry ->
+                    RecentEntryListItem(
+                        entry = entry,
+                        onClick = { onEntryClick(entry) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecentEntryListItem(
+    entry: FoodEntry,
+    onClick: () -> Unit
+) {
+    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
+    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        color = BlackSecondary
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Thumbnail
+            Surface(
+                modifier = Modifier.size(60.dp),
+                shape = RoundedCornerShape(8.dp),
+                color = BlackTertiary
+            ) {
+                if (!entry.imageUrl.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = entry.imageUrl,
+                        contentDescription = entry.foodName,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("🍽️", fontSize = 24.sp)
+                    }
+                }
+            }
+            
+            // Info
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = entry.foodName ?: "Untitled",
+                        color = WhiteText,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    entry.mood?.let { mood ->
+                        if (mood.isNotEmpty()) {
+                            Text(mood, fontSize = 16.sp)
+                        }
+                    }
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = dateFormat.format(Date(entry.timestamp)),
+                        color = GrayText,
+                        fontSize = 12.sp
+                    )
+                    Text("•", color = GrayText, fontSize = 12.sp)
+                    Text(
+                        text = timeFormat.format(Date(entry.timestamp)),
+                        color = GrayText,
+                        fontSize = 12.sp
+                    )
+                }
+                if (entry.notes.isNotEmpty()) {
+                    Text(
+                        text = entry.notes,
+                        color = GrayText,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            
+            // Mood color indicator
+            entry.moodColor?.takeIf { it != 0 }?.let { colorInt ->
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(Color(colorInt))
+                )
+            }
+            
+            // Arrow
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = GrayText,
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }

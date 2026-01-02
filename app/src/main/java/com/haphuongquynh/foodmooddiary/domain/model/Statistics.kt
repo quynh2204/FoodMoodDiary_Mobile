@@ -91,3 +91,25 @@ enum class InsightType {
     STREAK,            // "5 days logging streak!"
     RECOMMENDATION     // "Try adding more vegetables"
 }
+
+/**
+ * Local mood analysis result (used by HomeAIViewModel)
+ */
+data class MoodAnalysis(
+    val dominantMood: MoodType?,
+    val moodCounts: Map<MoodType, Int>,
+    val totalEntries: Int,
+    val happyPercentage: Int,
+    val insight: String,
+    val suggestion: String
+)
+
+/**
+ * Local color analysis result (used by HomeAIViewModel)
+ */
+data class LocalColorAnalysis(
+    val dominantMood: MoodType?,
+    val colorDistribution: Map<MoodType, Int>,
+    val insight: String,
+    val suggestion: String
+)

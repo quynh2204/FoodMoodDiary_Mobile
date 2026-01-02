@@ -1,5 +1,10 @@
 package com.haphuongquynh.foodmooddiary.presentation.screens.main
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -25,6 +31,7 @@ import com.haphuongquynh.foodmooddiary.presentation.navigation.Screen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthState
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
 import com.haphuongquynh.foodmooddiary.presentation.screens.camera.CameraScreen
+import java.io.File
 
 sealed class BottomNavItem(
     val route: String,
@@ -44,10 +51,36 @@ fun MainScreen(
     navController: NavController,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
+    // Start with home tab selected
     var selectedTab by remember { mutableStateOf(BottomNavItem.Home.route) }
     val authState by viewModel.authState.collectAsState()
-    var showCamera by remember { mutableStateOf(false) }
     val currentUser by viewModel.currentUser.collectAsState()
+    val context = LocalContext.current
+
+    // Gallery launcher - xử lý ngay tại MainScreen
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            try {
+                val inputStream = context.contentResolver.openInputStream(it)
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+                inputStream?.close()
+                
+                // Lưu ảnh vào cache
+                val tempFile = File(context.cacheDir, "gallery_${System.currentTimeMillis()}.jpg")
+                tempFile.outputStream().use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                }
+                
+                // Navigate với photoPath
+                val encodedPath = java.net.URLEncoder.encode(tempFile.absolutePath, "UTF-8")
+                navController.navigate("${Screen.AddEntry.route}?photoPath=${encodedPath}")
+            } catch (e: Exception) {
+                android.util.Log.e("MainScreen", "Gallery error", e)
+            }
+        }
+    }
 
     // Handle logout
     LaunchedEffect(authState) {
@@ -102,7 +135,6 @@ fun MainScreen(
                             FloatingActionButton(
                                 onClick = {
                                     selectedTab = item.route
-                                    showCamera = true
                                 },
                                 containerColor = PastelGreen,
                                 contentColor = BlackPrimary,
@@ -137,7 +169,6 @@ fun MainScreen(
                             selected = selectedTab == item.route,
                             onClick = {
                                 selectedTab = item.route
-                                showCamera = false
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = PastelGreen,
@@ -159,15 +190,19 @@ fun MainScreen(
                 .background(DarkGray)
         ) {
             when {
-                showCamera && selectedTab == BottomNavItem.Camera.route -> {
+                // Khi chọn tab Camera, luôn hiển thị camera (bỏ điều kiện showCamera)
+                selectedTab == BottomNavItem.Camera.route -> {
                     CameraScreen(
                         onPhotoCaptured = { file, bitmap ->
-                            showCamera = false
-                            navController.navigate(Screen.AddEntry.route)
+                            // Truyền đường dẫn ảnh tới AddEntry (URL encoded)
+                            val encodedPath = java.net.URLEncoder.encode(file.absolutePath, "UTF-8")
+                            navController.navigate("${Screen.AddEntry.route}?photoPath=${encodedPath}")
                         },
                         onDismiss = {
-                            showCamera = false
                             selectedTab = BottomNavItem.Home.route
+                        },
+                        onGalleryClick = {
+                            galleryLauncher.launch("image/*")
                         }
                     )
                 }

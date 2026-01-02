@@ -39,6 +39,7 @@ import java.io.File
 fun AddEntryScreen(
     navController: NavController,
     preselectedMood: String? = null,
+    initialPhotoPath: String? = null,
     viewModel: FoodEntryViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -47,7 +48,6 @@ fun AddEntryScreen(
     var foodName by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     var showCamera by remember { mutableStateOf(false) }
-    var showPhotoSourceDialog by remember { mutableStateOf(false) }
     
     // Map preselected mood from text to emoji
     val initialMood = when (preselectedMood?.lowercase()) {
@@ -60,7 +60,6 @@ fun AddEntryScreen(
     }
     var selectedMood by remember { mutableStateOf(initialMood) }
     var selectedMealType by remember { mutableStateOf("Dinner") }
-    var rating by remember { mutableStateOf(0) }
     var selectedColor by remember { mutableStateOf(android.graphics.Color.parseColor("#FFA726")) }
     
     val photoData by viewModel.currentPhoto.collectAsState()
@@ -90,10 +89,27 @@ fun AddEntryScreen(
         }
     }
 
+    // Load ảnh từ photoPath nếu có (từ MainScreen camera)
+    LaunchedEffect(initialPhotoPath) {
+        if (!initialPhotoPath.isNullOrEmpty() && photoData == null) {
+            try {
+                val decodedPath = java.net.URLDecoder.decode(initialPhotoPath, "UTF-8")
+                val file = File(decodedPath)
+                if (file.exists()) {
+                    val bitmap = BitmapFactory.decodeFile(decodedPath)
+                    viewModel.processPhoto(file, bitmap)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("AddEntry", "Error loading photo from path", e)
+            }
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.fetchCurrentLocation()
-        if (photoData == null && currentStep == 0) {
-            showPhotoSourceDialog = true
+        // Chỉ mở camera nếu chưa có ảnh VÀ không có photoPath từ MainScreen
+        if (photoData == null && currentStep == 0 && initialPhotoPath.isNullOrEmpty()) {
+            showCamera = true
         }
     }
 
@@ -115,7 +131,16 @@ fun AddEntryScreen(
                 showCamera = false
                 currentStep = 0
             },
-            onDismiss = { showCamera = false }
+            onDismiss = { 
+                showCamera = false
+                if (photoData == null) {
+                    navController.navigateUp()
+                }
+            },
+            onGalleryClick = {
+                showCamera = false
+                galleryLauncher.launch("image/*")
+            }
         )
     } else {
         Surface(
@@ -125,7 +150,7 @@ fun AddEntryScreen(
             when (currentStep) {
                 0 -> PhotoCaptionStep(
                     photoData = photoData,
-                    onChangePhoto = { showPhotoSourceDialog = true },
+                    onChangePhoto = { showCamera = true },
                     onContinue = { 
                         if (photoData != null) currentStep = 1
                     },
@@ -142,10 +167,8 @@ fun AddEntryScreen(
                     onMoodSelect = { selectedMood = it },
                     selectedMealType = selectedMealType,
                     onMealTypeSelect = { selectedMealType = it },
-                    rating = rating,
-                    onRatingChange = { rating = it },
                     location = location,
-                    onChangePhoto = { showPhotoSourceDialog = true },
+                    onChangePhoto = { showCamera = true },
                     onSave = {
                         val combinedNotes = listOfNotNull(
                             photoCaption.takeIf { it.isNotBlank() },
@@ -157,65 +180,12 @@ fun AddEntryScreen(
                             moodColor = selectedColor,
                             mood = selectedMood,
                             notes = combinedNotes,
-                            mealType = selectedMealType,
-                            rating = rating
+                            mealType = selectedMealType
                         )
                     },
                     onCancel = { navController.navigateUp() },
                     onBack = { currentStep = 0 },
                     isLoading = entryState is EntryState.Loading
-                )
-            }
-
-            if (showPhotoSourceDialog) {
-                AlertDialog(
-                    onDismissRequest = { 
-                        showPhotoSourceDialog = false
-                        if (photoData == null && currentStep == 0) {
-                            navController.navigateUp()
-                        }
-                    },
-                    containerColor = BlackSecondary,
-                    title = { Text("Choose Photo", color = WhiteText, fontWeight = FontWeight.Bold) },
-                    text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(
-                                onClick = {
-                                    showPhotoSourceDialog = false
-                                    showCamera = true
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(containerColor = PastelGreen)
-                            ) {
-                                Icon(Icons.Default.CameraAlt, null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Take Photo", color = BlackPrimary)
-                            }
-                            Button(
-                                onClick = {
-                                    showPhotoSourceDialog = false
-                                    galleryLauncher.launch("image/*")
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(containerColor = BlackTertiary)
-                            ) {
-                                Icon(Icons.Default.PhotoLibrary, null, tint = WhiteText)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Choose from Gallery", color = WhiteText)
-                            }
-                        }
-                    },
-                    confirmButton = {},
-                    dismissButton = {
-                        TextButton(onClick = { 
-                            showPhotoSourceDialog = false
-                            if (photoData == null && currentStep == 0) {
-                                navController.navigateUp()
-                            }
-                        }) {
-                            Text("Cancel", color = PastelGreen)
-                        }
-                    }
                 )
             }
         }
@@ -306,8 +276,6 @@ private fun EntryFormStep(
     onMoodSelect: (String) -> Unit,
     selectedMealType: String,
     onMealTypeSelect: (String) -> Unit,
-    rating: Int,
-    onRatingChange: (Int) -> Unit,
     location: com.haphuongquynh.foodmooddiary.domain.model.Location?,
     onChangePhoto: () -> Unit,
     onSave: () -> Unit,
@@ -512,43 +480,6 @@ private fun EntryFormStep(
                     )
                 }
                 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Rating", color = WhiteText, fontSize = 14.sp)
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = PastelGreenVeryLight
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth().padding(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Row(horizontalArrangement = Arrangement.Center) {
-                                repeat(5) { index ->
-                                    Icon(
-                                        if (index < rating) Icons.Default.Star else Icons.Default.StarBorder,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(24.dp).clickable { onRatingChange(index + 1) },
-                                        tint = PastelGreen
-                                    )
-                                }
-                            }
-                            
-                            Button(
-                                onClick = {},
-                                colors = ButtonDefaults.buttonColors(containerColor = PastelGreenDark),
-                                shape = RoundedCornerShape(8.dp),
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                            ) {
-                                Text("Gợi ý AI 🧠", color = WhiteText, fontSize = 10.sp)
-                            }
-                            
-                            if (rating > 0) {
-                                Text("Bánh màu đỏ → Happy", color = DarkText, fontSize = 10.sp)
-                            }
-                        }
-                    }
-                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))

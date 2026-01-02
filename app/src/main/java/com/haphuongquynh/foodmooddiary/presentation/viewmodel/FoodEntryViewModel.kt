@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.haphuongquynh.foodmooddiary.domain.model.FoodEntry
 import com.haphuongquynh.foodmooddiary.domain.model.Location
+import com.haphuongquynh.foodmooddiary.domain.repository.FoodEntryRepository
 import com.haphuongquynh.foodmooddiary.domain.usecase.auth.GetCurrentUserUseCase
 import com.haphuongquynh.foodmooddiary.domain.usecase.entry.AddEntryUseCase
 import com.haphuongquynh.foodmooddiary.domain.usecase.entry.DeleteEntryUseCase
@@ -31,10 +32,52 @@ class FoodEntryViewModel @Inject constructor(
     private val updateEntryUseCase: UpdateEntryUseCase,
     private val deleteEntryUseCase: DeleteEntryUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val foodEntryRepository: FoodEntryRepository,
     private val colorAnalyzer: ColorAnalyzer,
     private val locationManager: LocationManager,
     private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
+
+    init {
+        // Sync entries from Firestore when ViewModel is created
+        syncEntriesFromCloud()
+        // Upload missing photos for entries that have localPhotoPath but no photoUrl
+        uploadMissingPhotos()
+    }
+
+    /**
+     * Sync entries from Firestore
+     */
+    fun syncEntriesFromCloud() {
+        viewModelScope.launch {
+            try {
+                android.util.Log.d("FoodEntryVM", "Starting sync from cloud...")
+                val result = foodEntryRepository.syncEntries()
+                if (result is Resource.Success) {
+                    android.util.Log.d("FoodEntryVM", "Sync completed successfully")
+                } else if (result is Resource.Error) {
+                    android.util.Log.e("FoodEntryVM", "Sync failed: ${result.message}")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("FoodEntryVM", "Sync error: ${e.message}", e)
+            }
+        }
+    }
+    
+    /**
+     * Upload photos that exist locally but haven't been uploaded to Firebase Storage
+     */
+    fun uploadMissingPhotos() {
+        viewModelScope.launch {
+            try {
+                android.util.Log.d("FoodEntryVM", "Starting upload of missing photos...")
+                val uploadedCount = foodEntryRepository.uploadMissingPhotos()
+                android.util.Log.d("FoodEntryVM", "Uploaded $uploadedCount missing photos")
+            } catch (e: Exception) {
+                android.util.Log.e("FoodEntryVM", "Upload missing photos error: ${e.message}", e)
+            }
+        }
+    }
 
     // All entries list
     val entries: StateFlow<List<FoodEntry>> = getEntriesUseCase()

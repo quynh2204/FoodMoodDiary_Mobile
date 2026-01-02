@@ -74,44 +74,44 @@ enum class MoodType(
                 it.labelVi.equals(label, ignoreCase = true)
             }
 
-        /** Tìm Mood từ màu */
-        fun fromColorInt(colorInt: Int): MoodType? =
-            entries.find { it.colorInt == colorInt }
+        /** Tìm Mood từ màu - với fallback */
+        fun fromColorInt(colorInt: Int): MoodType? {
+            // Exact match first
+            entries.find { it.colorInt == colorInt }?.let { return it }
+            
+            // Fallback: if colorInt is non-zero, try to guess based on color
+            if (colorInt != 0) {
+                // Extract RGB components (handle signed int)
+                val r = (colorInt shr 16) and 0xFF
+                val g = (colorInt shr 8) and 0xFF
+                val b = colorInt and 0xFF
+                
+                // Log for debugging
+                android.util.Log.d("MoodType", "Analyzing color: R=$r, G=$g, B=$b (raw=$colorInt)")
+                
+                // Improved heuristic based on color characteristics
+                return when {
+                    // Yellow/Orange tones (HAPPY) - high red, medium-high green, low blue
+                    r > 200 && g > 100 && b < 100 -> HAPPY
+                    // Pure yellow
+                    r > 220 && g > 200 && b < 80 -> HAPPY
+                    // Red tones (ANGRY)
+                    r > 200 && g < 120 && b < 120 -> ANGRY
+                    // Blue tones (SAD)
+                    b > 150 && r < 150 && g < 180 -> SAD
+                    // Gray tones (TIRED)
+                    r in 100..180 && g in 100..180 && b in 100..180 -> TIRED
+                    // Cyan/Green tones (ENERGETIC)
+                    g > 180 && b > 150 && r < 150 -> ENERGETIC
+                    // Orange (could be HAPPY or warm feeling)
+                    r > 200 && g in 100..200 && b < 100 -> HAPPY
+                    else -> {
+                        android.util.Log.d("MoodType", "No match found, defaulting to HAPPY")
+                        HAPPY // Default fallback
+                    }
+                }
+            }
+            return null
+        }
     }
 }
-
-/**
- * Mood Analysis Result based on entries
- */
-data class MoodAnalysis(
-    val dominantMood: MoodType?,
-    val moodCounts: Map<MoodType, Int>,
-    val totalEntries: Int,
-    val happyPercentage: Int,
-    val insight: String,
-    val suggestion: String
-)
-
-/**
- * Nutrition Summary without API
- */
-data class LocalNutritionSummary(
-    val totalCalories: Int,
-    val avgCaloriesPerMeal: Int,
-    val totalProtein: Int,
-    val totalCarbs: Int,
-    val totalFat: Int,
-    val mealCount: Int,
-    val rating: String,
-    val insight: String
-)
-
-/**
- * Color Palette Analysis based on mood colors
- */
-data class LocalColorAnalysis(
-    val dominantMood: MoodType?,
-    val colorDistribution: Map<MoodType, Int>,
-    val insight: String,
-    val suggestion: String
-)
