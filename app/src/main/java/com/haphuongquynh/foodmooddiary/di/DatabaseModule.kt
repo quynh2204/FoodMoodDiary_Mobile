@@ -55,6 +55,12 @@ object DatabaseModule {
     fun provideFoodEntryDao(database: FoodMoodDatabase): com.haphuongquynh.foodmooddiary.data.local.dao.FoodEntryDao {
         return database.foodEntryDao()
     }
+
+    @Provides
+    @Singleton
+    fun provideFavoriteMealDao(database: FoodMoodDatabase): com.haphuongquynh.foodmooddiary.data.local.dao.FavoriteMealDao {
+        return database.favoriteMealDao()
+    }
     
     @Provides
     @Singleton
