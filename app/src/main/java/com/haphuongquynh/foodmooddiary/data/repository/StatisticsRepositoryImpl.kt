@@ -270,7 +270,7 @@ class StatisticsRepositoryImpl @Inject constructor(
         if (entries.isEmpty()) {
             emit(0f)
         } else {
-            emit(calculateAverageMoodScore(entries.map { it.moodColor }))
+            emit(calculateAverageMoodScore(entries.map { it.mood }))
         }
     }
 

@@ -49,9 +49,6 @@ interface FoodEntryDao {
     @Query("SELECT * FROM food_entries WHERE userId = :userId AND isSynced = 0")
     suspend fun getUnsyncedEntries(userId: String): List<FoodEntryEntity>
     
-    @Query("SELECT * FROM food_entries WHERE userId = :userId ORDER BY timestamp DESC")
-    suspend fun getAllEntriesOnce(userId: String): List<FoodEntryEntity>
-    
     @Query("UPDATE food_entries SET isSynced = 1 WHERE id = :entryId")
     suspend fun markAsSynced(entryId: String)
     
