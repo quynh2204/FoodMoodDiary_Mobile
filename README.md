@@ -106,8 +106,8 @@ Follow these instructions to get the project up and running on your local machin
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/yourusername/FoodMoodDiary.git
-   cd FoodMoodDiary
+   git clone https://github.com/quynh2204/FoodMoodDiary_Mobile.git
+   cd FoodMoodDiary_Mobile
    ```
 
 2. **Setup Firebase:**
