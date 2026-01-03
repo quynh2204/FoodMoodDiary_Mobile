@@ -58,6 +58,7 @@ private val AccentCyan = Color(0xFF00BCD4)
 @Composable
 fun SimpleHomeScreen(
     navController: NavController,
+    onNavigateToTab: (String) -> Unit = {},
     viewModel: FoodEntryViewModel = hiltViewModel(),
     aiViewModel: HomeAIViewModel = hiltViewModel()
 ) {
@@ -93,7 +94,7 @@ fun SimpleHomeScreen(
         TodaySummaryCard(
             mealsCount = todayEntries.size,
             dominantMood = dominantMood,
-            onClick = { navController.navigate(Screen.Statistics.route) }
+            onClick = { onNavigateToTab("statistics_tab") }
         )
         
         Spacer(modifier = Modifier.height(16.dp))

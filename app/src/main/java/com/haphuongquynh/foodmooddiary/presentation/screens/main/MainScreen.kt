@@ -208,7 +208,8 @@ fun MainScreen(
                 }
                 selectedTab == BottomNavItem.Home.route -> {
                     com.haphuongquynh.foodmooddiary.presentation.screens.home.SimpleHomeScreen(
-                        navController = navController
+                        navController = navController,
+                        onNavigateToTab = { tabRoute -> selectedTab = tabRoute }
                     )
                 }
                 selectedTab == BottomNavItem.Statistics.route -> {
