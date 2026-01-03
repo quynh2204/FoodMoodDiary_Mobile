@@ -11,7 +11,7 @@
     }
   ],
 
-  // Android SDK path
+  // Android A path
   "android.sdkPath": "D:\\SDK",
 
   // Android Emulator extension path

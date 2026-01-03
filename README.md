@@ -16,6 +16,7 @@
 - [Technical Stack](#-technical-stack)
 - [Kiến trúc](#-kiến-trúc)
 - [Screenshots](#-screenshots)
+- [Bắt đầu nhanh](#-bắt-đầu-nhanh) ⭐ **NEW**
 - [Cài đặt](#-cài-đặt)
 - [Tài liệu](#-tài-liệu)
 - [Đóng góp](#-đóng-góp)
@@ -95,6 +96,54 @@
 - **Smooth Animations**: Property Animation, Lottie animations
 - **Content Provider**: Chia sẻ data sang app khác
 - **Offline-First**: Hoạt động tốt cả khi không có mạng
+
+---
+
+## 🚀 BẮT ĐẦU NHANH
+
+### Lần đầu tiên clone dự án về?
+
+#### Bước 1: Setup môi trường (chỉ cần làm 1 lần)
+👉 **Xem hướng dẫn đầy đủ:** [WINDOWS_SETUP_GUIDE.md](./WINDOWS_SETUP_GUIDE.md)
+
+**Tóm tắt:**
+1. Cài đặt JDK 17
+2. Cài đặt Android Studio + SDK
+3. Cấu hình biến môi trường
+4. Cài đặt Git
+5. Clone dự án
+6. Tạo AVD (Android Virtual Device)
+
+⏱️ **Thời gian:** ~1-2 giờ
+
+#### Bước 2: Chạy app (mỗi lần code)
+👉 **Xem hướng dẫn nhanh:** [QUICK_RUN_GUIDE.md](./QUICK_RUN_GUIDE.md)
+
+**Lệnh nhanh:**
+```powershell
+# Khởi động emulator
+Start-Process -FilePath "D:\SDK\emulator\emulator.exe" -ArgumentList "-avd", "Small_Phone"
+
+# Chờ 45s, sau đó build & run
+Start-Sleep -Seconds 45
+.\gradlew installDebug; D:\SDK\platform-tools\adb.exe shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity
+```
+
+⏱️ **Thời gian:** ~3-5 phút
+
+### Đã có sẵn môi trường?
+
+Chỉ cần chạy:
+```powershell
+.\gradlew installDebug; adb shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity
+```
+
+### Dùng VS Code?
+
+👉 **Xem:** [VSCODE_SETUP.md](./VSCODE_SETUP.md)
+- Cài extensions
+- Chạy tasks
+- Debug trong VS Code
 
 ---
 
