@@ -27,6 +27,7 @@ import com.haphuongquynh.foodmooddiary.ui.theme.*
 import com.haphuongquynh.foodmooddiary.presentation.screens.camera.CameraScreen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.EntryState
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.FoodEntryViewModel
+import kotlinx.coroutines.launch
 import java.io.File
 
 /**
@@ -293,9 +294,12 @@ private fun EntryFormStep(
     )
     val mealTypes = listOf("Breakfast", "Lunch", "Dinner", "Snack")
     val scrollState = rememberScrollState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         containerColor = BlackPrimary,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Add Entry", color = WhiteText, fontWeight = FontWeight.Bold) },
@@ -489,11 +493,31 @@ private fun EntryFormStep(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
-                    onClick = onSave,
+                    onClick = {
+                        when {
+                            foodName.isBlank() -> {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "Vui lòng nhập tên món ăn",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                            foodName.length < 2 -> {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "Tên món ăn phải có ít nhất 2 ký tự",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                            else -> onSave()
+                        }
+                    },
                     modifier = Modifier.weight(1f).height(56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PastelGreen),
                     shape = RoundedCornerShape(28.dp),
-                    enabled = !isLoading && foodName.isNotBlank()
+                    enabled = !isLoading
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = BlackPrimary)

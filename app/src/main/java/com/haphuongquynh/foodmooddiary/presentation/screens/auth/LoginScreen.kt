@@ -91,7 +91,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(6.dp))
             
             Text(
-                text = "Track your meals. Understand your emotions.",
+                text = "Ghi chép bữa ăn. Hiểu rõ cảm xúc.",
                 fontSize = 13.sp,
                 color = PastelGreenLight,
                 textAlign = TextAlign.Center
@@ -101,7 +101,7 @@ fun LoginScreen(
             
             // Welcome back text
             Text(
-                text = "Welcome back",
+                text = "Chào mừng trở lại",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
@@ -110,7 +110,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(6.dp))
             
             Text(
-                text = "Please enter your details",
+                text = "Vui lòng nhập thông tin của bạn",
                 fontSize = 13.sp,
                 color = Color(0xFFAAAAAA)
             )
@@ -122,7 +122,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Email address",
+                    text = "Địa chỉ email",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.White,
@@ -165,7 +165,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Password",
+                    text = "Mật khẩu",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.White,
@@ -242,14 +242,14 @@ fun LoginScreen(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Remember for 30 days",
+                        text = "Ghi nhớ 30 ngày",
                         fontSize = 14.sp,
                         color = Color.White
                     )
                 }
                 
                 Text(
-                    text = "Forgot password",
+                    text = "Quên mật khẩu",
                     fontSize = 14.sp,
                     color = PastelGreen,
                     fontWeight = FontWeight.Medium,
@@ -298,7 +298,7 @@ fun LoginScreen(
                     )
                 } else {
                     Text(
-                        text = "Sign in",
+                        text = "Đăng nhập",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -335,7 +335,7 @@ fun LoginScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Sign in with Google",
+                        text = "Đăng nhập với Google",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -350,13 +350,13 @@ fun LoginScreen(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Don't have an account?",
+                    text = "Chưa có tài khoản?",
                     fontSize = 14.sp,
                     color = Color(0xFFAAAAAA)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Sign up",
+                    text = "Đăng ký",
                     fontSize = 14.sp,
                     color = PastelGreen,
                     fontWeight = FontWeight.SemiBold,
@@ -377,7 +377,7 @@ fun LoginScreen(
                 }
             ) {
                 Text(
-                    text = "[DEV] Skip to Main",
+                    text = "[DEV] Bỏ qua đăng nhập",
                     fontSize = 12.sp,
                     color = Color(0xFF666666)
                 )

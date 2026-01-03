@@ -130,18 +130,6 @@ fun FoodMoodDiaryNavigation() {
             )
         }
         
-        composable(route = Screen.NotificationSettings.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.settings.NotificationSettingsScreen(
-                onNavigateBack = { navController.navigateUp() },
-                onSaveSettings = { /* Save notification settings */ }
-            )
-        }
-        
-        composable(route = Screen.DataManagement.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.settings.DataManagementScreen(
-                onNavigateBack = { navController.navigateUp() }
-            )
-        }
     }
 }
 
