@@ -132,22 +132,6 @@ fun SimpleHomeScreen(
         )
         
         Spacer(modifier = Modifier.height(100.dp)) // Space for bottom nav
-
-            QuickAccessButton(
-                icon = Icons.Default.Search,
-                label = "Discovery",
-                onClick = { navController.navigate(Screen.Discovery.route) },
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // Content based on selected view
-        when (selectedView) {
-            0 -> GridView(entries, navController)
-            1 -> ListView(entries, navController)
-            2 -> CalendarView(entries, navController)
-        }
->>>>>>> feature/chat
     }
 }
 
@@ -2140,6 +2124,3 @@ private fun generateInsight(entries: List<FoodEntry>): String {
         else -> "⚡ ${weekEntries.size} meals this week! Consistent tracking = better health insights."
     }
 }
-=======
-}
->>>>>>> feature/chat
