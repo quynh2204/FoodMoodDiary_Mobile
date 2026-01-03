@@ -7,8 +7,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.haphuongquynh.foodmooddiary.presentation.screens.splash.SplashScreen
+// 👇 QUAN TRỌNG: Import màn hình Chat mới
+import com.haphuongquynh.foodmooddiary.presentation.screens.ChatScreen 
 
-@Composable
+@Composable 
 fun FoodMoodDiaryNavigation() {
     val navController = rememberNavController()
 
@@ -95,10 +97,9 @@ fun FoodMoodDiaryNavigation() {
             com.haphuongquynh.foodmooddiary.presentation.screens.statistics.StatisticsScreen()
         }
 
+        // 👇 ĐOẠN QUAN TRỌNG NHẤT: ĐÃ ĐỔI TỪ MAP SANG CHAT
         composable(route = Screen.Map.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.map.MapScreen(
-                onNavigateBack = { navController.navigateUp() }
-            )
+             ChatScreen() 
         }
 
         composable(route = Screen.Profile.route) {
