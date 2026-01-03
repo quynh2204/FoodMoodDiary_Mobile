@@ -10,7 +10,7 @@ import com.haphuongquynh.foodmooddiary.data.local.entity.UserProfileEntity
 
 /**
  * Room Database for FoodMoodDiary app
- * Version 6: Removed FavoriteMealEntity (moved to Firebase)
+ * Version 6: Removed FavoriteMealEntity (moved to Firebase) and Added mealType column to food_entries
  */
 @Database(
     entities = [

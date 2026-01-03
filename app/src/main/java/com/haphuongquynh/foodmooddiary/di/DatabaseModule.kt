@@ -2,6 +2,8 @@ package com.haphuongquynh.foodmooddiary.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.haphuongquynh.foodmooddiary.data.local.FoodMoodDatabase
 import com.haphuongquynh.foodmooddiary.data.local.dao.UserDao
 import dagger.Module
@@ -18,6 +20,14 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
+    // Migration from version 5 to 6 (added mealType column)
+    private val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            // Add mealType column if not exists
+            database.execSQL("ALTER TABLE food_entries ADD COLUMN mealType TEXT")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideFoodMoodDatabase(
@@ -28,7 +38,9 @@ object DatabaseModule {
             FoodMoodDatabase::class.java,
             FoodMoodDatabase.DATABASE_NAME
         )
-            .fallbackToDestructiveMigration() // TODO: Remove in production, add migrations
+            .addMigrations(MIGRATION_5_6)
+            // Keep fallback for older versions that we don't have migrations for
+            .fallbackToDestructiveMigrationFrom(1, 2, 3, 4)
             .build()
     }
 

@@ -45,8 +45,28 @@ fun FoodMoodDiaryNavigation() {
             )
         }
 
-        composable(route = Screen.AddEntry.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.entry.AddEntryScreen(navController = navController)
+        composable(
+            route = "${Screen.AddEntry.route}?mood={mood}&photoPath={photoPath}",
+            arguments = listOf(
+                navArgument("mood") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("photoPath") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val preselectedMood = backStackEntry.arguments?.getString("mood")
+            val photoPath = backStackEntry.arguments?.getString("photoPath")
+            com.haphuongquynh.foodmooddiary.presentation.screens.entry.AddEntryScreen(
+                navController = navController,
+                preselectedMood = preselectedMood,
+                initialPhotoPath = photoPath
+            )
         }
 
         composable(
@@ -64,8 +84,11 @@ fun FoodMoodDiaryNavigation() {
             route = Screen.EditEntry.route,
             arguments = listOf(navArgument("entryId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val entryId = backStackEntry.arguments?.getString("entryId")
-            // EditEntryScreen(navController = navController, entryId = entryId)
+            val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
+            com.haphuongquynh.foodmooddiary.presentation.screens.entry.EditEntryScreen(
+                navController = navController,
+                entryId = entryId
+            )
         }
 
         composable(route = Screen.Statistics.route) {

@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.haphuongquynh.foodmooddiary.presentation.navigation.Screen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.FoodEntryViewModel
 import com.haphuongquynh.foodmooddiary.util.export.ExportHelper
 
@@ -33,6 +34,14 @@ fun EntryDetailScreen(
             onShare = {
                 // Share single entry as text
                 ExportHelper.shareEntriesAsText(context, listOf(entry))
+            },
+            onEdit = { entryToEdit ->
+                // Navigate to edit entry screen
+                navController.navigate(Screen.EditEntry.createRoute(entryToEdit.id))
+            },
+            onDelete = { entryIdToDelete ->
+                // Delete entry via ViewModel
+                viewModel.deleteEntry(entryIdToDelete)
             }
         )
     } else {

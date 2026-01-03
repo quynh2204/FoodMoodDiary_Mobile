@@ -33,8 +33,18 @@ class StatisticsRepositoryImpl @Inject constructor(
                     .map { (dayTimestamp, dayEntries) ->
                         MoodTrendPoint(
                             date = dayTimestamp,
-                            averageMoodScore = calculateAverageMoodScore(dayEntries.map { it.moodColor }),
-                            entryCount = dayEntries.size
+                            averageMoodScore = calculateAverageMoodScore(dayEntries.map { it.mood }),
+                            entryCount = dayEntries.size,
+                            entries = dayEntries.map { entry ->
+                                DayEntry(
+                                    id = entry.id,
+                                    foodName = entry.foodName,
+                                    mood = entry.mood,
+                                    photoUrl = entry.photoUrl,
+                                    localPhotoPath = entry.localPhotoPath,
+                                    timestamp = entry.timestamp
+                                )
+                            }.sortedByDescending { it.timestamp }
                         )
                     }
                     .sortedBy { it.date }
@@ -49,7 +59,7 @@ class StatisticsRepositoryImpl @Inject constructor(
                         FoodFrequency(
                             foodName = foodName.replaceFirstChar { it.uppercase() },
                             count = foodEntries.size,
-                            averageMoodScore = calculateAverageMoodScore(foodEntries.map { it.moodColor })
+                            averageMoodScore = calculateAverageMoodScore(foodEntries.map { it.mood })
                         )
                     }
                     .sortedByDescending { it.count }
@@ -63,8 +73,10 @@ class StatisticsRepositoryImpl @Inject constructor(
                 val total = entries.size.toFloat()
                 if (total == 0f) return@map emptyList()
 
-                // Categorize by time of day
-                val distribution = entries.groupBy { getMealTypeFromTimestamp(it.timestamp) }
+                // Use mealType from entry if available, fallback to timestamp-based detection
+                val distribution = entries.groupBy { entry ->
+                    entry.mealType?.let { parseMealType(it) } ?: getMealTypeFromTimestamp(entry.timestamp)
+                }
                     .map { (mealType, mealEntries) ->
                         MealDistribution(
                             mealType = mealType,
@@ -76,6 +88,18 @@ class StatisticsRepositoryImpl @Inject constructor(
 
                 distribution
             }
+    }
+
+    /**
+     * Helper: Parse mealType string to MealType enum
+     */
+    private fun parseMealType(mealType: String): MealType {
+        return when (mealType.lowercase()) {
+            "breakfast", "sáng" -> MealType.BREAKFAST
+            "lunch", "trưa" -> MealType.LUNCH
+            "dinner", "tối" -> MealType.DINNER
+            else -> MealType.SNACK
+        }
     }
 
     override fun getColorDistribution(startDate: Long, endDate: Long): Flow<List<ColorDistribution>> {
@@ -115,7 +139,7 @@ class StatisticsRepositoryImpl @Inject constructor(
                 WeeklySummary(
                     weekStartDate = weekStartDate,
                     totalEntries = entries.size,
-                    averageMoodScore = calculateAverageMoodScore(entries.map { it.moodColor }),
+                    averageMoodScore = calculateAverageMoodScore(entries.map { it.mood }),
                     mostFrequentFood = topFood,
                     dominantColor = dominantColor,
                     streak = 0 // Will be calculated separately
@@ -129,7 +153,7 @@ class StatisticsRepositoryImpl @Inject constructor(
                 val insights = mutableListOf<Insight>()
 
                 // Mood pattern insight
-                val avgMoodScore = calculateAverageMoodScore(entries.map { it.moodColor })
+                val avgMoodScore = calculateAverageMoodScore(entries.map { it.mood })
                 if (avgMoodScore > 7f) {
                     insights.add(
                         Insight(
@@ -143,8 +167,8 @@ class StatisticsRepositoryImpl @Inject constructor(
 
                 // Food correlation insight
                 val topFoods = entries.groupBy { it.foodName }
-                    .map { (name, list) -> 
-                        name to calculateAverageMoodScore(list.map { it.moodColor }) 
+                    .map { (name, list) ->
+                        name to calculateAverageMoodScore(list.map { it.mood })
                     }
                     .sortedByDescending { it.second }
 
@@ -264,19 +288,15 @@ class StatisticsRepositoryImpl @Inject constructor(
     }
 
     /**
-     * Helper: Calculate mood score from color (0-10 scale)
-     * Brighter/warmer colors = higher score
+     * Helper: Calculate mood score from MoodType.score (0-10 scale)
+     * Uses the mood emoji to lookup MoodType.score value
+     * Fallback to 5.0f if mood is null/invalid
      */
-    private fun calculateAverageMoodScore(colors: List<Int>): Float {
-        if (colors.isEmpty()) return 5f
-        
-        return colors.map { color ->
-            // Calculate brightness/saturation as mood indicator
-            val hsv = FloatArray(3)
-            Color.colorToHSV(color, hsv)
-            val saturation = hsv[1] // 0-1
-            val brightness = hsv[2] // 0-1
-            ((saturation + brightness) / 2f) * 10f
+    private fun calculateAverageMoodScore(moods: List<String?>): Float {
+        if (moods.isEmpty()) return 5f
+
+        return moods.map { mood ->
+            mood?.let { MoodType.fromEmoji(it)?.score } ?: 5f
         }.average().toFloat()
     }
 
