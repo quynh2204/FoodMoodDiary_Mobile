@@ -24,10 +24,12 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import org.json.JSONArray
 import java.io.IOException
+import com.haphuongquynh.foodmooddiary.BuildConfig
 
 @Composable
 fun ChatScreen() {
-    val apiKey = "AIzaSyAR1Y8EUJsZlPTb5sIzKvVPopth1JBUfZU"
+    // Load API key from BuildConfig (configured in build.gradle)
+    val apiKey = BuildConfig.GEMINI_API_KEY
     
     var inputText by remember { mutableStateOf("") }
     var messages by remember { mutableStateOf(listOf<Pair<String, Boolean>>()) }
