@@ -7,8 +7,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.haphuongquynh.foodmooddiary.presentation.screens.splash.SplashScreen
+// 👇 QUAN TRỌNG: Import màn hình Chat mới
+import com.haphuongquynh.foodmooddiary.presentation.screens.ChatScreen 
 
-@Composable
+@Composable 
 fun FoodMoodDiaryNavigation() {
     val navController = rememberNavController()
 
@@ -45,8 +47,28 @@ fun FoodMoodDiaryNavigation() {
             )
         }
 
-        composable(route = Screen.AddEntry.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.entry.AddEntryScreen(navController = navController)
+        composable(
+            route = "${Screen.AddEntry.route}?mood={mood}&photoPath={photoPath}",
+            arguments = listOf(
+                navArgument("mood") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("photoPath") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val preselectedMood = backStackEntry.arguments?.getString("mood")
+            val photoPath = backStackEntry.arguments?.getString("photoPath")
+            com.haphuongquynh.foodmooddiary.presentation.screens.entry.AddEntryScreen(
+                navController = navController,
+                preselectedMood = preselectedMood,
+                initialPhotoPath = photoPath
+            )
         }
 
         composable(
@@ -64,18 +86,20 @@ fun FoodMoodDiaryNavigation() {
             route = Screen.EditEntry.route,
             arguments = listOf(navArgument("entryId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val entryId = backStackEntry.arguments?.getString("entryId")
-            // EditEntryScreen(navController = navController, entryId = entryId)
+            val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
+            com.haphuongquynh.foodmooddiary.presentation.screens.entry.EditEntryScreen(
+                navController = navController,
+                entryId = entryId
+            )
         }
 
         composable(route = Screen.Statistics.route) {
             com.haphuongquynh.foodmooddiary.presentation.screens.statistics.StatisticsScreen()
         }
 
+        // 👇 ĐOẠN QUAN TRỌNG NHẤT: ĐÃ ĐỔI TỪ MAP SANG CHAT
         composable(route = Screen.Map.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.map.MapScreen(
-                onNavigateBack = { navController.navigateUp() }
-            )
+             ChatScreen() 
         }
 
         composable(route = Screen.Profile.route) {
@@ -86,25 +110,6 @@ fun FoodMoodDiaryNavigation() {
                         popUpTo(Screen.Main.route) { inclusive = true }
                     }
                 }
-            )
-        }
-
-        composable(route = Screen.Settings.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.settings.SettingsScreen(
-                onNavigateBack = { navController.navigateUp() }
-            )
-        }
-        
-        composable(route = Screen.DataManagement.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.settings.DataManagementScreen(
-                onNavigateBack = { navController.navigateUp() }
-            )
-        }
-        
-        composable(route = Screen.NotificationSettings.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.settings.NotificationSettingsScreen(
-                onNavigateBack = { navController.navigateUp() },
-                onSaveSettings = { /* TODO: Save notification settings */ }
             )
         }
 
@@ -157,9 +162,6 @@ sealed class Screen(val route: String) {
     data object Statistics : Screen("statistics")
     data object Map : Screen("map")
     data object Profile : Screen("profile")
-    data object Settings : Screen("settings")
-    data object DataManagement : Screen("data_management")
-    data object NotificationSettings : Screen("notification_settings")
     data object Discovery : Screen("discovery")
     data object Camera : Screen("camera")
 }

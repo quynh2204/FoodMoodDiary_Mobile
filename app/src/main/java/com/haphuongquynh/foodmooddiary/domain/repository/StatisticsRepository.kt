@@ -61,4 +61,22 @@ interface StatisticsRepository {
      * @return Current streak count
      */
     suspend fun getCurrentStreak(): Int
+
+    /**
+     * Get total entry count (all time)
+     * @return Flow of total count
+     */
+    fun getTotalEntryCount(): Flow<Int>
+
+    /**
+     * Get most logged food name (all time)
+     * @return Flow of top food name
+     */
+    fun getTopFoodAllTime(): Flow<String?>
+
+    /**
+     * Get average mood score (all time)
+     * @return Flow of average mood score (0-10)
+     */
+    fun getAverageMoodAllTime(): Flow<Float>
 }

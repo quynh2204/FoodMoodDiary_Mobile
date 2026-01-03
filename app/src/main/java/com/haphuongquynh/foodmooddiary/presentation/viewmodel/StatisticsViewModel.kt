@@ -2,6 +2,9 @@ package com.haphuongquynh.foodmooddiary.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.haphuongquynh.foodmooddiary.data.local.dao.FoodEntryDao
+import com.haphuongquynh.foodmooddiary.data.local.entity.FoodEntryEntity
 import com.haphuongquynh.foodmooddiary.domain.model.*
 import com.haphuongquynh.foodmooddiary.domain.repository.StatisticsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +19,9 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class StatisticsViewModel @Inject constructor(
-    private val statisticsRepository: StatisticsRepository
+    private val statisticsRepository: StatisticsRepository,
+    private val foodEntryDao: FoodEntryDao,
+    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
 
     // Date range for filtering
@@ -120,6 +125,146 @@ class StatisticsViewModel @Inject constructor(
         viewModelScope.launch {
             val streak = statisticsRepository.getCurrentStreak()
             callback(streak)
+        }
+    }
+
+    /**
+     * Get total meal count (all time)
+     */
+    fun getTotalMeals(callback: (Int) -> Unit) {
+        viewModelScope.launch {
+            statisticsRepository.getTotalEntryCount().collect { count ->
+                callback(count)
+            }
+        }
+    }
+
+    /**
+     * Get top food name (most logged)
+     */
+    fun getTopFood(callback: (String?) -> Unit) {
+        viewModelScope.launch {
+            statisticsRepository.getTopFoodAllTime().collect { foodName ->
+                callback(foodName)
+            }
+        }
+    }
+
+    /**
+     * Get average mood score (all time)
+     */
+    fun getAverageMood(callback: (Float) -> Unit) {
+        viewModelScope.launch {
+            statisticsRepository.getAverageMoodAllTime().collect { score ->
+                callback(score)
+            }
+        }
+    }
+
+    /**
+     * DEBUG: Generate fake test data for multiple days
+     * Call this to populate the database with sample entries
+     */
+    fun generateTestData() {
+        val userId = firebaseAuth.currentUser?.uid ?: return
+
+        viewModelScope.launch {
+            val calendar = Calendar.getInstance()
+            val now = System.currentTimeMillis()
+
+            // Sample foods with Vietnamese names
+            val foods = listOf(
+                "Phở bò" to "Breakfast",
+                "Bánh mì" to "Breakfast",
+                "Cơm tấm" to "Lunch",
+                "Bún chả" to "Lunch",
+                "Cơm gà" to "Dinner",
+                "Hủ tiếu" to "Dinner",
+                "Trà sữa" to "Snack",
+                "Bánh tráng trộn" to "Snack"
+            )
+
+            // MoodType emojis and their colors
+            val moods = listOf(
+                MoodType.HAPPY,
+                MoodType.SAD,
+                MoodType.ANGRY,
+                MoodType.TIRED,
+                MoodType.ENERGETIC
+            )
+
+            val entries = mutableListOf<FoodEntryEntity>()
+
+            // Generate entries for past 14 days
+            for (dayOffset in 0..13) {
+                calendar.timeInMillis = now
+                calendar.add(Calendar.DAY_OF_YEAR, -dayOffset)
+
+                // Vary meals per day: some days have 5-7 meals to test "View all" feature
+                val mealsPerDay = when (dayOffset) {
+                    0, 3, 7 -> (5..7).random()  // Today, 3 days ago, 1 week ago: many meals
+                    1, 5 -> (4..5).random()     // Some days with 4-5 meals
+                    else -> (1..3).random()     // Normal days: 1-3 meals
+                }
+
+                for (mealIndex in 0 until mealsPerDay) {
+                    val (foodName, mealType) = foods.random()
+                    val mood = moods.random()
+
+                    // Set time based on meal index to spread throughout the day
+                    val hour = when {
+                        mealIndex == 0 -> (7..9).random()      // Breakfast
+                        mealIndex == 1 -> (11..13).random()    // Lunch
+                        mealIndex == 2 -> (14..16).random()    // Snack
+                        mealIndex == 3 -> (18..20).random()    // Dinner
+                        else -> (10..21).random()              // Extra meals spread throughout
+                    }
+                    calendar.set(Calendar.HOUR_OF_DAY, hour)
+                    calendar.set(Calendar.MINUTE, (0..59).random())
+
+                    val timestamp = calendar.timeInMillis
+
+                    // Assign mealType based on time
+                    val assignedMealType = when (hour) {
+                        in 6..10 -> "Breakfast"
+                        in 11..14 -> "Lunch"
+                        in 15..17 -> "Snack"
+                        else -> "Dinner"
+                    }
+
+                    entries.add(
+                        FoodEntryEntity(
+                            id = UUID.randomUUID().toString(),
+                            userId = userId,
+                            foodName = foodName,
+                            notes = "Test entry",
+                            photoUrl = null,
+                            localPhotoPath = null,
+                            moodColor = mood.colorInt,
+                            mood = mood.emoji,
+                            mealType = assignedMealType,
+                            location = null,
+                            timestamp = timestamp,
+                            createdAt = timestamp,
+                            updatedAt = timestamp,
+                            isSynced = false
+                        )
+                    )
+                }
+            }
+
+            // Insert all entries
+            foodEntryDao.insertEntries(entries)
+        }
+    }
+
+    /**
+     * DEBUG: Clear all test data
+     */
+    fun clearTestData() {
+        val userId = firebaseAuth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            foodEntryDao.deleteAllEntriesForUser(userId)
         }
     }
 }

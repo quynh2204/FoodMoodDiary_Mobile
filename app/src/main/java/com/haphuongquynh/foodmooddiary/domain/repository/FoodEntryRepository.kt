@@ -64,4 +64,10 @@ interface FoodEntryRepository {
      * @return Resource with remote URL or error
      */
     suspend fun uploadPhoto(localPath: String): Resource<String>
+    
+    /**
+     * Upload missing photos for entries that have localPhotoPath but no photoUrl
+     * @return Number of photos successfully uploaded
+     */
+    suspend fun uploadMissingPhotos(): Int
 }

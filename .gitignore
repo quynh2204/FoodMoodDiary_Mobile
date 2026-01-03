@@ -40,6 +40,10 @@ build/
 # Google Services (contains sensitive keys)
 google-services.json
 
+# Firebase service account keys (NEVER commit these!)
+scripts/serviceAccountKey.json
+**/serviceAccountKey.json
+
 # Local configuration file (SDK path, etc.)
 local.properties
 

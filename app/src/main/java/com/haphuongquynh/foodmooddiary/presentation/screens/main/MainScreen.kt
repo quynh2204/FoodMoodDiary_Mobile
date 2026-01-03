@@ -1,20 +1,21 @@
 package com.haphuongquynh.foodmooddiary.presentation.screens.main
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.shadow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -24,10 +25,10 @@ import com.haphuongquynh.foodmooddiary.ui.theme.*
 import com.haphuongquynh.foodmooddiary.presentation.navigation.Screen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthState
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
-import com.haphuongquynh.foodmooddiary.presentation.viewmodel.FoodEntryViewModel
 import com.haphuongquynh.foodmooddiary.presentation.screens.camera.CameraScreen
-import com.haphuongquynh.foodmooddiary.presentation.screens.camera.EmptyCameraOnlyScreen
-import com.haphuongquynh.foodmooddiary.presentation.screens.home.PhotoGalleryHomeScreen
+import java.io.File
+// Import màn hình Chat
+import com.haphuongquynh.foodmooddiary.presentation.screens.ChatScreen
 
 sealed class BottomNavItem(
     val route: String,
@@ -35,23 +36,48 @@ sealed class BottomNavItem(
     val label: String
 ) {
     object Home : BottomNavItem("home_tab", Icons.Default.Home, "Trang chủ")
+    object Statistics : BottomNavItem("statistics_tab", Icons.Default.CalendarToday, "Nhật ký")
     object Camera : BottomNavItem("camera_tab", Icons.Default.CameraAlt, "Camera")
-    object Profile : BottomNavItem("profile_tab", Icons.Default.Person, "Cá nhân")
+    object AI : BottomNavItem("ai_tab", Icons.Default.Face, "Trợ lý AI")
+    object Discovery : BottomNavItem("discovery_tab", Icons.Default.Explore, "Khám phá")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     navController: NavController,
-    viewModel: AuthViewModel = hiltViewModel(),
-    foodEntryViewModel: FoodEntryViewModel = hiltViewModel()
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
-    var selectedTab by remember { mutableStateOf(BottomNavItem.Camera.route) }
+    // Start with home tab selected
+    var selectedTab by remember { mutableStateOf(BottomNavItem.Home.route) }
     val authState by viewModel.authState.collectAsState()
-    var showCamera by remember { mutableStateOf(true) }
     val currentUser by viewModel.currentUser.collectAsState()
-    val entries by foodEntryViewModel.entries.collectAsState()
-    val hasEntries = entries.isNotEmpty()
+    val context = LocalContext.current
+
+    // Gallery launcher - xử lý ngay tại MainScreen
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            try {
+                val inputStream = context.contentResolver.openInputStream(it)
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+                inputStream?.close()
+                
+                // Lưu ảnh vào cache
+                val tempFile = File(context.cacheDir, "gallery_${System.currentTimeMillis()}.jpg")
+                tempFile.outputStream().use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                }
+                
+                // Navigate với photoPath
+                val encodedPath = java.net.URLEncoder.encode(tempFile.absolutePath, "UTF-8")
+                navController.navigate("${Screen.AddEntry.route}?photoPath=${encodedPath}")
+            } catch (e: Exception) {
+                android.util.Log.e("MainScreen", "Gallery error", e)
+            }
+        }
+    }
 
     // Handle logout
     LaunchedEffect(authState) {
@@ -63,52 +89,95 @@ fun MainScreen(
         }
     }
 
-    // Show empty camera screen if no entries yet
-    if (!hasEntries) {
-        EmptyCameraOnlyScreen(
-            onCameraClick = {
-                showCamera = true
-                selectedTab = BottomNavItem.Camera.route
-            }
-        )
-        
-        // Show camera when button clicked
-        if (showCamera) {
-            CameraScreen(
-                onPhotoCaptured = { file, bitmap ->
-                    showCamera = false
-                    navController.navigate(Screen.AddEntry.route)
-                },
-                onDismiss = {
-                    showCamera = false
-                }
-            )
-        }
-        return
-    }
-
-    // Show full UI with bottom navigation when user has entries
     Scaffold(
         containerColor = DarkGray,
-        floatingActionButton = {
-            // Camera FAB at bottom center
-            FloatingActionButton(
-                onClick = {
-                    showCamera = true
+        topBar = {
+            TopAppBar(
+                title = {},
+                actions = {
+                    IconButton(onClick = { navController.navigate(Screen.Profile.route) }) {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = "Profile",
+                            tint = WhiteText,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
                 },
-                containerColor = PastelGreen,
-                contentColor = BlackPrimary,
-                shape = CircleShape,
-                modifier = Modifier.size(64.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CameraAlt,
-                    contentDescription = "Chụp ảnh",
-                    modifier = Modifier.size(32.dp)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = DarkGray
                 )
-            }
+            )
         },
-        floatingActionButtonPosition = FabPosition.Center
+        bottomBar = {
+            NavigationBar(
+                containerColor = DarkGray,
+                contentColor = PastelGreen
+            ) {
+                val items = listOf(
+                    BottomNavItem.Home,
+                    BottomNavItem.Statistics,
+                    BottomNavItem.Camera,
+                    BottomNavItem.AI, 
+                    BottomNavItem.Discovery
+                )
+
+                items.forEach { item ->
+                    if (item == BottomNavItem.Camera) {
+                        Box(
+                            modifier = Modifier.weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            FloatingActionButton(
+                                onClick = {
+                                    selectedTab = item.route
+                                },
+                                containerColor = PastelGreen,
+                                contentColor = BlackPrimary,
+                                shape = CircleShape,
+                                modifier = Modifier.size(60.dp)
+                            ) {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = item.label,
+                                    modifier = Modifier.size(30.dp)
+                                )
+                            }
+                        }
+                    } else {
+                        NavigationBarItem(
+                            modifier = Modifier.weight(1f),
+                            icon = {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = item.label,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            label = { 
+                                Text(
+                                    item.label, 
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 9.sp,
+                                    maxLines = 1
+                                ) 
+                            },
+                            selected = selectedTab == item.route,
+                            onClick = {
+                                selectedTab = item.route
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = PastelGreen,
+                                selectedTextColor = PastelGreen,
+                                unselectedIconColor = GrayText,
+                                unselectedTextColor = GrayText,
+                                indicatorColor = GreenTransparent
+                            )
+                        )
+                    }
+                }
+            }
+        }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -117,20 +186,37 @@ fun MainScreen(
                 .background(DarkGray)
         ) {
             when {
-                showCamera -> {
+                // Khi chọn tab Camera, luôn hiển thị camera (bỏ điều kiện showCamera)
+                selectedTab == BottomNavItem.Camera.route -> {
                     CameraScreen(
                         onPhotoCaptured = { file, bitmap ->
-                            showCamera = false
-                            navController.navigate(Screen.AddEntry.route)
+                            // Truyền đường dẫn ảnh tới AddEntry (URL encoded)
+                            val encodedPath = java.net.URLEncoder.encode(file.absolutePath, "UTF-8")
+                            navController.navigate("${Screen.AddEntry.route}?photoPath=${encodedPath}")
                         },
                         onDismiss = {
-                            showCamera = false
+                            selectedTab = BottomNavItem.Home.route
+                        },
+                        onGalleryClick = {
+                            galleryLauncher.launch("image/*")
                         }
                     )
                 }
-                else -> {
-                    PhotoGalleryHomeScreen(
-                        navController = navController
+                selectedTab == BottomNavItem.Home.route -> {
+                    com.haphuongquynh.foodmooddiary.presentation.screens.home.SimpleHomeScreen(
+                        navController = navController,
+                        onNavigateToTab = { tabRoute -> selectedTab = tabRoute }
+                    )
+                }
+                selectedTab == BottomNavItem.Statistics.route -> {
+                    com.haphuongquynh.foodmooddiary.presentation.screens.statistics.StatisticsScreen()
+                }
+                selectedTab == BottomNavItem.AI.route -> {
+                    ChatScreen()
+                }
+                selectedTab == BottomNavItem.Discovery.route -> {
+                    com.haphuongquynh.foodmooddiary.presentation.screens.discovery.DiscoveryScreen(
+                        onNavigateBack = { selectedTab = BottomNavItem.Home.route }
                     )
                 }
             }

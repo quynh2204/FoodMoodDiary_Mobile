@@ -8,13 +8,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.haphuongquynh.foodmooddiary.presentation.navigation.FoodMoodDiaryNavigation
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.ThemeViewModel
 import com.haphuongquynh.foodmooddiary.ui.theme.FoodMoodDiaryTheme
@@ -44,9 +45,16 @@ class MainActivity : ComponentActivity() {
         requestRuntimePermissions()
         
         setContent {
-            val themeMode by themeViewModel.themeMode.collectAsStateWithLifecycle()
-            
-            FoodMoodDiaryTheme(themeMode = themeMode) {
+            val themeMode by themeViewModel.themeMode.collectAsState()
+            val systemDarkTheme = isSystemInDarkTheme()
+
+            val isDarkTheme = when (themeMode) {
+                "Light" -> false
+                "Dark" -> true
+                else -> systemDarkTheme // "Auto" follows system
+            }
+
+            FoodMoodDiaryTheme(darkTheme = isDarkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

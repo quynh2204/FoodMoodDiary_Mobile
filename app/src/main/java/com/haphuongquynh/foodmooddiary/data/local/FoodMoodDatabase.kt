@@ -12,7 +12,7 @@ import com.haphuongquynh.foodmooddiary.data.local.entity.UserProfileEntity
 
 /**
  * Room Database for FoodMoodDiary app
- * Version 5: Added UserProfileEntity
+ * Version 6: Added mealType column to food_entries
  */
 @Database(
     entities = [
@@ -21,7 +21,7 @@ import com.haphuongquynh.foodmooddiary.data.local.entity.UserProfileEntity
         FavoriteMealEntity::class,
         UserProfileEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

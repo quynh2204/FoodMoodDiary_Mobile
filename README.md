@@ -1,260 +1,334 @@
-# Food Mood Diary
-
-> **Ứng dụng Nhật ký Ăn uống & Cảm xúc - Kết nối giữa thực phẩm và tâm trạng**
+# FoodMoodDiary - Food & Mood Tracking App
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-blue.svg)](https://kotlinlang.org)
 [![Android](https://img.shields.io/badge/Android-SDK%2026+-green.svg)](https://developer.android.com)
-[![Java](https://img.shields.io/badge/Java-21%20LTS-orange.svg)](https://openjdk.org/)
-[![Firebase](https://img.shields.io/badge/Firebase-Enabled-yellow.svg)](https://firebase.google.com)
+[![Java](https://img.shields.io/badge/Java-17%20LTS-orange.svg)](https://openjdk.org/)
 
----
+## Overview
 
-## 📋 MỤC LỤC
+FoodMoodDiary is an Android mobile application that helps users track and discover the relationship between their diet and emotional state on a daily basis. By combining food journaling with mood tracking, the app provides insights into how different meals affect your emotional well-being.
 
-- [Giới thiệu](#-giới-thiệu)
-- [Tính năng](#-tính-năng)
-- [Technical Stack](#-technical-stack)
-- [Kiến trúc](#-kiến-trúc)
-- [Screenshots](#-screenshots)
-- [Bắt đầu nhanh](#-bắt-đầu-nhanh) ⭐ **NEW**
-- [Cài đặt](#-cài-đặt)
-- [Tài liệu](#-tài-liệu)
-- [Đóng góp](#-đóng-góp)
-- [License](#-license)
+## Features
 
----
+The application includes the following core features:
 
-## 🎯 GIỚI THIỆU
+- **User Authentication:** Secure sign-up and login with email/password and Google Sign-In integration
+  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/auth/`)
+- **Food Entry Management:** Capture meals via camera or gallery, with automatic color analysis for mood suggestions
+  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/entry/`)
+- **Camera Integration:** Take photos directly within the app with CameraX integration
+  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/camera/`)
+- **AI Chat Assistant:** Get food and mood insights through Gemini AI-powered chat interface
+  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/ChatScreen.kt`)
+- **Statistics & Analytics:** Comprehensive mood trends, food-mood correlations, and calendar views
+  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/statistics/`)
+- **Vietnamese Meals Discovery:** Explore Vietnamese dishes with recipes from Firestore database
+  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/discovery/`)
+- **Home Dashboard:** Overview of recent entries, mood statistics, and quick access to features
+  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/home/`)
+- **User Profile:** Manage account settings, streak counter, and app preferences
+  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/profile/`)
 
-**Food Mood Diary** là ứng dụng mobile Android giúp người dùng theo dõi và khám phá mối quan hệ giữa chế độ ăn uống và trạng thái cảm xúc hằng ngày.
+## Tech Stack & Architecture
 
-### Điểm nổi bật
+FoodMoodDiary is built with modern Android development tools and follows best practices:
 
-- 📸 **Visual-First**: Chụp hoặc chọn ảnh món ăn đẹp mắt
-- 🎨 **Smart Color Analysis**: Tự động phân tích màu sắc để gợi ý tâm trạng (Palette API)
-- ☁️ **Cloud Sync**: Đồng bộ dữ liệu đa thiết bị qua Firebase
-- 🗺️ **Location Aware**: Tự động ghi nhận vị trí GPS
-- 📊 **AI Insights**: Phân tích xu hướng ăn uống theo cảm xúc
-- 🌍 **Discovery**: Khám phá món ăn mới từ API bên ngoài
+- **Language:** [Kotlin](https://kotlinlang.org/) 2.0.21
+- **Framework:** Android SDK with Jetpack libraries
+- **Architecture:** Clean Architecture with MVVM pattern
+  - **Presentation Layer:** UI components built with Jetpack Compose, ViewModels managing UI state
+  - **Domain Layer:** Business logic with Use Cases and repository interfaces
+  - **Data Layer:** Room database, Firebase integration, and repository implementations
+- **UI Framework:** [Jetpack Compose](https://developer.android.com/jetpack/compose) with Material3 design
+- **State Management:** StateFlow and Compose state management
+- **Dependency Injection:** [Hilt](https://dagger.dev/hilt/) for compile-time dependency injection
+- **Database:** Room (local) + Firebase Firestore (cloud sync)
+- **Authentication:** Firebase Authentication with Google Sign-In
+- **AI Integration:** Google Gemini API 2.0 for chat assistance
+- **Image Processing:** CameraX for camera integration, Palette API for color analysis
+- **Async Operations:** Kotlin Coroutines and Flow
+- **Background Tasks:** WorkManager for periodic reminders and sync
 
-### Đối tượng người dùng
+## Project Structure
 
-1. **Gen Z / Foodies**: Thích chụp ảnh đồ ăn, quan tâm đến aesthetic
-2. **Emotional Eaters**: Muốn hiểu và điều chỉnh thói quen ăn uống theo cảm xúc
-3. **Người bận rộn**: Cần ghi chép nhanh gọn về lịch sử thực đơn
+The project follows a feature-first directory structure within Clean Architecture framework:
 
----
-
-## ✨ TÍNH NĂNG
-
-### 🔐 Quản lý Tài khoản
-- Đăng ký/Đăng nhập bằng Email/Password
-- Đăng nhập nhanh với Google Sign-In
-- Đồng bộ dữ liệu tự động qua Firebase
-- Profile với streak counter
-
-### 📝 Ghi Nhật ký Food & Mood
-- **Chụp ảnh** từ camera hoặc **chọn từ thư viện**
-- **Phân tích màu sắc** tự động bằng Palette API
-- **Gợi ý tâm trạng** dựa trên màu sắc món ăn
-- **Tự động lấy vị trí GPS** và địa chỉ
-- Thông tin đầy đủ: Tên món, Cảm xúc (emoji), Loại bữa, Rating, Notes
-
-### 📊 Thống kê & Báo cáo
-- **Overview Tab**:
-  - Summary cards (Total entries, Streak, Most common mood)
-  - Mood Calendar View (color-coded by mood)
-- **Charts Tab**:
-  - Line Chart: Mood trend overtime
-  - Bar Chart: Food-Mood frequency
-  - Pie Chart: Meal type & Color palette distribution
-- **Insights Tab**:
-  - AI-generated patterns
-  - "Bạn thường ăn gì khi buồn?"
-  - "Khung giờ nào bạn vui nhất?"
-  - Suggestions dựa trên data
-
-### 🗺️ Maps & Location
-- Hiển thị vị trí tất cả entries trên bản đồ
-- Heat map: Mật độ món ăn theo khu vực
-- Marker clustering khi zoom out
-- Click marker để xem entry detail
-
-### 🌍 Discovery (External API)
-- "Hôm nay ăn gì?" - Random meal từ TheMealDB
-- Search món ăn mới
-- Save meal vào favorites
-
-### 🔔 Notifications
-- **Daily Reminders**: Nhắc ghi nhật ký vào giờ ăn (12:30 PM, 7:00 PM)
-- **Weekly Insights**: Insights tự động mỗi Chủ nhật
-- **Streak Alerts**: Nhắc duy trì streak
-
-### 🎨 Advanced Features
-- **Shake to Undo**: Lắc điện thoại để hoàn tác (Accelerometer)
-- **Auto Dark Mode**: Tự động chuyển theme theo ánh sáng môi trường (Light Sensor)
-- **Smooth Animations**: Property Animation, Lottie animations
-- **Content Provider**: Chia sẻ data sang app khác
-- **Offline-First**: Hoạt động tốt cả khi không có mạng
-
----
-
-## 🚀 BẮT ĐẦU NHANH
-
-### Lần đầu tiên clone dự án về?
-
-#### Bước 1: Setup môi trường (chỉ cần làm 1 lần)
-👉 **Xem hướng dẫn đầy đủ:** [WINDOWS_SETUP_GUIDE.md](./WINDOWS_SETUP_GUIDE.md)
-
-**Tóm tắt:**
-1. Cài đặt JDK 17
-2. Cài đặt Android Studio + SDK
-3. Cấu hình biến môi trường
-4. Cài đặt Git
-5. Clone dự án
-6. Tạo AVD (Android Virtual Device)
-
-⏱️ **Thời gian:** ~1-2 giờ
-
-#### Bước 2: Chạy app (mỗi lần code)
-👉 **Xem hướng dẫn nhanh:** [QUICK_RUN_GUIDE.md](./QUICK_RUN_GUIDE.md)
-
-**Lệnh nhanh:**
-```powershell
-# Khởi động emulator
-Start-Process -FilePath "D:\SDK\emulator\emulator.exe" -ArgumentList "-avd", "Small_Phone"
-
-# Chờ 45s, sau đó build & run
-Start-Sleep -Seconds 45
-.\gradlew installDebug; D:\SDK\platform-tools\adb.exe shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity
+```
+FoodMoodDiary/
+├── app/
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/haphuongquynh/foodmooddiary/
+│   │   │   │   ├── data/                  # Data layer
+│   │   │   │   │   ├── local/            # Room database, DAOs, entities
+│   │   │   │   │   ├── provider/         # Content Providers
+│   │   │   │   │   └── repository/       # Repository implementations
+│   │   │   │   ├── domain/               # Domain layer
+│   │   │   │   │   ├── model/           # Domain models
+│   │   │   │   │   ├── repository/      # Repository interfaces
+│   │   │   │   │   └── usecase/         # Business logic use cases
+│   │   │   │   ├── presentation/        # Presentation layer
+│   │   │   │   │   ├── navigation/      # Navigation setup
+│   │   │   │   │   ├── screens/         # UI screens (Compose)
+│   │   │   │   │   └── viewmodel/       # ViewModels
+│   │   │   │   ├── di/                  # Dependency injection modules
+│   │   │   │   ├── ui/                  # UI theme and animations
+│   │   │   │   ├── util/                # Utility classes
+│   │   │   │   └── worker/              # Background workers
+│   │   │   ├── res/                     # Resources
+│   │   │   └── AndroidManifest.xml
+│   │   ├── test/                        # Unit tests
+│   │   └── androidTest/                 # Instrumentation tests
+│   ├── build.gradle.kts                 # App-level Gradle config
+│   └── google-services.json             # Firebase configuration
+├── gradle/                              # Gradle wrapper
+├── scripts/                             # Helper scripts
+│   └── upload_meals_to_firestore.py    # Script to populate Firestore
+├── build.gradle.kts                     # Project-level Gradle config
+├── settings.gradle.kts
+├── local.properties                     # Local configuration (API keys)
+└── README.md                           # This file
 ```
 
-⏱️ **Thời gian:** ~3-5 phút
+## Getting Started
 
-### Đã có sẵn môi trường?
-
-Chỉ cần chạy:
-```powershell
-.\gradlew installDebug; adb shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity
-```
-
-### Dùng VS Code?
-
-👉 **Xem:** [VSCODE_SETUP.md](./VSCODE_SETUP.md)
-- Cài extensions
-- Chạy tasks
-- Debug trong VS Code
-
----
-
-## 🚀 TECHNICAL STACK
-
-**Kotlin** • **Jetpack Compose** • **Material3** • **Hilt** • **Room** • **Firebase** • **Google Maps** • **Coroutines & Flow**
-
-> 📖 Xem chi tiết trong [ARCHITECTURE.md](ARCHITECTURE.md)
-
-### Kiến trúc
-- **Clean Architecture** (Data/Domain/Presentation layers)
-- **MVVM** pattern với Use Cases
-- **Offline-First** strategy (Room ↔ Firebase sync)
-- **Dependency Injection** với Hilt
-
----
-
-## 📸 SCREENSHOTS
-
-### 1. Camera Capture & AI Mood Detection
-![Add Entry - Camera](docs/screenshots/add_entry_camera.png)
-
-### 2. Entry Form
-![Add Entry - Form](docs/screenshots/add_entry_form.png)
-
-### 3. Entry Detail with Map
-![Entry Detail](docs/screenshots/entry_detail.png)
-
-### 4. Home Views (Grid/List/Calendar)
-![Home Grid](docs/screenshots/home_grid.png)
-![Home List](docs/screenshots/home_list.png)
-![Home Calendar](docs/screenshots/home_calendar.png)
-
-### 5. Statistics
-![Statistics Overview](docs/screenshots/statistics_overview.png)
-![Statistics Charts](docs/screenshots/statistics_charts.png)
-![Statistics Insights](docs/screenshots/statistics_insights.png)
-
-### 6. Profile & Settings
-![Profile](docs/screenshots/profile.png)
-
----
-
-## 🛠️ CÀI ĐẶT
+Follow these instructions to get the project up and running on your local machine.
 
 ### Prerequisites
-- Android Studio Ladybug or newer
-- Java 21 LTS
+
+- Android Studio Ladybug or newer: [Installation Guide](https://developer.android.com/studio)
+- Java 17 LTS: [Download](https://adoptium.net/)
 - Android SDK 26-36
-- Firebase account
-- Google Cloud account (for Maps API)
+- Firebase Account: For backend services
 
-### Quick Start
+### Installation & Setup
 
-1. **Clone repository**
+1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/quynh2204/FoodMoodDiary_Mobile.git
    cd FoodMoodDiary_Mobile
    ```
 
-2. **Setup Firebase**
-   - Create Firebase project tại [Firebase Console](https://console.firebase.google.com)
-   - Download `google-services.json` và đặt vào `app/`
-   - Enable Authentication, Firestore, Storage, Messaging
+2. **Setup Firebase:**
+   - Create a Firebase project at [Firebase Console](https://console.firebase.google.com)
+   - Download `google-services.json` and place it in the `app/` directory
+   - Enable the following Firebase services:
+     - Authentication (Email/Password and Google Sign-In)
+     - Firestore Database
+     - Cloud Storage (for images)
 
-3. **Setup Google Maps**
-   - Enable Maps SDK tại [Google Cloud Console](https://console.cloud.google.com)
-   - Create API key
-   - Add to `local.properties`:
-     ```properties
-     GOOGLE_MAPS_API_KEY=YOUR_KEY_HERE
-     ```
+3. **Configure API Keys:**
+   
+   Create a `local.properties` file in the root directory and add:
+   
+   ```properties
+   sdk.dir=/path/to/your/android/sdk
+   
+   # Google Maps API Key (optional, for map features)
+   GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+   
+   # Gemini AI API Key (required for chat feature)
+   GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+   
+   Get your Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
 
-4. **Sync & Build**
+4. **Setup Firestore Vietnamese Meals Database (Optional):**
+   
+   To populate Vietnamese meals data:
+   
+   ```bash
+   cd scripts
+   pip install firebase-admin
+   python3 upload_meals_to_firestore.py
+   ```
+   
+   You'll need a Firebase service account key file (`serviceAccountKey.json`) in the `scripts/` folder.
+
+5. **Sync & Build:**
+
    ```bash
    ./gradlew build
    ```
 
-5. **Run**
-   - Connect device or start emulator
-   - Click Run ▶️ in Android Studio
+### Running the App
 
-### Chi tiết hơn
-Xem [QUICK_START.md](./QUICK_START.md) để biết hướng dẫn chi tiết từng bước.
+1. **Ensure an emulator is running or a device is connected.**
+   
+   Check connected devices:
+   ```bash
+   adb devices
+   ```
 
----
+2. **Run the app:**
+   ```bash
+   ./gradlew installDebug
+   adb shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity
+   ```
+   
+   Or use the VS Code task: `Run FoodMoodDiary`
+   
+   Alternatively, run the app from Android Studio by clicking Run ▶️
 
-## 📚 TÀI LIỆU
+## Key Features Highlight
 
-### Documentation Files
-- **[RULE.md](./RULE.md)** - Technical stack, architecture, coding conventions
-- **[TOPIC_MAPPING.md](./TOPIC_MAPPING.md)** - Chi tiết áp dụng 10 Android topics
-- **[IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md)** - Lộ trình 4 tuần
-- **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)** - Tổng quan project
-- **[QUICK_START.md](./QUICK_START.md)** - Hướng dẫn setup nhanh
+### 📸 Smart Camera Integration
+- Direct camera capture with CameraX
+- Automatic color analysis using Palette API
+- Mood suggestions based on food colors
 
-### Android Topics Covered
-1. ✅ Google Maps API - Location, markers, heat map
-2. ✅ Threading & Background Tasks - Coroutines, WorkManager, Services
-3. ✅ Multimedia - CameraX, Palette API, Image processing
-4. ✅ Content Provider - Share data to other apps
-5. ✅ Jetpack Compose - Modern declarative UI
-6. ✅ Notifications - Local reminders + FCM push
-7. ✅ RESTful API - Retrofit with external API
-8. ✅ Performance Optimization - Profiler, LeakCanary, indexes
-9. ✅ Animation - Property, Compose, Lottie animations
-10. ✅ Sensors - Accelerometer, Light sensor
+### 🤖 AI-Powered Insights
+- Chat with Gemini AI for food and mood advice
+- Automated pattern recognition in eating habits
+- Personalized suggestions for emotional well-being
 
----
+### 📊 Comprehensive Analytics
+- Mood trends over time with interactive charts
+- Food-mood correlation analysis
+- Calendar view with color-coded mood indicators
 
-## 👥 ĐÓNG GÓP
+### 🍜 Vietnamese Cuisine Discovery
+- Curated collection of Vietnamese dishes
+- Recipes and YouTube video tutorials
+- Save favorite meals for quick access
+
+### ☁️ Cloud Sync & Offline Support
+- Firebase integration for seamless cloud synchronization
+- Offline-first architecture with Room database
+- Data persistence across devices
+
+## Firebase Setup Details
+
+### Required Firebase Services
+
+1. **Authentication:**
+   - Enable Email/Password provider
+   - Enable Google Sign-In provider
+   - Configure OAuth consent screen
+
+2. **Firestore Database:**
+   - Create collection: `vietnameseMeals`
+   - Collection stores Vietnamese dish information with fields:
+     - `name` (string): Dish name
+     - `category` (string): "Món nước", "Món khô", or "Tráng miệng"
+     - `youtubeUrl` (string): Recipe video link
+     - `imageUrl` (string): High-quality image URL
+     - `calories` (number): Estimated calories
+     - `description` (string): Dish description
+     - `tags` (array): Related keywords
+
+3. **Cloud Storage:**
+   - Enable Storage for user-uploaded food images
+   - Configure security rules for authenticated users
+
+### Adding Vietnamese Meals to Firestore
+
+**Method 1: Via Firebase Console (Easiest)**
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Select your project: FoodMoodDiary
+3. Navigate to **Firestore Database**
+4. Select `vietnameseMeals` collection
+5. Click **Add Document**
+6. Fill in the fields as described above
+
+**Method 2: Using Python Script**
+
+1. Generate Firebase service account key:
+   - Go to Project Settings > Service Accounts
+   - Click "Generate New Private Key"
+   - Save as `serviceAccountKey.json` in `scripts/` folder
+
+2. Run the upload script:
+   ```bash
+   cd scripts
+   pip install firebase-admin
+   python3 upload_meals_to_firestore.py
+   ```
+
+## Troubleshooting
+
+### Common Issues
+
+**Java Version Mismatch**
+- Ensure Java 17 LTS is installed
+- Check version: `java -version`
+- macOS: Set JAVA_HOME in zsh:
+  ```bash
+  export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+  export PATH="$JAVA_HOME/bin:$PATH"
+  ```
+- Windows: Set JAVA_HOME in PowerShell:
+  ```powershell
+  $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-17.x.x"
+  $env:Path += ";$env:JAVA_HOME\bin"
+  ```
+
+**SDK Location Not Found**
+- Edit `local.properties`:
+  ```properties
+  # macOS
+  sdk.dir=/Users/your-username/Library/Android/sdk
+  
+  # Windows
+  sdk.dir=C\:\\Users\\YourUsername\\AppData\\Local\\Android\\Sdk
+  ```
+
+**Gemini API 403 Error**
+- Your API key may be leaked or expired
+- Generate a new key at [Google AI Studio](https://aistudio.google.com/app/apikey)
+- Update `local.properties` with the new key
+
+**Build Dependency Issues**
+```bash
+./gradlew clean
+./gradlew build --refresh-dependencies
+```
+
+**Firebase Connection Issues**
+- Verify `google-services.json` is in `app/` directory
+- Check Firebase project settings match your bundle ID
+- Ensure all required Firebase services are enabled
+
+## Development Notes
+
+### Key Android Concepts Demonstrated
+
+1. **Jetpack Compose:** Modern declarative UI framework
+2. **Clean Architecture:** Separation of concerns with layers
+3. **Dependency Injection:** Hilt for managing dependencies
+4. **Coroutines & Flow:** Asynchronous programming and reactive streams
+5. **CameraX:** Camera integration with modern API
+6. **Room Database:** Local data persistence
+7. **Firebase Integration:** Authentication, Firestore, Storage
+8. **WorkManager:** Background task scheduling
+9. **Content Providers:** Sharing data with other apps
+10. **Sensors:** Accelerometer and light sensor integration
+
+### Testing
+
+Run unit tests:
+```bash
+./gradlew test
+```
+
+Run instrumentation tests:
+```bash
+./gradlew connectedAndroidTest
+```
+
+## Future Enhancements
+
+- [ ] Social features: Share entries with friends
+- [ ] Advanced AI insights with personalized recommendations
+- [ ] Integration with health apps (Google Fit)
+- [ ] Export data to CSV/PDF formats
+- [ ] Multi-language support (Vietnamese, English)
+- [ ] Dark theme customization
+- [ ] Widget for quick entry creation
+
+## Contributing
 
 Contributions are welcome! Please follow these steps:
 
@@ -265,46 +339,25 @@ Contributions are welcome! Please follow these steps:
 5. Open a Pull Request
 
 ### Coding Standards
+
 - Follow [Kotlin Coding Conventions](https://kotlinlang.org/docs/coding-conventions.html)
 - Use meaningful variable/function names
 - Comment complex logic
 - Write unit tests for new features
 - Update documentation
 
----
+## License
 
-## 📄 LICENSE
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 ACKNOWLEDGMENTS
+## Acknowledgments
 
 - [Android Jetpack](https://developer.android.com/jetpack) - Modern Android development
 - [Firebase](https://firebase.google.com) - Backend as a Service
-- [TheMealDB](https://www.themealdb.com) - Free meal database API
+- [Google Gemini API](https://ai.google.dev/) - AI chat integration
 - [MPAndroidChart](https://github.com/PhilJay/MPAndroidChart) - Chart library
 - [Lottie](https://airbnb.design/lottie/) - Animation library
-- [Google Maps Platform](https://developers.google.com/maps) - Maps & location services
 
 ---
 
-## 📧 CONTACT
-
-**Ha Phuong Quynh**
-- GitHub: [@quynh2204](https://github.com/quynh2204)
-- Project Link: [https://github.com/quynh2204/FoodMoodDiary_Mobile](https://github.com/quynh2204/FoodMoodDiary_Mobile)
-
----
-
-## 🌟 SHOW YOUR SUPPORT
-
-Give a ⭐️ if you like this project!
-
----
-
-**Built with ❤️ using Kotlin & Jetpack Compose**
-
-**Version**: 1.0  
-**Last Updated**: December 17, 2025
+Built with ❤️ using Kotlin & Jetpack Compose

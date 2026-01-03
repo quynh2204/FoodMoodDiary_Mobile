@@ -30,8 +30,42 @@ import java.util.*
 fun ModernEntryDetailScreen(
     entry: FoodEntry,
     onNavigateBack: () -> Unit,
-    onShare: () -> Unit
+    onShare: () -> Unit,
+    onEdit: (FoodEntry) -> Unit = {},
+    onDelete: (String) -> Unit = {}
 ) {
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    
+    // Delete confirmation dialog
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Delete Entry", color = Color.White) },
+            text = { Text("Are you sure you want to delete \"${entry.foodName}\"? This action cannot be undone.", color = Color.White) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirmation = false
+                        onDelete(entry.id)
+                        onNavigateBack()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFFF5252))
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDeleteConfirmation = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+                ) {
+                    Text("Cancel")
+                }
+            },
+            containerColor = Color(0xFF2C2C2E)
+        )
+    }
+    
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color(0xFF1C1C1E)
@@ -47,8 +81,11 @@ fun ModernEntryDetailScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = { /* edit */ }) {
+                        IconButton(onClick = { onEdit(entry) }) {
                             Icon(Icons.Default.Edit, "Edit", tint = Color.White)
+                        }
+                        IconButton(onClick = { showDeleteConfirmation = true }) {
+                            Icon(Icons.Default.Delete, "Delete", tint = Color(0xFFFF5252))
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -69,9 +106,12 @@ fun ModernEntryDetailScreen(
                         .fillMaxWidth()
                         .height(300.dp)
                 ) {
-                    if (entry.localPhotoPath != null) {
+                    // Ưu tiên: localPhotoPath > imageUrl > placeholder
+                    val photoSource = entry.localPhotoPath ?: entry.imageUrl
+                    
+                    if (photoSource != null) {
                         AsyncImage(
-                            model = entry.localPhotoPath,
+                            model = photoSource,
                             contentDescription = entry.foodName,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
@@ -109,7 +149,7 @@ fun ModernEntryDetailScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "😊",
+                            entry.mood ?: "😊",
                             fontSize = 24.sp
                         )
                     }
@@ -129,35 +169,11 @@ fun ModernEntryDetailScreen(
                         )
                     }
 
-                    // Meal Type, Rating
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        InfoColumn(
-                            label = "Meal Type",
-                            value = "Dinner"
-                        )
-                        Column {
-                            Text(
-                                "Rating",
-                                color = Color(0xFF9FD4A8),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Row {
-                                repeat(5) { index ->
-                                    Icon(
-                                        imageVector = Icons.Filled.Star,
-                                        contentDescription = null,
-                                        tint = Color(0xFF9FD4A8),
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    // Meal Type
+                    InfoColumn(
+                        label = "Meal Type",
+                        value = "Dinner"
+                    )
 
                     // Notes
                     if (entry.notes.isNotEmpty()) {
@@ -177,42 +193,7 @@ fun ModernEntryDetailScreen(
                         }
                     }
 
-                    // AI Palette Extracted
-                    Text(
-                        "AI Palette Extracted",
-                        color = Color(0xFF9FD4A8),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        PaletteCircle(Color(0xFFD32F2F))
-                        PaletteCircle(Color(0xFFFBC02D))
-                        PaletteCircle(Color(0xFF8D6E63))
-                    }
-
-                    // AI Suggestion
-                    Text(
-                        "AI Suggestion",
-                        color = Color(0xFF9FD4A8),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        color = Color(0xFF2C2C2E)
-                    ) {
-                        Text(
-                            "Ảnh có nhiều màu đỏ → Gợi ý mood Happy hoặc Energy",
-                            modifier = Modifier.padding(16.dp),
-                            color = Color.White,
-                            fontSize = 14.sp
-                        )
-                    }
-
-                    // Share Button
+// Share Button
                     Button(
                         onClick = onShare,
                         modifier = Modifier.fillMaxWidth(),
@@ -254,16 +235,6 @@ private fun InfoColumn(label: String, value: String) {
             fontSize = 14.sp
         )
     }
-}
-
-@Composable
-private fun PaletteCircle(color: Color) {
-    Box(
-        modifier = Modifier
-            .size(48.dp)
-            .clip(CircleShape)
-            .background(color)
-    )
 }
 
 private fun formatDateTime(timestamp: Long): String {

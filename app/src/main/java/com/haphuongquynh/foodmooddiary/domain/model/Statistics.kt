@@ -6,11 +6,25 @@ package com.haphuongquynh.foodmooddiary.domain.model
 
 /**
  * Mood trend data point for line chart
+ * Includes individual entries for calendar day preview
  */
 data class MoodTrendPoint(
     val date: Long,
     val averageMoodScore: Float,
-    val entryCount: Int
+    val entryCount: Int,
+    val entries: List<DayEntry> = emptyList()
+)
+
+/**
+ * Individual entry data for calendar day preview
+ */
+data class DayEntry(
+    val id: String,
+    val foodName: String,
+    val mood: String?,        // emoji
+    val photoUrl: String?,
+    val localPhotoPath: String?,
+    val timestamp: Long
 )
 
 /**
@@ -77,3 +91,25 @@ enum class InsightType {
     STREAK,            // "5 days logging streak!"
     RECOMMENDATION     // "Try adding more vegetables"
 }
+
+/**
+ * Local mood analysis result (used by HomeAIViewModel)
+ */
+data class MoodAnalysis(
+    val dominantMood: MoodType?,
+    val moodCounts: Map<MoodType, Int>,
+    val totalEntries: Int,
+    val happyPercentage: Int,
+    val insight: String,
+    val suggestion: String
+)
+
+/**
+ * Local color analysis result (used by HomeAIViewModel)
+ */
+data class LocalColorAnalysis(
+    val dominantMood: MoodType?,
+    val colorDistribution: Map<MoodType, Int>,
+    val insight: String,
+    val suggestion: String
+)
