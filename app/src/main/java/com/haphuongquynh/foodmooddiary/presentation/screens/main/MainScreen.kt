@@ -91,24 +91,6 @@ fun MainScreen(
 
     Scaffold(
         containerColor = DarkGray,
-        topBar = {
-            TopAppBar(
-                title = {},
-                actions = {
-                    IconButton(onClick = { navController.navigate(Screen.Profile.route) }) {
-                        Icon(
-                            Icons.Default.Person,
-                            contentDescription = "Profile",
-                            tint = WhiteText,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkGray
-                )
-            )
-        },
         bottomBar = {
             NavigationBar(
                 containerColor = DarkGray,
@@ -205,7 +187,8 @@ fun MainScreen(
                 selectedTab == BottomNavItem.Home.route -> {
                     com.haphuongquynh.foodmooddiary.presentation.screens.home.SimpleHomeScreen(
                         navController = navController,
-                        onNavigateToTab = { tabRoute -> selectedTab = tabRoute }
+                        onNavigateToTab = { tabRoute -> selectedTab = tabRoute },
+                        onProfileClick = { navController.navigate(Screen.Profile.route) }
                     )
                 }
                 selectedTab == BottomNavItem.Statistics.route -> {

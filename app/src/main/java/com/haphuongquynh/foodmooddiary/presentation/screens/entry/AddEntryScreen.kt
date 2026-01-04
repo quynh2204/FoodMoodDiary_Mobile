@@ -258,7 +258,7 @@ private fun PhotoCaptionStep(
                 shape = RoundedCornerShape(28.dp),
                 enabled = photoData != null
             ) {
-                Text("Continue →", color = BlackPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Tiếp tục →", color = BlackPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -341,11 +341,11 @@ private fun EntryFormStep(
                 }
                 
                 TextButton(onClick = onChangePhoto) {
-                    Text("Change photo", color = PastelGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Đổi ảnh", color = PastelGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
-            Text("Food Name", color = WhiteText, fontSize = 14.sp)
+            Text("Tên món ăn", color = WhiteText, fontSize = 14.sp)
             TextField(
                 value = foodName,
                 onValueChange = onFoodNameChange,
@@ -362,7 +362,7 @@ private fun EntryFormStep(
                 )
             )
 
-            Text("Mood", color = WhiteText, fontSize = 14.sp)
+            Text("Cảm xúc", color = WhiteText, fontSize = 14.sp)
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 color = PastelGreenVeryLight
@@ -403,7 +403,7 @@ private fun EntryFormStep(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Date & Time", color = WhiteText, fontSize = 14.sp)
+                    Text("Ngày & Giờ", color = WhiteText, fontSize = 14.sp)
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = PastelGreenVeryLight
@@ -419,7 +419,7 @@ private fun EntryFormStep(
                 }
                 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Location", color = WhiteText, fontSize = 14.sp)
+                    Text("Vị trí", color = WhiteText, fontSize = 14.sp)
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = PastelGreenVeryLight
@@ -466,7 +466,7 @@ private fun EntryFormStep(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Notes", color = WhiteText, fontSize = 14.sp)
+                    Text("Ghi chú", color = WhiteText, fontSize = 14.sp)
                     TextField(
                         value = notes,
                         onValueChange = onNotesChange,
@@ -533,7 +533,7 @@ private fun EntryFormStep(
                     shape = RoundedCornerShape(28.dp),
                     enabled = !isLoading
                 ) {
-                    Text("Cancel", color = BlackPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("Hủy", color = BlackPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

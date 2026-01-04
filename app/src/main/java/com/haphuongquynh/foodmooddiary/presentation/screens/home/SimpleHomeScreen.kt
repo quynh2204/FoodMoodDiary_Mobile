@@ -59,6 +59,7 @@ private val AccentCyan = Color(0xFF00BCD4)
 fun SimpleHomeScreen(
     navController: NavController,
     onNavigateToTab: (String) -> Unit = {},
+    onProfileClick: () -> Unit = {},
     viewModel: FoodEntryViewModel = hiltViewModel(),
     aiViewModel: HomeAIViewModel = hiltViewModel()
 ) {
@@ -86,7 +87,10 @@ fun SimpleHomeScreen(
             .verticalScroll(rememberScrollState())
     ) {
         // 1. Header Greeting + Streak
-        GreetingHeader(streak = streak)
+        GreetingHeader(
+            streak = streak,
+            onProfileClick = onProfileClick
+        )
         
         Spacer(modifier = Modifier.height(12.dp))
         
@@ -480,7 +484,7 @@ private fun CalendarView(entries: List<FoodEntry>, navController: NavController)
                         .border(1.dp, PastelGreen, CircleShape)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Today", color = GrayText, fontSize = 11.sp)
+                Text("Hôm nay", color = GrayText, fontSize = 11.sp)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
@@ -491,7 +495,7 @@ private fun CalendarView(entries: List<FoodEntry>, navController: NavController)
                         .border(1.dp, PastelGreen.copy(alpha = 0.5f), CircleShape)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Has entries", color = GrayText, fontSize = 11.sp)
+                Text("Có bài viết", color = GrayText, fontSize = 11.sp)
             }
         }
         
@@ -517,7 +521,7 @@ private fun CalendarView(entries: List<FoodEntry>, navController: NavController)
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
-                        Text("Meals", color = GrayText, fontSize = 12.sp)
+                        Text("Bữa ăn", color = GrayText, fontSize = 12.sp)
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
@@ -526,7 +530,7 @@ private fun CalendarView(entries: List<FoodEntry>, navController: NavController)
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
-                        Text("Days", color = GrayText, fontSize = 12.sp)
+                        Text("Ngày", color = GrayText, fontSize = 12.sp)
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         val avgMeals = monthEntries.size.toFloat() / entriesByDay.size
@@ -536,7 +540,7 @@ private fun CalendarView(entries: List<FoodEntry>, navController: NavController)
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
-                        Text("Avg/day", color = GrayText, fontSize = 12.sp)
+                        Text("TB/ngày", color = GrayText, fontSize = 12.sp)
                     }
                 }
             }
@@ -625,7 +629,10 @@ private fun formatDate(timestamp: Long): String {
 // ==================== NEW COMPONENTS ====================
 
 @Composable
-private fun GreetingHeader(streak: Int) {
+private fun GreetingHeader(
+    streak: Int,
+    onProfileClick: () -> Unit = {}
+) {
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val (greeting, emoji) = when {
         currentHour < 12 -> "Good morning" to "🌅"
@@ -643,7 +650,7 @@ private fun GreetingHeader(streak: Int) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = "$greeting $emoji",
                 color = GrayText,
@@ -657,26 +664,41 @@ private fun GreetingHeader(streak: Int) {
             )
         }
         
-        // Streak Badge
-        if (streak > 0) {
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = Color(0xFFFF5722).copy(alpha = 0.2f),
-                border = BorderStroke(1.dp, Color(0xFFFF5722))
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Streak Badge
+            if (streak > 0) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFFFF5722).copy(alpha = 0.2f),
+                    border = BorderStroke(1.dp, Color(0xFFFF5722))
                 ) {
-                    Text("🔥", fontSize = 16.sp)
-                    Text(
-                        text = "$streak day${if (streak > 1) "s" else ""}",
-                        color = Color(0xFFFF5722),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text("🔥", fontSize = 16.sp)
+                        Text(
+                            text = "$streak day${if (streak > 1) "s" else ""}",
+                            color = Color(0xFFFF5722),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
+            }
+            
+            // Profile Icon
+            IconButton(onClick = onProfileClick) {
+                Icon(
+                    Icons.Default.Person,
+                    contentDescription = "Profile",
+                    tint = WhiteText,
+                    modifier = Modifier.size(28.dp)
+                )
             }
         }
     }

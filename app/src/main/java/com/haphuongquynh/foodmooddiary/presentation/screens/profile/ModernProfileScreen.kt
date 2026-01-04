@@ -165,10 +165,10 @@ fun ModernProfileScreen(
     if (showClearDataDialog) {
         AlertDialog(
             onDismissRequest = { showClearDataDialog = false },
-            title = { Text("Clear All Entries?", color = WhiteText) },
+            title = { Text("Xóa tất cả bài viết?", color = WhiteText) },
             text = {
                 Text(
-                    "This will permanently delete all your food entries. This action cannot be undone.",
+                    "Thao tác này sẽ xóa vĩnh viễn tất cả các bài viết của bạn. Hành động này không thể hoàn tác.",
                     color = GrayText
                 )
             },
@@ -179,12 +179,12 @@ fun ModernProfileScreen(
                         showClearDataDialog = false
                     }
                 ) {
-                    Text("Clear", color = OrangeAccent)
+                    Text("Xóa", color = OrangeAccent)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showClearDataDialog = false }) {
-                    Text("Cancel", color = PastelGreen)
+                    Text("Hủy", color = PastelGreen)
                 }
             },
             containerColor = BlackSecondary
@@ -195,12 +195,12 @@ fun ModernProfileScreen(
     if (showEditNameDialog) {
         AlertDialog(
             onDismissRequest = { showEditNameDialog = false },
-            title = { Text("Edit Display Name", color = WhiteText) },
+            title = { Text("Sửa tên hiển thị", color = WhiteText) },
             text = {
                 OutlinedTextField(
                     value = editNameText,
                     onValueChange = { editNameText = it },
-                    label = { Text("Display Name", color = GrayText) },
+                    label = { Text("Tên hiển thị", color = GrayText) },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = WhiteText,
@@ -221,7 +221,7 @@ fun ModernProfileScreen(
                         }
                     }
                 ) {
-                    Text("Save", color = PastelGreen)
+                    Text("Lưu", color = PastelGreen)
                 }
             },
             dismissButton = {
@@ -229,7 +229,7 @@ fun ModernProfileScreen(
                     editNameText = currentUser?.displayName ?: ""
                     showEditNameDialog = false
                 }) {
-                    Text("Cancel", color = GrayText)
+                    Text("Hủy", color = GrayText)
                 }
             },
             containerColor = BlackSecondary
@@ -239,13 +239,13 @@ fun ModernProfileScreen(
     // Streak stat dialog
     if (showStreakDialog) {
         StatDialog(
-            title = "Your Streak",
+            title = "Chuỗi đăng nhập",
             icon = Icons.Default.LocalFireDepartment,
             iconTint = StreakOrange,
-            statValue = "$currentStreak days",
+            statValue = "$currentStreak ngày",
             description = if (currentStreak > 0)
-                "You've logged meals for $currentStreak consecutive days! Keep it up!"
-                else "Start logging meals daily to build your streak!",
+                "Bạn đã ghi nhận bữa ăn liên tục trong $currentStreak ngày! Tiếp tục nhé!"
+                else "Bắt đầu ghi nhận bữa ăn hàng ngày để xây dựng chuỗi của bạn!",
             onDismiss = { showStreakDialog = false }
         )
     }
@@ -253,11 +253,11 @@ fun ModernProfileScreen(
     // Meals stat dialog
     if (showMealsDialog) {
         StatDialog(
-            title = "Meals Tracked",
+            title = "Bữa ăn đã ghi",
             icon = Icons.Default.Restaurant,
             iconTint = PastelGreen,
-            statValue = "$totalMeals meals",
-            description = "You've logged $totalMeals meals in total. Every meal counts!",
+            statValue = "$totalMeals bữa",
+            description = "Bạn đã ghi nhận tổng cộng $totalMeals bữa ăn. Mỗi bữa đều đáng giá!",
             onDismiss = { showMealsDialog = false }
         )
     }
@@ -265,13 +265,13 @@ fun ModernProfileScreen(
     // Top food stat dialog
     if (showTopFoodDialog) {
         StatDialog(
-            title = "Favourite Food",
+            title = "Món ăn yêu thích",
             icon = Icons.Default.Favorite,
             iconTint = OrangeAccent,
-            statValue = topFood ?: "No data",
+            statValue = topFood ?: "Chưa có dữ liệu",
             description = if (topFood != null)
-                "\"$topFood\" is your most logged food. It seems to be your favourite!"
-                else "Start logging meals to discover your favourite food!",
+                "\"$topFood\" là món ăn bạn ghi nhận nhiều nhất. Có vẻ đây là món yêu thích của bạn!"
+                else "Bắt đầu ghi nhận bữa ăn để khám phá món yêu thích của bạn!",
             onDismiss = { showTopFoodDialog = false }
         )
     }
@@ -279,16 +279,16 @@ fun ModernProfileScreen(
     // Mood stat dialog
     if (showMoodDialog) {
         StatDialog(
-            title = "Average Mood",
+            title = "Cảm xúc trung bình",
             icon = Icons.Default.Mood,
             iconTint = GoldPrimary,
-            statValue = if (avgMood > 0) String.format("%.1f/10", avgMood) else "No data",
+            statValue = if (avgMood > 0) String.format("%.1f/10", avgMood) else "Chưa có dữ liệu",
             description = when {
-                avgMood >= 8 -> "Your average mood is excellent! Your food choices seem to make you happy."
-                avgMood >= 6 -> "Your average mood is good. Keep tracking to find what makes you happiest!"
-                avgMood >= 4 -> "Your mood is moderate. Try experimenting with different foods!"
-                avgMood > 0 -> "Your mood could be better. Consider trying foods that boost your spirits!"
-                else -> "Start logging meals with mood colors to track your emotional wellbeing!"
+                avgMood >= 8 -> "Cảm xúc trung bình của bạn rất tốt! Các lựa chọn thực ăn của bạn có vẻ mang lại niềm vui."
+                avgMood >= 6 -> "Cảm xúc trung bình của bạn ổn. Tiếp tục theo dõi để tìm ra điều gì khiến bạn hạnh phúc nhất!"
+                avgMood >= 4 -> "Cảm xúc của bạn ở mức trung bình. Thử thực nghiệm với các món ăn khác nhau!"
+                avgMood > 0 -> "Cảm xúc của bạn có thể tốt hơn. Hãy thử các món ăn nâng cao tinh thần!"
+                else -> "Bắt đầu ghi nhận bữa ăn với cảm xúc để theo dõi tinh thần của bạn!"
             },
             onDismiss = { showMoodDialog = false }
         )
@@ -304,7 +304,7 @@ fun ModernProfileScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            "Profile & Settings",
+                            "Hồ sơ & Cài đặt",
                             color = WhiteText,
                             fontWeight = FontWeight.Bold
                         )
@@ -349,7 +349,7 @@ fun ModernProfileScreen(
 
                     // Follow Us Section
                     Text(
-                        "Follow FoodMoodDiary",
+                        "Theo dõi FoodMoodDiary",
                         color = PastelGreen,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
@@ -371,49 +371,49 @@ fun ModernProfileScreen(
 
                     // Data Management
                     Text(
-                        "Data Management",
+                        "Quản lý dữ liệu",
                         color = PastelGreen,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
                     OptionButton(
-                        text = "Clear All Entries",
+                        text = "Xóa tất cả bài viết",
                         onClick = { showClearDataDialog = true }
                     )
 
                     // Export Data
                     Text(
-                        "Export Data",
+                        "Xuất dữ liệu",
                         color = PastelGreen,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
                     OptionButton(
-                        text = "Export as CSV",
+                        text = "Xuất dạng CSV",
                         onClick = { dataManagementViewModel.exportToCSV(context) }
                     )
                     OptionButton(
-                        text = "Export as PDF",
+                        text = "Xuất dạng PDF",
                         onClick = { dataManagementViewModel.exportToPDF(context) }
                     )
 
                     // About
                     Text(
-                        "About",
+                        "Thông tin",
                         color = PastelGreen,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
                     OptionButton(
-                        text = "Terms of Service",
+                        text = "Điều khoản dịch vụ",
                         onClick = {
-                            Toast.makeText(context, "Coming Soon", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Sắp ra mắt", Toast.LENGTH_SHORT).show()
                         }
                     )
                     OptionButton(
-                        text = "Privacy Policy",
+                        text = "Chính sách bảo mật",
                         onClick = {
-                            Toast.makeText(context, "Coming Soon", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Sắp ra mắt", Toast.LENGTH_SHORT).show()
                         }
                     )
 
@@ -432,7 +432,7 @@ fun ModernProfileScreen(
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
-                            "Log out",
+                            "Đăng xuất",
                             color = WhiteText,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
@@ -625,7 +625,7 @@ private fun StreakChip(streakDays: Int) {
             Spacer(modifier = Modifier.width(8.dp))
 
             Text(
-                text = "$streakDays-day streak",
+                text = "$streakDays ngày liên tục",
                 color = WhiteText,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold
@@ -774,7 +774,7 @@ private fun StatDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close", color = PastelGreen)
+                Text("Đóng", color = PastelGreen)
             }
         },
         containerColor = BlackSecondary

@@ -18,11 +18,11 @@ val LimeGreen = Color(0xFFC4E4B8)          // Xanh lime pastel
 val TealGreen = Color(0xFF8FD4BF)          // Xanh teal pastel
 
 // Black & Dark Colors - Màu đen và tối
-val BlackPrimary = Color(0xFF1A1A1A)       // Đen chính - Background
-val BlackSecondary = Color(0xFF2C2C2E)     // Đen nhạt - Surface
-val BlackTertiary = Color(0xFF3A3A3C)      // Xám đen - Container
-val CharcoalGray = Color(0xFF4A4A4C)       // Xám than - Border
-val DarkGray = Color(0xFF1C1C1E)           // Màu đen cho Wao style
+val BlackPrimary = Color(0xFF000000)       // Đen tuyền - Background (trùng logo)
+val BlackSecondary = Color(0xFF1A1A1A)     // Đen nhạt - Surface
+val BlackTertiary = Color(0xFF2C2C2E)      // Xám đen - Container
+val CharcoalGray = Color(0xFF3A3A3C)       // Xám than - Border
+val DarkGray = Color(0xFF000000)           // Màu đen tuyền cho Wao style
 
 // Text Colors - Màu text
 val WhiteText = Color(0xFFF5F5F5)          // Trắng cho text chính

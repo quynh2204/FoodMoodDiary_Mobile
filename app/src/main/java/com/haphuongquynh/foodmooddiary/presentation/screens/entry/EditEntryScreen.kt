@@ -71,7 +71,7 @@ fun EditEntryScreen(
             containerColor = BlackPrimary,
             topBar = {
                 TopAppBar(
-                    title = { Text("Edit Entry", color = WhiteText) },
+                    title = { Text("Chỉnh sửa bài viết", color = WhiteText) },
                     navigationIcon = {
                         IconButton(onClick = { navController.navigateUp() }) {
                             Icon(Icons.Default.ArrowBack, "Back", tint = WhiteText)
@@ -116,7 +116,7 @@ fun EditEntryScreen(
                 OutlinedTextField(
                     value = foodName,
                     onValueChange = { foodName = it },
-                    label = { Text("Food Name", color = GrayText) },
+                    label = { Text("Tên món ăn", color = GrayText) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = PastelGreen,
@@ -187,7 +187,7 @@ fun EditEntryScreen(
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
-                    label = { Text("Notes", color = GrayText) },
+                    label = { Text("Ghi chú", color = GrayText) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(120.dp),
