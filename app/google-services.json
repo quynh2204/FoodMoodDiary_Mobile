@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "694088836256-prhr6c4joqo5vhn417a3bse7hnl5p2ql.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.haphuongquynh.foodmooddiary",
+            "certificate_hash": "51acf90e5252b3dc3d141f4649609dd909a14e06"
+          }
+        },
+        {
           "client_id": "694088836256-cb3s35o7i2m7gnnn3b2vmokh2428944p.apps.googleusercontent.com",
           "client_type": 3
         }

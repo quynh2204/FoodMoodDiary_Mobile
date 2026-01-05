@@ -8,26 +8,39 @@
 
 FoodMoodDiary is an Android mobile application that helps users track and discover the relationship between their diet and emotional state on a daily basis. By combining food journaling with mood tracking, the app provides insights into how different meals affect your emotional well-being.
 
-## Features
+## ✨ Key Features
 
-The application includes the following core features:
+### 🔐 Authentication
+- **Email/Password Login:** Secure authentication with Firebase
+- **Google Sign-In:** Quick login with Google One Tap
+- **Remember Me:** 30-day session persistence with DataStore
+- **Password Reset:** In-app password reset with deep link support
 
-- **User Authentication:** Secure sign-up and login with email/password and Google Sign-In integration
-  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/auth/`)
-- **Food Entry Management:** Capture meals via camera or gallery, with automatic color analysis for mood suggestions
-  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/entry/`)
-- **Camera Integration:** Take photos directly within the app with CameraX integration
-  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/camera/`)
-- **AI Chat Assistant:** Get food and mood insights through Gemini AI-powered chat interface
-  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/ChatScreen.kt`)
-- **Statistics & Analytics:** Comprehensive mood trends, food-mood correlations, and calendar views
-  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/statistics/`)
-- **Vietnamese Meals Discovery:** Explore Vietnamese dishes with recipes from Firestore database
-  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/discovery/`)
-- **Home Dashboard:** Overview of recent entries, mood statistics, and quick access to features
-  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/home/`)
-- **User Profile:** Manage account settings, streak counter, and app preferences
-  - (Located in `app/src/main/java/com/haphuongquynh/foodmooddiary/presentation/screens/profile/`)
+### 📸 Food Tracking
+- **Camera Integration:** Take photos with CameraX
+- **AI Color Analysis:** Automatic mood suggestions from food colors
+- **Entry Management:** Add, edit, delete food entries
+- **Location Tracking:** Optional geolocation for entries
+
+### 📊 Analytics & Insights
+- **Mood Trends:** Track emotional patterns over time
+- **Food-Mood Correlation:** Discover which foods affect your mood
+- **Calendar View:** Visual representation of daily entries
+- **Statistics Dashboard:** Comprehensive data visualization
+
+### 🤖 AI Assistant
+- **Gemini Integration:** Chat with AI for food and mood insights
+- **Smart Suggestions:** Personalized recommendations based on your data
+
+### 🍜 Discovery
+- **Vietnamese Meals:** Browse traditional dishes
+- **Recipe Videos:** YouTube integration for cooking tutorials
+- **Nutritional Info:** Calorie and ingredient information
+
+### 👤 Profile Management
+- **Streak Counter:** Track daily logging consistency
+- **Theme Settings:** Light/Dark/Auto modes
+- **Export Data:** Share entries via PDF/text
 
 ## Tech Stack & Architecture
 
@@ -49,7 +62,7 @@ FoodMoodDiary is built with modern Android development tools and follows best pr
 - **Async Operations:** Kotlin Coroutines and Flow
 - **Background Tasks:** WorkManager for periodic reminders and sync
 
-## Project Structure
+## 📁 Project Structure
 
 The project follows a feature-first directory structure within Clean Architecture framework:
 
@@ -61,7 +74,9 @@ FoodMoodDiary/
 │   │   │   ├── java/com/haphuongquynh/foodmooddiary/
 │   │   │   │   ├── data/                  # Data layer
 │   │   │   │   │   ├── local/            # Room database, DAOs, entities
-│   │   │   │   │   ├── provider/         # Content Providers
+│   │   │   │   │   │   ├── dao/         # Data Access Objects
+│   │   │   │   │   │   ├── entity/      # Room entities
+│   │   │   │   │   │   └── preferences/ # DataStore (SessionManager)
 │   │   │   │   │   └── repository/       # Repository implementations
 │   │   │   │   ├── domain/               # Domain layer
 │   │   │   │   │   ├── model/           # Domain models
@@ -70,10 +85,23 @@ FoodMoodDiary/
 │   │   │   │   ├── presentation/        # Presentation layer
 │   │   │   │   │   ├── navigation/      # Navigation setup
 │   │   │   │   │   ├── screens/         # UI screens (Compose)
+│   │   │   │   │   │   ├── auth/       # Login, Register, ForgotPassword, ResetPassword
+│   │   │   │   │   │   ├── camera/     # CameraScreen
+│   │   │   │   │   │   ├── detail/     # EntryDetailScreen, ModernEntryDetailScreen
+│   │   │   │   │   │   ├── discovery/  # DiscoveryScreen
+│   │   │   │   │   │   ├── entry/      # AddEntryScreen, EditEntryScreen
+│   │   │   │   │   │   ├── home/       # SimpleHomeScreen
+│   │   │   │   │   │   ├── profile/    # ModernProfileScreen
+│   │   │   │   │   │   ├── statistics/ # StatisticsScreen with tabs
+│   │   │   │   │   │   ├── ChatScreen.kt # AI Chat
+│   │   │   │   │   │   └── splash/     # SplashScreen
 │   │   │   │   │   └── viewmodel/       # ViewModels
 │   │   │   │   ├── di/                  # Dependency injection modules
 │   │   │   │   ├── ui/                  # UI theme and animations
 │   │   │   │   ├── util/                # Utility classes
+│   │   │   │   │   ├── auth/           # GoogleSignInHelper
+│   │   │   │   │   ├── notification/   # NotificationService
+│   │   │   │   │   └── sensor/         # ShakeDetector
 │   │   │   │   └── worker/              # Background workers
 │   │   │   ├── res/                     # Resources
 │   │   │   └── AndroidManifest.xml
@@ -82,15 +110,15 @@ FoodMoodDiary/
 │   ├── build.gradle.kts                 # App-level Gradle config
 │   └── google-services.json             # Firebase configuration
 ├── gradle/                              # Gradle wrapper
-├── scripts/                             # Helper scripts
-│   └── upload_meals_to_firestore.py    # Script to populate Firestore
 ├── build.gradle.kts                     # Project-level Gradle config
 ├── settings.gradle.kts
 ├── local.properties                     # Local configuration (API keys)
+├── FEATURES_SUMMARY.md                  # Feature implementation summary
+├── DEEP_LINK_TEST_GUIDE.md             # Deep link testing guide
 └── README.md                           # This file
 ```
 
-## Getting Started
+## 🚀 Getting Started
 
 Follow these instructions to get the project up and running on your local machine.
 

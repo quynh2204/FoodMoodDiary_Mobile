@@ -1,11 +1,6 @@
 package com.haphuongquynh.foodmooddiary.presentation.screens.auth
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,11 +14,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -34,56 +26,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.haphuongquynh.foodmooddiary.presentation.navigation.Screen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthState
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.AuthViewModel
 import com.haphuongquynh.foodmooddiary.ui.theme.*
-import com.haphuongquynh.foodmooddiary.util.auth.GoogleSignInHelper
-import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(
+fun ResetPasswordScreen(
     navController: NavController,
+    oobCode: String,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var rememberMe by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var successMessage by remember { mutableStateOf<String?>(null) }
     
-    val context = LocalContext.current
     val authState by viewModel.authState.collectAsState()
     val focusManager = LocalFocusManager.current
-    val coroutineScope = rememberCoroutineScope()
-
-    // Google Sign-In helper
-    val googleSignInHelper = remember { GoogleSignInHelper(context) }
-    
-    // Launcher for Google Sign-In
-    val googleSignInLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult()
-    ) { result ->
-        val idToken = googleSignInHelper.getSignInCredentialFromIntent(result.data)
-        if (idToken != null) {
-            viewModel.signInWithGoogle(idToken)
-        } else {
-            errorMessage = "Google Sign-In failed"
-        }
-    }
 
     // Handle auth state changes
     LaunchedEffect(authState) {
         when (authState) {
             is AuthState.Success -> {
-                // Navigate to main screen
-                navController.navigate(Screen.Main.route) {
-                    popUpTo(Screen.Login.route) { inclusive = true }
-                }
+                successMessage = "Mật khẩu đã được đổi thành công! Vui lòng đăng nhập."
+                errorMessage = null
             }
             is AuthState.Error -> {
                 errorMessage = (authState as AuthState.Error).message
+                successMessage = null
             }
             else -> {}
         }
@@ -122,9 +94,9 @@ fun LoginScreen(
             
             Spacer(modifier = Modifier.height(32.dp))
             
-            // Welcome back text
+            // Title
             Text(
-                text = "Chào mừng trở lại",
+                text = "Đặt lại mật khẩu",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
@@ -133,19 +105,20 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(6.dp))
             
             Text(
-                text = "Vui lòng nhập thông tin của bạn",
+                text = "Vui lòng nhập mật khẩu mới của bạn",
                 fontSize = 13.sp,
-                color = Color(0xFFAAAAAA)
+                color = Color(0xFFAAAAAA),
+                textAlign = TextAlign.Center
             )
             
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Email address field
+            // New password field
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Địa chỉ email",
+                    text = "Mật khẩu mới",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.White,
@@ -153,52 +126,9 @@ fun LoginScreen(
                 )
                 
                 OutlinedTextField(
-                    value = email,
+                    value = newPassword,
                     onValueChange = { 
-                        email = it
-                        errorMessage = null
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black,
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.White,
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Password field
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "Mật khẩu",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { 
-                        password = it
+                        newPassword = it
                         errorMessage = null
                     },
                     modifier = Modifier
@@ -230,13 +160,71 @@ fun LoginScreen(
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Next
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Confirm password field
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Xác nhận mật khẩu",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { 
+                        confirmPassword = it
+                        errorMessage = null
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White,
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    visualTransformation = if (confirmPasswordVisible) 
+                        VisualTransformation.None 
+                    else 
+                        PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                            Icon(
+                                if (confirmPasswordVisible) Icons.Default.Visibility 
+                                else Icons.Default.VisibilityOff,
+                                contentDescription = "Toggle password visibility",
+                                tint = Color.Gray
+                            )
+                        }
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(
                         onDone = { 
                             focusManager.clearFocus()
-                            if (email.isNotBlank() && password.isNotBlank()) {
-                                viewModel.login(email, password, rememberMe)
+                            if (newPassword.isNotBlank() && confirmPassword.isNotBlank()) {
+                                if (newPassword == confirmPassword) {
+                                    viewModel.confirmPasswordReset(oobCode, newPassword)
+                                } else {
+                                    errorMessage = "Mật khẩu không khớp"
+                                }
                             }
                         }
                     )
@@ -245,64 +233,58 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Remember me and Forgot password
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
+            // Success message
+            if (successMessage != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = PastelGreen.copy(alpha = 0.2f)
+                    ),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Checkbox(
-                        checked = rememberMe,
-                        onCheckedChange = { rememberMe = it },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = Color.White,
-                            uncheckedColor = Color.White,
-                            checkmarkColor = Color.Black
-                        )
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Ghi nhớ 30 ngày",
-                        fontSize = 14.sp,
-                        color = Color.White
+                        text = successMessage!!,
+                        color = PastelGreen,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(12.dp)
                     )
                 }
-                
-                Text(
-                    text = "Quên mật khẩu",
-                    fontSize = 14.sp,
-                    color = PastelGreen,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.clickable {
-                        navController.navigate(Screen.ForgotPassword.route)
-                    }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Error message
-            if (errorMessage != null) {
-                Text(
-                    text = errorMessage!!,
-                    color = ErrorRed,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.fillMaxWidth()
-                )
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Sign in button
+            // Error message
+            if (errorMessage != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = ErrorRed.copy(alpha = 0.2f)
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = errorMessage!!,
+                        color = ErrorRed,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // Reset password button
             Button(
                 onClick = { 
-                    viewModel.login(email, password, rememberMe) 
+                    if (newPassword.isBlank() || confirmPassword.isBlank()) {
+                        errorMessage = "Vui lòng nhập đầy đủ thông tin"
+                    } else if (newPassword != confirmPassword) {
+                        errorMessage = "Mật khẩu không khớp"
+                    } else if (newPassword.length < 6) {
+                        errorMessage = "Mật khẩu phải có ít nhất 6 ký tự"
+                    } else {
+                        viewModel.confirmPasswordReset(oobCode, newPassword)
+                    }
                 },
-                enabled = authState !is AuthState.Loading && 
-                         email.isNotBlank() && 
-                         password.isNotBlank(),
+                enabled = authState !is AuthState.Loading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -321,95 +303,21 @@ fun LoginScreen(
                     )
                 } else {
                     Text(
-                        text = "Đăng nhập",
+                        text = if (successMessage != null) "Quay lại đăng nhập" else "Đặt lại mật khẩu",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Sign in with Google
-            Button(
-                onClick = { 
-                    coroutineScope.launch {
-                        try {
-                            googleSignInHelper.beginSignIn(googleSignInLauncher)
-                        } catch (e: Exception) {
-                            errorMessage = "Google Sign-In not available: ${e.message}"
-                        }
-                    }
-                },
-                enabled = authState !is AuthState.Loading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black
-                ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Google icon (you'll need to add this icon to resources)
-                    Text(
-                        text = "G",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF4285F4)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "Đăng nhập với Google",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Sign up link
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Chưa có tài khoản?",
-                    fontSize = 14.sp,
-                    color = Color(0xFFAAAAAA)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "Đăng ký",
-                    fontSize = 14.sp,
-                    color = PastelGreen,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.clickable {
-                        navController.navigate(Screen.Register.route)
-                    }
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // Test/Skip button
-            TextButton(
-                onClick = {
-                    navController.navigate(Screen.Main.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
+            // Navigate to login after success
+            if (successMessage != null) {
+                LaunchedEffect(Unit) {
+                    kotlinx.coroutines.delay(2000)
+                    navController.navigate("login") {
+                        popUpTo("reset_password") { inclusive = true }
                     }
                 }
-            ) {
-                Text(
-                    text = "[DEV] Bỏ qua đăng nhập",
-                    fontSize = 12.sp,
-                    color = Color(0xFF666666)
-                )
             }
             
             Spacer(modifier = Modifier.height(24.dp))

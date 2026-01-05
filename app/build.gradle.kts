@@ -122,6 +122,7 @@ dependencies {
     // Maps & Location
     implementation(libs.play.services.location)
     implementation(libs.play.services.maps)
+    implementation(libs.play.services.auth)
     implementation(libs.maps.compose)
     implementation(libs.maps.utils)
     implementation(libs.accompanist.permissions)

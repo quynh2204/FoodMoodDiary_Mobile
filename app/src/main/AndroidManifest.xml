@@ -73,10 +73,33 @@
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.FoodMoodDiary"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            
+            <!-- Deep link for password reset -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                
+                <!-- Firebase Dynamic Links domain -->
+                <data
+                    android:scheme="https"
+                    android:host="foodmooddiary-mobile.firebaseapp.com"
+                    android:pathPrefix="/__/auth/action" />
+            </intent-filter>
+            
+            <!-- Custom URL scheme fallback -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                
+                <data android:scheme="foodmooddiary" />
             </intent-filter>
         </activity>
 

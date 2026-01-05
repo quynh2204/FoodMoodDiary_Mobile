@@ -1,10 +1,12 @@
 package com.haphuongquynh.foodmooddiary.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.haphuongquynh.foodmooddiary.data.local.dao.UserDao
 import com.haphuongquynh.foodmooddiary.data.local.entity.UserEntity
+import com.haphuongquynh.foodmooddiary.data.local.preferences.SessionManager
 import com.haphuongquynh.foodmooddiary.domain.model.User
 import com.haphuongquynh.foodmooddiary.domain.repository.AuthRepository
 import com.haphuongquynh.foodmooddiary.util.common.Resource
@@ -27,7 +29,8 @@ import javax.inject.Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
-    private val userDao: UserDao
+    private val userDao: UserDao,
+    private val sessionManager: SessionManager
 ) : AuthRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -59,7 +62,7 @@ class AuthRepositoryImpl @Inject constructor(
         return userDao.getCurrentUser().map { it?.toDomain() }
     }
 
-    override suspend fun login(email: String, password: String): Resource<User> {
+    override suspend fun login(email: String, password: String, rememberMe: Boolean): Resource<User> {
         return try {
             // Sign in with Firebase
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
@@ -78,12 +81,68 @@ class AuthRepositoryImpl @Inject constructor(
             // Save to local database (Offline-First)
             userDao.insertUser(UserEntity.fromDomain(user))
 
+            // Save remember me session if enabled
+            if (rememberMe) {
+                sessionManager.saveRememberMeSession(user.uid, user.email)
+            } else {
+                sessionManager.clearRememberMeSession()
+            }
+
             // Sync with Firestore
             syncUserToFirestore(user)
 
             Resource.success(user)
         } catch (e: Exception) {
             Resource.error("Login failed: ${e.localizedMessage}", e)
+        }
+    }
+
+    override suspend fun signInWithGoogle(idToken: String): Resource<User> {
+        return try {
+            // Create Google credential
+            val credential = GoogleAuthProvider.getCredential(idToken, null)
+            
+            // Sign in with Firebase
+            val result = firebaseAuth.signInWithCredential(credential).await()
+            val firebaseUser = result.user ?: return Resource.error("Google Sign-In failed: No user data")
+
+            // Create User object
+            val user = User(
+                uid = firebaseUser.uid,
+                email = firebaseUser.email ?: "",
+                displayName = firebaseUser.displayName ?: firebaseUser.email?.substringBefore("@") ?: "User",
+                photoUrl = firebaseUser.photoUrl?.toString(),
+                createdAt = firebaseUser.metadata?.creationTimestamp ?: System.currentTimeMillis(),
+                lastLoginAt = System.currentTimeMillis()
+            )
+
+            // Save to local database
+            userDao.insertUser(UserEntity.fromDomain(user))
+
+            // Sync with Firestore
+            syncUserToFirestore(user)
+
+            Resource.success(user)
+        } catch (e: Exception) {
+            Resource.error("Google Sign-In failed: ${e.localizedMessage}", e)
+        }
+    }
+
+    override suspend fun sendPasswordResetEmail(email: String): Resource<Unit> {
+        return try {
+            firebaseAuth.sendPasswordResetEmail(email).await()
+            Resource.success(Unit)
+        } catch (e: Exception) {
+            Resource.error("Failed to send password reset email: ${e.localizedMessage}", e)
+        }
+    }
+
+    override suspend fun confirmPasswordReset(code: String, newPassword: String): Resource<Unit> {
+        return try {
+            firebaseAuth.confirmPasswordReset(code, newPassword).await()
+            Resource.success(Unit)
+        } catch (e: Exception) {
+            Resource.error("Failed to reset password: ${e.localizedMessage}", e)
         }
     }
 
@@ -127,6 +186,9 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun logout(): Resource<Unit> {
         return try {
+            // Clear remember me session
+            sessionManager.clearRememberMeSession()
+            
             // Sign out from Firebase
             firebaseAuth.signOut()
 

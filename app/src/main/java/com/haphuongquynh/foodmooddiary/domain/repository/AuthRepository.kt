@@ -20,9 +20,17 @@ interface AuthRepository {
      * Login with email and password
      * @param email User's email address
      * @param password User's password
+     * @param rememberMe Whether to remember user for 30 days
      * @return Resource with User data or error
      */
-    suspend fun login(email: String, password: String): Resource<User>
+    suspend fun login(email: String, password: String, rememberMe: Boolean = false): Resource<User>
+    
+    /**
+     * Sign in with Google
+     * @param idToken Google ID token from authentication
+     * @return Resource with User data or error
+     */
+    suspend fun signInWithGoogle(idToken: String): Resource<User>
     
     /**
      * Register new user with email and password
@@ -32,6 +40,21 @@ interface AuthRepository {
      * @return Resource with User data or error
      */
     suspend fun register(email: String, password: String, displayName: String): Resource<User>
+    
+    /**
+     * Send password reset email
+     * @param email User's email address
+     * @return Resource with success or error
+     */
+    suspend fun sendPasswordResetEmail(email: String): Resource<Unit>
+    
+    /**
+     * Confirm password reset with code from email
+     * @param code oobCode from email link
+     * @param newPassword New password
+     * @return Resource with success or error
+     */
+    suspend fun confirmPasswordReset(code: String, newPassword: String): Resource<Unit>
     
     /**
      * Logout current user

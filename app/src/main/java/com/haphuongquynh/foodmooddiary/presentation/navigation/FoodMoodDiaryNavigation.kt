@@ -1,18 +1,33 @@
 package com.haphuongquynh.foodmooddiary.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.haphuongquynh.foodmooddiary.DeepLinkData
 import com.haphuongquynh.foodmooddiary.presentation.screens.splash.SplashScreen
-// 👇 QUAN TRỌNG: Import màn hình Chat mới
 import com.haphuongquynh.foodmooddiary.presentation.screens.ChatScreen 
 
 @Composable 
-fun FoodMoodDiaryNavigation() {
+fun FoodMoodDiaryNavigation(
+    deepLinkData: DeepLinkData? = null
+) {
     val navController = rememberNavController()
+    
+    // Handle deep link navigation
+    LaunchedEffect(deepLinkData) {
+        if (deepLinkData?.action == "resetPassword") {
+            navController.navigate(
+                Screen.ResetPassword.createRoute(deepLinkData.oobCode)
+            ) {
+                // Clear back stack to prevent going back to splash
+                popUpTo(Screen.Splash.route) { inclusive = true }
+            }
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -32,8 +47,19 @@ fun FoodMoodDiaryNavigation() {
             com.haphuongquynh.foodmooddiary.presentation.screens.auth.RegisterScreen(navController = navController)
         }
 
-        composable(route = Screen.NewPassword.route) {
-            com.haphuongquynh.foodmooddiary.presentation.screens.auth.NewPasswordScreen(navController = navController)
+        composable(route = Screen.ForgotPassword.route) {
+            com.haphuongquynh.foodmooddiary.presentation.screens.auth.ForgotPasswordScreen(navController = navController)
+        }
+        
+        composable(
+            route = Screen.ResetPassword.route,
+            arguments = listOf(navArgument("oobCode") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val oobCode = backStackEntry.arguments?.getString("oobCode") ?: ""
+            com.haphuongquynh.foodmooddiary.presentation.screens.auth.ResetPasswordScreen(
+                navController = navController,
+                oobCode = oobCode
+            )
         }
 
         // Main Flow
@@ -137,7 +163,10 @@ sealed class Screen(val route: String) {
     data object Splash : Screen("splash")
     data object Login : Screen("login")
     data object Register : Screen("register")
-    data object NewPassword : Screen("new_password")
+    data object ForgotPassword : Screen("forgot_password")
+    data object ResetPassword : Screen("reset_password/{oobCode}") {
+        fun createRoute(oobCode: String) = "reset_password/$oobCode"
+    }
     data object Main : Screen("main")
     data object Home : Screen("home")
     data object AddEntry : Screen("add_entry")

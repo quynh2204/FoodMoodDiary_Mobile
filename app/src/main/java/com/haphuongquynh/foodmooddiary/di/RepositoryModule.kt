@@ -3,6 +3,7 @@ package com.haphuongquynh.foodmooddiary.di
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.haphuongquynh.foodmooddiary.data.local.dao.UserDao
+import com.haphuongquynh.foodmooddiary.data.local.preferences.SessionManager
 import com.haphuongquynh.foodmooddiary.data.repository.AuthRepositoryImpl
 import com.haphuongquynh.foodmooddiary.domain.repository.AuthRepository
 import dagger.Module
@@ -23,9 +24,10 @@ object RepositoryModule {
     fun provideAuthRepository(
         firebaseAuth: FirebaseAuth,
         firestore: FirebaseFirestore,
-        userDao: UserDao
+        userDao: UserDao,
+        sessionManager: SessionManager
     ): AuthRepository {
-        return AuthRepositoryImpl(firebaseAuth, firestore, userDao)
+        return AuthRepositoryImpl(firebaseAuth, firestore, userDao, sessionManager)
     }
 
     @Provides

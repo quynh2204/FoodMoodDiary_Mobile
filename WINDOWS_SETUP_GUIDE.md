@@ -471,23 +471,6 @@ Hoặc gộp lại thành 1 lệnh:
 .\gradlew installDebug; adb shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity
 ```
 
-### 7.5. So sánh 3 cách chạy
-
-| Tiêu chí | Android Studio | VS Code | PowerShell |
-|----------|---------------|---------|------------|
-| **Dễ setup** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| **Tốc độ** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **RAM sử dụng** | ~2GB | ~500MB | ~200MB |
-| **Tính năng** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| **Phù hợp** | Beginner | Developer | Advanced |
-
-**Khuyến nghị:**
-- 🔰 **Mới học:** Dùng Android Studio (đầy đủ tính năng, hỗ trợ tốt)
-- 💻 **Đã quen:** Dùng VS Code (nhẹ, nhanh, tùy biến cao)
-- ⚡ **Build nhanh:** Dùng PowerShell (chỉ cần build/test)
-
----
-
 ## Bước 8: Xử lý lỗi thường gặp
 
 ### Lỗi 1: "JAVA_HOME is not set"

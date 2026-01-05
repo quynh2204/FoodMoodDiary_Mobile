@@ -1,7 +1,9 @@
 package com.haphuongquynh.foodmooddiary
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -14,6 +16,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.haphuongquynh.foodmooddiary.presentation.navigation.FoodMoodDiaryNavigation
@@ -25,6 +29,9 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val themeViewModel: ThemeViewModel by viewModels()
+    
+    // Store deep link data
+    private var deepLinkData by mutableStateOf<DeepLinkData?>(null)
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -40,6 +47,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Handle deep link
+        handleDeepLink(intent)
         
         // Request runtime permissions
         requestRuntimePermissions()
@@ -59,8 +69,35 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    FoodMoodDiaryNavigation()
+                    FoodMoodDiaryNavigation(
+                        deepLinkData = deepLinkData
+                    )
                 }
+            }
+        }
+    }
+    
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleDeepLink(intent)
+    }
+    
+    /**
+     * Handle deep link from Firebase password reset email
+     */
+    private fun handleDeepLink(intent: Intent?) {
+        val data: Uri? = intent?.data
+        
+        if (data != null) {
+            // Check if it's a Firebase auth action
+            val mode = data.getQueryParameter("mode")
+            val oobCode = data.getQueryParameter("oobCode")
+            
+            if (mode == "resetPassword" && !oobCode.isNullOrEmpty()) {
+                deepLinkData = DeepLinkData(
+                    action = "resetPassword",
+                    oobCode = oobCode
+                )
             }
         }
     }
@@ -115,3 +152,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+/**
+ * Data class for deep link information
+ */
+data class DeepLinkData(
+    val action: String,
+    val oobCode: String
+)

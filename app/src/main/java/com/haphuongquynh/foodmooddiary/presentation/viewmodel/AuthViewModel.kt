@@ -66,11 +66,11 @@ class AuthViewModel @Inject constructor(
     /**
      * Login with email and password
      */
-    fun login(email: String, password: String) {
+    fun login(email: String, password: String, rememberMe: Boolean = false) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             
-            val result = loginUseCase(email, password)
+            val result = loginUseCase(email, password, rememberMe)
             
             _authState.value = when (result) {
                 is Resource.Success -> AuthState.Success(result.data)
@@ -105,13 +105,51 @@ class AuthViewModel @Inject constructor(
     /**
      * Sign in with Google
      */
-    fun signInWithGoogle() {
+    fun signInWithGoogle(idToken: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             
-            // TODO: Implement Google Sign-In
-            // This is a placeholder for Google Sign-In implementation
-            _authState.value = AuthState.Error("Google Sign-In not implemented yet")
+            val result = authRepository.signInWithGoogle(idToken)
+            
+            _authState.value = when (result) {
+                is Resource.Success -> AuthState.Success(result.data)
+                is Resource.Error -> AuthState.Error(result.message)
+                is Resource.Loading -> AuthState.Loading
+            }
+        }
+    }
+
+    /**
+     * Send password reset email
+     */
+    fun sendPasswordResetEmail(email: String) {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            
+            val result = authRepository.sendPasswordResetEmail(email)
+            
+            _authState.value = when (result) {
+                is Resource.Success -> AuthState.PasswordResetSent
+                is Resource.Error -> AuthState.Error(result.message)
+                is Resource.Loading -> AuthState.Loading
+            }
+        }
+    }
+
+    /**
+     * Confirm password reset with code from email
+     */
+    fun confirmPasswordReset(code: String, newPassword: String) {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            
+            val result = authRepository.confirmPasswordReset(code, newPassword)
+            
+            _authState.value = when (result) {
+                is Resource.Success -> AuthState.PasswordResetComplete
+                is Resource.Error -> AuthState.Error(result.message)
+                is Resource.Loading -> AuthState.Loading
+            }
         }
     }
 
@@ -234,4 +272,6 @@ sealed class AuthState {
     data class Success(val user: User) : AuthState()
     data class Error(val message: String) : AuthState()
     data object LoggedOut : AuthState()
+    data object PasswordResetSent : AuthState()
+    data object PasswordResetComplete : AuthState()
 }

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">FoodMoodDiary</string>
+    <!-- Web client ID from Firebase Console for Google Sign-In -->
+    <string name="default_web_client_id" translatable="false">694088836256-cb3s35o7i2m7gnnn3b2vmokh2428944p.apps.googleusercontent.com</string>
 </resources>

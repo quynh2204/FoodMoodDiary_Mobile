@@ -355,7 +355,9 @@ fun RegisterScreen(
             // Google Sign up button
             Button(
                 onClick = { 
-                    viewModel.signInWithGoogle()
+                    // Google sign-in for register - same as login
+                    // This button is currently a placeholder
+                    errorMessage = "Google Sign-Up coming soon"
                 },
                 modifier = Modifier
                     .fillMaxWidth()
