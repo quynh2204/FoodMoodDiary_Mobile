@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
                 else -> systemDarkTheme // "Auto" follows system
             }
 
-            FoodMoodDiaryTheme(darkTheme = isDarkTheme) {
+            FoodMoodDiaryTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

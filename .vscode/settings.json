@@ -11,8 +11,11 @@
     }
   ],
 
-  // Android SDK path
-  "android.sdkPath": "/Users/haphuongquynh/Library/Android/sdk",
+  // Android A path
+  "android.sdkPath": "D:\\SDK",
+
+  // Android Emulator extension path
+  "emulator.emulatorPath": "D:\\SDK\\emulator\\emulator.exe",
 
   // Gradle uses Java 17
   "gradle.java.home": "/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home",

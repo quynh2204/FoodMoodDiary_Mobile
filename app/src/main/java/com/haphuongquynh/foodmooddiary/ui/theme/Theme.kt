@@ -51,13 +51,13 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun FoodMoodDiaryTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeMode: String = "Dark",
     // Dynamic color DISABLED - Use our custom pastel green theme
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    // Always use our custom color scheme (pastel green & black)
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    // Always use Dark theme
+    val colorScheme = DarkColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,

@@ -50,7 +50,7 @@ fun EntryListScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BlackPrimary)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // View mode toggle header

@@ -78,7 +78,7 @@ fun DiscoveryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BlackPrimary)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Header
         Row(

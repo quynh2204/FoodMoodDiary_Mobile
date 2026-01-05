@@ -25,6 +25,11 @@ import org.json.JSONObject
 import org.json.JSONArray
 import java.io.IOException
 import com.haphuongquynh.foodmooddiary.BuildConfig
+import com.haphuongquynh.foodmooddiary.ui.theme.BlackPrimary
+import com.haphuongquynh.foodmooddiary.ui.theme.BlackSecondary
+import com.haphuongquynh.foodmooddiary.ui.theme.PastelGreen
+import com.haphuongquynh.foodmooddiary.ui.theme.WhiteText
+import com.haphuongquynh.foodmooddiary.ui.theme.GrayText
 
 @Composable
 fun ChatScreen() {
@@ -44,14 +49,14 @@ fun ChatScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
+            .background(BlackPrimary)
             .padding(16.dp)
     ) {
         Text(
             text = "Trợ lý Cảm Xúc AI ✨",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF4CAF50),
+            color = PastelGreen,
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .padding(bottom = 16.dp)
@@ -70,19 +75,19 @@ fun ChatScreen() {
                         modifier = Modifier.widthIn(max = 280.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = if (isUser) Color(0xFFBBDEFB) else Color.White
+                            containerColor = if (isUser) PastelGreen.copy(alpha = 0.3f) else BlackSecondary
                         )
                     ) {
                         Text(
                             text = msg,
                             modifier = Modifier.padding(12.dp),
-                            color = Color.Black
+                            color = WhiteText
                         )
                     }
                 }
             }
             if (isLoading) {
-                item { Text("Đang nhập...", fontSize = 12.sp, color = Color.Gray) }
+                item { Text("Đang nhập...", fontSize = 12.sp, color = GrayText) }
             }
         }
 
@@ -94,11 +99,15 @@ fun ChatScreen() {
                 value = inputText,
                 onValueChange = { inputText = it },
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("Bạn đang nghĩ gì?") },
+                placeholder = { Text("Bạn đang nghĩ gì?", color = GrayText) },
                 shape = RoundedCornerShape(24.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
+                    focusedContainerColor = BlackSecondary,
+                    unfocusedContainerColor = BlackSecondary,
+                    focusedTextColor = WhiteText,
+                    unfocusedTextColor = WhiteText,
+                    focusedBorderColor = PastelGreen,
+                    unfocusedBorderColor = GrayText
                 )
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -106,7 +115,7 @@ fun ChatScreen() {
                 enabled = !isLoading && inputText.isNotBlank(),
                 modifier = Modifier
                     .size(50.dp)
-                    .background(Color(0xFF4CAF50), RoundedCornerShape(25.dp)),
+                    .background(PastelGreen, RoundedCornerShape(25.dp)),
                 onClick = {
                     if (inputText.isBlank()) return@IconButton
                     val userMessage = inputText

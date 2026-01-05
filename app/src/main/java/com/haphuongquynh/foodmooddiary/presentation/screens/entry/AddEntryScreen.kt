@@ -27,6 +27,7 @@ import com.haphuongquynh.foodmooddiary.ui.theme.*
 import com.haphuongquynh.foodmooddiary.presentation.screens.camera.CameraScreen
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.EntryState
 import com.haphuongquynh.foodmooddiary.presentation.viewmodel.FoodEntryViewModel
+import kotlinx.coroutines.launch
 import java.io.File
 
 /**
@@ -257,7 +258,7 @@ private fun PhotoCaptionStep(
                 shape = RoundedCornerShape(28.dp),
                 enabled = photoData != null
             ) {
-                Text("Continue →", color = BlackPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Tiếp tục →", color = BlackPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -293,9 +294,12 @@ private fun EntryFormStep(
     )
     val mealTypes = listOf("Breakfast", "Lunch", "Dinner", "Snack")
     val scrollState = rememberScrollState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         containerColor = BlackPrimary,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Add Entry", color = WhiteText, fontWeight = FontWeight.Bold) },
@@ -337,11 +341,11 @@ private fun EntryFormStep(
                 }
                 
                 TextButton(onClick = onChangePhoto) {
-                    Text("Change photo", color = PastelGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Đổi ảnh", color = PastelGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
-            Text("Food Name", color = WhiteText, fontSize = 14.sp)
+            Text("Tên món ăn", color = WhiteText, fontSize = 14.sp)
             TextField(
                 value = foodName,
                 onValueChange = onFoodNameChange,
@@ -358,7 +362,7 @@ private fun EntryFormStep(
                 )
             )
 
-            Text("Mood", color = WhiteText, fontSize = 14.sp)
+            Text("Cảm xúc", color = WhiteText, fontSize = 14.sp)
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 color = PastelGreenVeryLight
@@ -399,7 +403,7 @@ private fun EntryFormStep(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Date & Time", color = WhiteText, fontSize = 14.sp)
+                    Text("Ngày & Giờ", color = WhiteText, fontSize = 14.sp)
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = PastelGreenVeryLight
@@ -415,7 +419,7 @@ private fun EntryFormStep(
                 }
                 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Location", color = WhiteText, fontSize = 14.sp)
+                    Text("Vị trí", color = WhiteText, fontSize = 14.sp)
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = PastelGreenVeryLight
@@ -462,7 +466,7 @@ private fun EntryFormStep(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Notes", color = WhiteText, fontSize = 14.sp)
+                    Text("Ghi chú", color = WhiteText, fontSize = 14.sp)
                     TextField(
                         value = notes,
                         onValueChange = onNotesChange,
@@ -489,11 +493,31 @@ private fun EntryFormStep(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
-                    onClick = onSave,
+                    onClick = {
+                        when {
+                            foodName.isBlank() -> {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "Vui lòng nhập tên món ăn",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                            foodName.length < 2 -> {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "Tên món ăn phải có ít nhất 2 ký tự",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                            else -> onSave()
+                        }
+                    },
                     modifier = Modifier.weight(1f).height(56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PastelGreen),
                     shape = RoundedCornerShape(28.dp),
-                    enabled = !isLoading && foodName.isNotBlank()
+                    enabled = !isLoading
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = BlackPrimary)
@@ -509,7 +533,7 @@ private fun EntryFormStep(
                     shape = RoundedCornerShape(28.dp),
                     enabled = !isLoading
                 ) {
-                    Text("Cancel", color = BlackPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("Hủy", color = BlackPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

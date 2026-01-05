@@ -88,7 +88,7 @@ fun RegisterScreen(
             
             // Tagline
             Text(
-                text = "Track your meals. Understand your emotions.",
+                text = "Ghi chép bữa ăn. Hiểu rõ cảm xúc.",
                 color = PastelGreenLight,
                 fontSize = 13.sp,
                 textAlign = TextAlign.Center
@@ -98,7 +98,7 @@ fun RegisterScreen(
             
             // Page Title
             Text(
-                text = "Sign up",
+                text = "Đăng ký",
                 color = Color.White,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
@@ -107,7 +107,7 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                text = "Please enter your details",
+                text = "Vui lòng nhập thông tin của bạn",
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 14.sp
             )
@@ -116,7 +116,7 @@ fun RegisterScreen(
 
             // Username label
             Text(
-                text = "Username",
+                text = "Tên người dùng",
                 color = Color.White,
                 fontSize = 14.sp,
                 modifier = Modifier.align(Alignment.Start)
@@ -237,7 +237,7 @@ fun RegisterScreen(
 
             // Confirm Password label
             Text(
-                text = "Confirm password",
+                text = "Xác nhận mật khẩu",
                 color = Color.White,
                 fontSize = 14.sp,
                 modifier = Modifier.align(Alignment.Start)
@@ -320,7 +320,7 @@ fun RegisterScreen(
                     )
                 } else {
                     Text(
-                        text = "Sign up",
+                        text = "Đăng ký",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -379,7 +379,7 @@ fun RegisterScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Sign up with Google",
+                        text = "Đăng ký với Google",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -395,12 +395,12 @@ fun RegisterScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Already have an account?  ",
+                    text = "Đã có tài khoản?  ",
                     fontSize = 14.sp,
                     color = Color.White
                 )
                 Text(
-                    text = "Sign in",
+                    text = "Đăng nhập",
                     fontSize = 14.sp,
                     color = PastelGreen,
                     fontWeight = FontWeight.Bold,
