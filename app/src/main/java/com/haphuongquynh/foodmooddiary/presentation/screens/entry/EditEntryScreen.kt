@@ -140,7 +140,8 @@ fun EditEntryScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    listOf("😢", "😔", "😐", "😊", "🥰").forEach { mood ->
+                    // 5 Core Moods: Happy, Sad, Angry, Tired, Energetic (khớp với Statistics)
+                    listOf("😊", "😢", "😠", "😫", "💪").forEach { mood ->
                         Surface(
                             modifier = Modifier
                                 .size(48.dp)

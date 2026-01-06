@@ -790,12 +790,13 @@ private fun MoodCheckInSection(
     onMoodSelected: (String) -> Unit,
     onAddEntry: () -> Unit
 ) {
+    // 5 Core Moods: Khớp với Statistics và AddEntry
     val moods = listOf(
-        "😢" to "Sad",
-        "😔" to "Meh",
-        "😐" to "Okay",
-        "😊" to "Good",
-        "🥰" to "Great"
+        "😊" to "Vui vẻ",
+        "😢" to "Buồn",
+        "😠" to "Tức giận",
+        "😫" to "Mệt mỏi",
+        "💪" to "Năng lượng"
     )
     
     Surface(
@@ -1687,7 +1688,7 @@ private fun RecentEntriesGallery(
     var isGridView by remember { mutableStateOf(true) }
     val recentEntries = entries
         .sortedByDescending { it.timestamp }
-        .take(12) // Show more entries in list view
+        // Hiển thị tất cả entries, không giới hạn
     
     Column(
         modifier = Modifier
@@ -1791,10 +1792,9 @@ private fun RecentEntriesGallery(
                 }
             }
         } else if (isGridView) {
-            // Grid view (2 columns)
-            val displayEntries = recentEntries.take(6)
+            // Grid view (2 columns) - show all entries
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                displayEntries.chunked(2).forEach { rowEntries ->
+                recentEntries.chunked(2).forEach { rowEntries ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
