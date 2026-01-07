@@ -52,19 +52,30 @@ class LocationManager @Inject constructor(
 
     /**
      * Get current location with best accuracy
-     * - Emulator: IP-based (more accurate since GPS returns fake location)
-     * - Real device: GPS first, then IP fallback
+     * Strategy: Try GPS first (allows manual location on emulator), then IP fallback
      */
     suspend fun getCurrentLocation(): Location? {
-        android.util.Log.d("LocationManager", "Getting location... isEmulator: $isEmulator")
+        android.util.Log.d("LocationManager", "=== Getting location ===")
+        android.util.Log.d("LocationManager", "Is Emulator: $isEmulator")
         
-        return if (isEmulator) {
-            // Emulator: IP first (GPS on emulator returns fake Google HQ location)
-            getLocationFromIP() ?: getGPSLocation()
-        } else {
-            // Real device: Try GPS first for better accuracy
-            getGPSLocation() ?: getLocationFromIP()
+        // Try GPS first for both emulator and real device
+        val gpsLocation = getGPSLocation()
+        if (gpsLocation != null) {
+            android.util.Log.d("LocationManager", "✓ Using GPS location: ${gpsLocation.address}")
+            return gpsLocation
         }
+        
+        android.util.Log.w("LocationManager", "⚠ GPS failed, trying IP-based location")
+        
+        // Fallback to IP-based location
+        val ipLocation = getLocationFromIP()
+        if (ipLocation != null) {
+            android.util.Log.d("LocationManager", "✓ Using IP location: ${ipLocation.address}")
+            return ipLocation
+        }
+        
+        android.util.Log.e("LocationManager", "✗ All location methods failed")
+        return null
     }
     
     /**
@@ -350,6 +361,7 @@ class LocationManager @Inject constructor(
 
     /**
      * Get address from coordinates using Geocoder
+     * Returns detailed address with street number, street name, district, city, country
      */
     @Suppress("DEPRECATION")
     private fun getAddressFromLocation(latitude: Double, longitude: Double): String? {
@@ -361,14 +373,27 @@ class LocationManager @Inject constructor(
                 val address = addresses[0]
                 buildString {
                     val parts = mutableListOf<String>()
-                    address.thoroughfare?.let { parts.add(it) } // Street
-                    address.subAdminArea?.let { parts.add(it) } // District
-                    address.locality?.let { parts.add(it) } // City
-                    address.countryName?.let { parts.add(it) } // Country
+                    
+                    // Get detailed street address (includes street number)
+                    address.subThoroughfare?.let { streetNumber ->
+                        address.thoroughfare?.let { streetName ->
+                            parts.add("$streetNumber $streetName")
+                        } ?: parts.add(streetNumber)
+                    } ?: address.thoroughfare?.let { parts.add(it) }
+                    
+                    // Add district (subAdminArea)
+                    address.subAdminArea?.let { parts.add(it) }
+                    
+                    // Add city (locality)
+                    address.locality?.let { parts.add(it) }
+                    
+                    // Add country
+                    address.countryName?.let { parts.add(it) }
                     
                     if (parts.isNotEmpty()) {
                         append(parts.joinToString(", "))
                     } else {
+                        // Fallback to full address line
                         address.getAddressLine(0)?.let { append(it) }
                     }
                 }

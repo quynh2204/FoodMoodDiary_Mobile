@@ -128,15 +128,23 @@ class FoodEntryViewModel @Inject constructor(
     }
 
     /**
-     * Get current location
+     * Get current location - always fetch fresh location, don't use cache
      */
     fun fetchCurrentLocation() {
         viewModelScope.launch {
             try {
+                // Clear old location first
+                _currentLocation.value = null
+                android.util.Log.d("FoodEntryVM", "Fetching fresh location...")
+                
+                // Get fresh location
                 val location = locationManager.getCurrentLocation()
                 _currentLocation.value = location
+                
+                android.util.Log.d("FoodEntryVM", "Location fetched: ${location?.address}")
             } catch (e: Exception) {
                 android.util.Log.e("FoodEntryVM", "Location fetch failed", e)
+                _currentLocation.value = null
             }
         }
     }

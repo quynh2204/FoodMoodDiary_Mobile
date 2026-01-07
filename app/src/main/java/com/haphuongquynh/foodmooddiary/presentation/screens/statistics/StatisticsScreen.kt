@@ -66,6 +66,7 @@ fun StatisticsScreen(
     val mealDistribution by viewModel.mealDistribution.collectAsStateWithLifecycle()
     val colorDistribution by viewModel.colorDistribution.collectAsStateWithLifecycle()
     val insights by viewModel.insights.collectAsStateWithLifecycle()
+    val insightsLoading by viewModel.insightsLoading.collectAsStateWithLifecycle()
     val weeklySummary by viewModel.weeklySummary.collectAsStateWithLifecycle()
 
     var selectedRange by remember { mutableStateOf(DateRange.LAST_7_DAYS) }
@@ -74,6 +75,14 @@ fun StatisticsScreen(
 
     LaunchedEffect(selectedRange) {
         viewModel.setDateRange(selectedRange)
+    }
+    
+    // Auto-refresh AI insights when switching to AI Insights tab
+    LaunchedEffect(selectedTab) {
+        if (selectedTab == 3) { // AI Insights tab
+            android.util.Log.d("StatisticsScreen", "Switched to AI Insights tab, refreshing...")
+            viewModel.refreshAIInsights()
+        }
     }
 
     Column(
@@ -141,7 +150,11 @@ fun StatisticsScreen(
                     onNavigateToEntry(entryId)
                 }
             )
-            3 -> AIInsightsTab(insights = insights)
+            3 -> AIInsightsTab(
+                insights = insights,
+                isLoading = insightsLoading,
+                onRefresh = { viewModel.refreshAIInsights() }
+            )
         }
     }
 }

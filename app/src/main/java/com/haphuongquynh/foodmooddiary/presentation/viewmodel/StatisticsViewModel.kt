@@ -7,6 +7,7 @@ import com.haphuongquynh.foodmooddiary.data.local.dao.FoodEntryDao
 import com.haphuongquynh.foodmooddiary.data.local.entity.FoodEntryEntity
 import com.haphuongquynh.foodmooddiary.domain.model.*
 import com.haphuongquynh.foodmooddiary.domain.repository.StatisticsRepository
+import com.haphuongquynh.foodmooddiary.domain.service.AIInsightsService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -16,12 +17,14 @@ import javax.inject.Inject
 /**
  * ViewModel for Statistics Screen
  * Handles chart data preparation and insights generation
+ * Now includes AI-powered insights using Gemini API
  */
 @HiltViewModel
 class StatisticsViewModel @Inject constructor(
     private val statisticsRepository: StatisticsRepository,
     private val foodEntryDao: FoodEntryDao,
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val aiInsightsService: AIInsightsService
 ) : ViewModel() {
 
     // Date range for filtering
@@ -83,16 +86,45 @@ class StatisticsViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
-    // AI-generated insights
-    val insights: StateFlow<List<Insight>> = currentDateRange
-        .flatMapLatest { (start, end) ->
-            statisticsRepository.generateInsights(start, end)
+    // AI-generated insights (using Gemini API for smarter analysis)
+    private val _insights = MutableStateFlow<List<Insight>>(emptyList())
+    val insights: StateFlow<List<Insight>> = _insights.asStateFlow()
+    
+    // Loading state for AI insights
+    private val _insightsLoading = MutableStateFlow(false)
+    val insightsLoading: StateFlow<Boolean> = _insightsLoading.asStateFlow()
+    
+    init {
+        // Generate AI insights when ViewModel is created
+        refreshAIInsights()
+    }
+    
+    /**
+     * Refresh AI-powered insights
+     */
+    fun refreshAIInsights() {
+        viewModelScope.launch {
+            try {
+                _insightsLoading.value = true
+                
+                // Get all entries for comprehensive analysis
+                val userId = firebaseAuth.currentUser?.uid ?: return@launch
+                val entries = foodEntryDao.getAllEntriesOnce(userId)
+                    .map { it.toDomain() }
+                
+                // Generate insights using AI service
+                val aiInsights = aiInsightsService.generateAIInsights(entries)
+                _insights.value = aiInsights
+                
+                android.util.Log.d("StatisticsVM", "Generated ${aiInsights.size} AI insights")
+            } catch (e: Exception) {
+                android.util.Log.e("StatisticsVM", "Error generating AI insights", e)
+                // Keep existing insights on error
+            } finally {
+                _insightsLoading.value = false
+            }
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    }
 
     // Weekly summary
     val weeklySummary: StateFlow<WeeklySummary?> = flow {

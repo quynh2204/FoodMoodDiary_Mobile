@@ -154,18 +154,17 @@ fun ModernEntryDetailScreen(
                         )
                     }
 
-                    // Date & Time, Location
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        InfoColumn(
-                            label = "Date & Time",
-                            value = formatDateTime(entry.timestamp)
-                        )
+                    // Date & Time
+                    InfoColumn(
+                        label = "Date & Time",
+                        value = formatDateTime(entry.timestamp)
+                    )
+
+                    // Location
+                    if (entry.location != null) {
                         InfoColumn(
                             label = "Location",
-                            value = entry.location?.address ?: "Unknown"
+                            value = entry.location.address ?: "Unknown"
                         )
                     }
 

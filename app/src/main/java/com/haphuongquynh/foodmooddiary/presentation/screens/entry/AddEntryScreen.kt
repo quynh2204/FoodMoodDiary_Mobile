@@ -107,7 +107,10 @@ fun AddEntryScreen(
     }
 
     LaunchedEffect(Unit) {
+        // Always fetch fresh location when screen opens
+        android.util.Log.d("AddEntryScreen", "Fetching location on screen open")
         viewModel.fetchCurrentLocation()
+        
         // Chỉ mở camera nếu chưa có ảnh VÀ không có photoPath từ MainScreen
         if (photoData == null && currentStep == 0 && initialPhotoPath.isNullOrEmpty()) {
             showCamera = true
@@ -426,10 +429,12 @@ private fun EntryFormStep(
                     ) {
                         Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                             Text(
-                                location?.address?.take(25) ?: "Fetching...", 
+                                location?.address ?: "Đang lấy vị trí...", 
                                 color = DarkText, 
                                 fontSize = 11.sp,
-                                maxLines = 1
+                                maxLines = 2,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                lineHeight = 14.sp
                             )
                         }
                     }

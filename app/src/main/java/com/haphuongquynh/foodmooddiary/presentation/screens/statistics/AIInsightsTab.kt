@@ -24,7 +24,11 @@ import com.haphuongquynh.foodmooddiary.domain.model.InsightType
 import com.haphuongquynh.foodmooddiary.ui.theme.*
 
 @Composable
-fun AIInsightsTab(insights: List<Insight>) {
+fun AIInsightsTab(
+    insights: List<Insight>,
+    isLoading: Boolean = false,
+    onRefresh: () -> Unit = {}
+) {
     val summary = insights.firstOrNull()
 
     Column(
@@ -58,45 +62,85 @@ fun AIInsightsTab(insights: List<Insight>) {
                         .padding(24.dp)
                 ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    Brush.linearGradient(
-                                        colors = listOf(PastelGreen, GoldPrimary)
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Default.AutoAwesome,
-                                contentDescription = null,
-                                tint = BlackPrimary,
-                                modifier = Modifier.size(28.dp)
-                            )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        Brush.linearGradient(
+                                            colors = listOf(PastelGreen, GoldPrimary)
+                                        )
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.AutoAwesome,
+                                    contentDescription = null,
+                                    tint = BlackPrimary,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
+                            
+                            Spacer(modifier = Modifier.width(16.dp))
+                            
+                            Column {
+                                Text(
+                                    text = "Phân tích AI",
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = WhiteText
+                                )
+                                Text(
+                                    text = "Powered by Gemini",
+                                    fontSize = 11.sp,
+                                    color = GrayText
+                                )
+                            }
                         }
                         
-                        Spacer(modifier = Modifier.width(16.dp))
-                        
-                        Text(
-                            text = "Phân tích AI",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = WhiteText
-                        )
+                        // Refresh button
+                        IconButton(
+                            onClick = onRefresh,
+                            enabled = !isLoading
+                        ) {
+                            if (isLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = PastelGreen,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Default.Refresh,
+                                    contentDescription = "Làm mới",
+                                    tint = PastelGreen
+                                )
+                            }
+                        }
                     }
                     
                     Spacer(modifier = Modifier.height(20.dp))
                     
-                    Text(
-                        text = summary?.description ?: "Chưa đủ dữ liệu để tạo insight. Thêm vài bữa ăn để xem gợi ý thông minh!",
-                        fontSize = 15.sp,
-                        color = WhiteText,
-                        lineHeight = 22.sp
-                    )
+                    if (isLoading) {
+                        Text(
+                            text = "Đang phân tích dữ liệu của bạn...",
+                            fontSize = 15.sp,
+                            color = WhiteText,
+                            lineHeight = 22.sp
+                        )
+                    } else {
+                        Text(
+                            text = summary?.description ?: "Chưa đủ dữ liệu để tạo insight. Thêm vài bữa ăn để xem gợi ý thông minh từ AI!",
+                            fontSize = 15.sp,
+                            color = WhiteText,
+                            lineHeight = 22.sp
+                        )
+                    }
                 }
             }
         }
