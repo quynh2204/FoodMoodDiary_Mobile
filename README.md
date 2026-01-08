@@ -4,6 +4,20 @@
 [![Android](https://img.shields.io/badge/Android-SDK%2026+-green.svg)](https://developer.android.com)
 [![Java](https://img.shields.io/badge/Java-17%20LTS-orange.svg)](https://openjdk.org/)
 
+## 📋 Mục lục
+
+- [Tổng quan](#overview)
+- [Tính năng chính](#key-features)
+- [Tech Stack](#tech-stack--architecture)
+- [Cài đặt & Chạy](#getting-started)
+  - [Hướng dẫn Windows](#windows-setup-guide)
+  - [Hướng dẫn VS Code](#vs-code-setup)
+  - [Hướng dẫn chạy nhanh](#quick-run-guide)
+- [Cấu trúc dự án](#project-structure)
+- [Xử lý lỗi](#troubleshooting)
+
+---
+
 ## Overview
 
 FoodMoodDiary is an Android mobile application that helps users track and discover the relationship between their diet and emotional state on a daily basis. By combining food journaling with mood tracking, the app provides insights into how different meals affect your emotional well-being.
@@ -389,3 +403,519 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 Built with ❤️ using Kotlin & Jetpack Compose
+
+---
+
+# 📖 Hướng dẫn Setup & Sử dụng
+
+## 🚀 Quick Run Guide
+
+### Điều kiện tiên quyết
+- ✅ Đã cài đặt Android Studio và Android SDK
+- ✅ Đã cấu hình biến môi trường ANDROID_HOME
+- ✅ Đã clone project về máy
+- ✅ Đã tạo AVD (Android Virtual Device)
+
+> ⚠️ **Nếu bạn chưa có các điều kiện trên**, vui lòng xem [Hướng dẫn cài đặt Windows đầy đủ](#windows-setup-guide) bên dưới.
+
+### Các bước chạy app (macOS/Linux)
+
+#### Bước 1: Mở Terminal tại thư mục dự án
+```bash
+cd /path/to/FoodMoodDiary
+```
+
+#### Bước 2: Kiểm tra danh sách AVD có sẵn
+```bash
+emulator -list-avds
+```
+
+#### Bước 3: Khởi động emulator
+```bash
+emulator -avd Small_Phone &
+```
+
+#### Bước 4: Kiểm tra emulator đã sẵn sàng
+```bash
+adb devices
+```
+**Kết quả mong đợi:**
+```
+List of devices attached
+emulator-5554   device
+```
+
+#### Bước 5: Build và install app
+```bash
+./gradlew installDebug
+```
+
+#### Bước 6: Khởi động app
+```bash
+adb shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity
+```
+
+#### Bước 7: Cấp quyền (tùy chọn)
+```bash
+adb shell pm grant com.haphuongquynh.foodmooddiary android.permission.CAMERA
+adb shell pm grant com.haphuongquynh.foodmooddiary android.permission.ACCESS_FINE_LOCATION
+adb shell pm grant com.haphuongquynh.foodmooddiary android.permission.ACCESS_COARSE_LOCATION
+```
+
+### Lệnh gộp (All-in-one - macOS/Linux)
+```bash
+# Khởi động emulator
+emulator -avd Small_Phone &
+
+# Chờ emulator boot (30 giây)
+sleep 30
+
+# Build, install và chạy
+./gradlew installDebug && adb shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity
+```
+
+### Các bước chạy app (Windows)
+
+#### Bước 1: Mở PowerShell tại thư mục dự án
+```powershell
+cd D:\Path\To\FoodMoodDiary
+```
+
+#### Bước 2: Khởi động emulator
+```powershell
+Start-Process -FilePath "$env:ANDROID_HOME\emulator\emulator.exe" -ArgumentList "-avd", "Small_Phone"
+```
+
+#### Bước 3: Chờ và kiểm tra
+```powershell
+Start-Sleep -Seconds 30
+adb devices
+```
+
+#### Bước 4: Build và chạy
+```powershell
+.\gradlew installDebug; adb shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity
+```
+
+### Debug Commands
+
+**Xem log realtime:**
+```bash
+adb logcat | grep FoodMoodDiary
+```
+
+**Xem crash log:**
+```bash
+adb logcat -d | grep "AndroidRuntime"
+```
+
+**Restart app:**
+```bash
+adb shell am force-stop com.haphuongquynh.foodmooddiary
+adb shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity
+```
+
+**Clear app data:**
+```bash
+adb shell pm clear com.haphuongquynh.foodmooddiary
+```
+
+**Uninstall app:**
+```bash
+adb uninstall com.haphuongquynh.foodmooddiary
+```
+
+---
+
+## 🖥️ VS Code Setup
+
+Hướng dẫn nhanh để chạy dự án Android trong VS Code.
+
+### Extensions cần cài
+
+Mở VS Code → `Ctrl+Shift+X` (Windows/Linux) hoặc `Cmd+Shift+X` (macOS) → tìm và cài:
+
+1. **Android iOS Emulator** - DiemasMichiels.emulate
+2. **Kotlin Language** - mathiasfrohlich.Kotlin  
+3. **Gradle for Java** - vscjava.vscode-gradle
+
+### Cấu hình tự động
+
+Dự án đã có sẵn:
+- ✅ `.vscode/tasks.json` - Gradle tasks
+- ✅ `.vscode/settings.json` - Cấu hình workspace
+- ✅ `.vscode/extensions.json` - Extensions khuyến nghị
+
+### Chạy app nhanh
+
+**Cách 1: Dùng Tasks (Khuyến nghị)**
+1. Nhấn `Ctrl+Shift+P` (Windows/Linux) hoặc `Cmd+Shift+P` (macOS)
+2. Gõ: `Tasks: Run Task`
+3. Chọn: **Run FoodMoodDiary**
+
+**Cách 2: Terminal**
+```bash
+# macOS/Linux
+./gradlew installDebug && adb shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity
+
+# Windows PowerShell
+.\gradlew installDebug; adb shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity
+```
+
+### Quản lý Emulator trong VS Code
+
+**Khởi động emulator:**
+
+- **Cách 1:** `Ctrl/Cmd+Shift+P` → `Emulator: Start` → Chọn AVD
+
+- **Cách 2:** Terminal
+  ```bash
+  emulator -avd Small_Phone
+  ```
+
+**Kiểm tra emulator:**
+```bash
+adb devices
+```
+
+### Tasks có sẵn
+
+Nhấn `Ctrl/Cmd+Shift+P` → `Tasks: Run Task`:
+
+| Task | Mô tả |
+|------|-------|
+| **Run FoodMoodDiary** | Build, install và khởi động app |
+| **Build Debug APK** | Build app (không install) |
+| **Install Debug APK** | Build và install |
+| **Clean Build** | Xóa build cũ |
+| **View Logcat** | Xem log app |
+| **List Devices** | Danh sách devices |
+| **Uninstall App** | Gỡ app |
+
+### Workflow hàng ngày
+
+```bash
+# 1. Mở dự án trong VS Code
+code /path/to/FoodMoodDiary
+
+# 2. Khởi động emulator (Ctrl/Cmd+Shift+P → Tasks: Run Task → Start Emulator)
+
+# 3. Chờ boot xong (~30s), kiểm tra
+adb devices
+
+# 4. Build và chạy (Ctrl/Cmd+Shift+P → Tasks: Run Task → Run FoodMoodDiary)
+
+# 5. Xem log
+adb logcat | grep FoodMoodDiary
+```
+
+### Shortcuts hữu ích
+
+| Phím (Windows/Linux) | Phím (macOS) | Chức năng |
+|------|-----------|-----------|
+| `Ctrl+Shift+P` | `Cmd+Shift+P` | Command Palette |
+| `Ctrl+` ` | `Cmd+` ` | Toggle Terminal |
+| `Ctrl+Shift+B` | `Cmd+Shift+B` | Build Task |
+| `Ctrl+,` | `Cmd+,` | Settings |
+
+### Debug trong VS Code
+
+**Xem log:**
+```bash
+# Trong Terminal VS Code
+adb logcat | grep FoodMoodDiary
+```
+
+**Xem crash log:**
+```bash
+adb logcat -s AndroidRuntime:E
+```
+
+**Clear data app:**
+```bash
+adb shell pm clear com.haphuongquynh.foodmooddiary
+```
+
+**Reinstall app:**
+```bash
+./gradlew uninstallDebug installDebug
+```
+
+### Tips
+
+1. **Build nhanh hơn:** Sửa `gradle.properties`:
+   ```properties
+   org.gradle.jvmargs=-Xmx4096m
+   org.gradle.parallel=true
+   org.gradle.caching=true
+   ```
+
+2. **Terminal múltiple:** `Ctrl/Cmd+Shift+` ` để tạo terminal mới
+
+3. **Emulator snapshot:** Lưu trạng thái emulator để boot nhanh hơn
+
+---
+
+## 🪟 Windows Setup Guide
+
+Hướng dẫn chi tiết cài đặt môi trường phát triển Android trên Windows từ đầu.
+
+### Yêu cầu hệ thống
+- Windows 10/11 (64-bit)
+- RAM: Tối thiểu 8GB (khuyến nghị 16GB)
+- Ổ cứng trống: Tối thiểu 10GB
+- Kết nối Internet ổn định
+
+### Bước 1: Cài đặt JDK (Java Development Kit)
+
+#### 1.1. Download JDK 17
+- Truy cập: https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html
+- Hoặc dùng OpenJDK: https://adoptium.net/
+- Chọn **Windows x64 Installer** (.msi)
+
+#### 1.2. Cài đặt JDK
+1. Chạy file .msi vừa tải
+2. Chọn đường dẫn cài đặt (ví dụ: `C:\Program Files\Java\jdk-17`)
+3. Click **Next** → **Install** → **Finish**
+
+#### 1.3. Cấu hình biến môi trường
+1. Nhấn `Win + X` → chọn **System**
+2. Click **Advanced system settings** → **Environment Variables**
+3. Trong **System variables**, click **New**:
+   - Variable name: `JAVA_HOME`
+   - Variable value: `C:\Program Files\Java\jdk-17`
+4. Tìm biến **Path** → click **Edit** → **New** → thêm:
+   ```
+   %JAVA_HOME%\bin
+   ```
+5. Click **OK** để lưu
+
+#### 1.4. Kiểm tra cài đặt
+```powershell
+java -version
+javac -version
+```
+
+### Bước 2: Cài đặt Android Studio
+
+#### 2.1. Download Android Studio
+- Truy cập: https://developer.android.com/studio
+- Download **Android Studio** phiên bản mới nhất
+
+#### 2.2. Cài đặt Android Studio
+1. Chạy file cài đặt
+2. Chọn **Standard Installation**
+3. Chọn theme (Dark/Light)
+4. Chờ download các SDK components (5-10 phút)
+
+#### 2.3. Cấu hình Android SDK
+1. Mở Android Studio
+2. Click **More Actions** → **SDK Manager**
+3. Trong tab **SDK Platforms**, tích chọn:
+   - ✅ Android 14.0 (API 34)
+   - ✅ Android 8.0 (API 26)
+4. Trong tab **SDK Tools**, tích chọn:
+   - ✅ Android SDK Build-Tools
+   - ✅ Android SDK Command-line Tools
+   - ✅ Android Emulator
+   - ✅ Android SDK Platform-Tools
+5. Click **Apply** → **OK**
+
+#### 2.4. Cấu hình biến môi trường Android SDK
+
+**Tìm đường dẫn SDK:**
+- Android Studio → **SDK Manager**
+- Copy đường dẫn **Android SDK Location**
+
+**Thêm biến môi trường:**
+1. `Win + X` → **System** → **Environment Variables**
+2. Trong **System variables**, click **New**:
+   - Variable name: `ANDROID_HOME`
+   - Variable value: `C:\Users\YourName\AppData\Local\Android\Sdk`
+3. Tìm biến **Path**, thêm:
+   ```
+   %ANDROID_HOME%\platform-tools
+   %ANDROID_HOME%\emulator
+   %ANDROID_HOME%\tools
+   ```
+
+#### 2.5. Kiểm tra
+```powershell
+adb version
+emulator -version
+```
+
+### Bước 3: Cài đặt Git
+
+#### 3.1. Download Git
+- Truy cập: https://git-scm.com/download/win
+- Download **64-bit Git for Windows Setup**
+
+#### 3.2. Cài đặt Git
+1. Chạy file cài đặt với tùy chọn mặc định
+2. Editor: chọn **Visual Studio Code**
+
+#### 3.3. Kiểm tra
+```powershell
+git --version
+```
+
+### Bước 4: Clone dự án
+
+```powershell
+cd D:\Projects
+git clone https://github.com/quynh2204/FoodMoodDiary_Mobile.git
+cd FoodMoodDiary_Mobile
+```
+
+### Bước 5: Cấu hình Firebase
+
+1. Liên hệ owner để lấy file `google-services.json`
+2. Hoặc tạo Firebase project mới tại https://console.firebase.google.com/
+3. Copy file vào: `FoodMoodDiary_Mobile/app/google-services.json`
+
+### Bước 6: Tạo Android Virtual Device (AVD)
+
+#### 6.1. Mở AVD Manager
+1. Android Studio → **More Actions** → **Virtual Device Manager**
+2. Click **Create Device**
+
+#### 6.2. Chọn thiết bị
+1. Category: **Phone**
+2. Chọn: **Pixel 5** hoặc **Small Phone**
+3. Click **Next**
+
+#### 6.3. Chọn System Image
+1. Tab **Recommended**: **UpsideDownCake (API 34)**
+2. Click **Download** nếu chưa có
+3. Click **Next**
+
+#### 6.4. Cấu hình AVD
+1. AVD Name: `Small_Phone`
+2. Click **Show Advanced Settings**:
+   - RAM: 2048 MB
+   - Graphics: **Hardware - GLES 2.0**
+3. Click **Finish**
+
+#### 6.5. Test emulator
+Click ▶️ **Play** để khởi động emulator
+
+### Bước 7: Build và chạy
+
+#### Từ Android Studio
+1. Open project
+2. Chọn device: **Small_Phone**
+3. Click ▶️ **Run**
+
+#### Từ PowerShell
+```powershell
+# Khởi động emulator
+Start-Process -FilePath "$env:ANDROID_HOME\emulator\emulator.exe" -ArgumentList "-avd", "Small_Phone"
+
+# Chờ boot
+Start-Sleep -Seconds 30
+
+# Build và chạy
+.\gradlew installDebug
+adb shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity
+```
+
+#### Từ VS Code
+1. Cài extensions (xem [VS Code Setup](#vs-code-setup))
+2. `Ctrl+Shift+P` → `Tasks: Run Task` → **Run FoodMoodDiary**
+
+### Xử lý lỗi thường gặp
+
+**"JAVA_HOME is not set"**
+- Kiểm tra lại Bước 1.3
+- Khởi động lại PowerShell
+
+**"SDK location not found"**
+- Tạo file `local.properties`:
+  ```properties
+  sdk.dir=C\:\\Users\\YourName\\AppData\\Local\\Android\\Sdk
+  ```
+
+**Emulator không khởi động**
+- Đổi Graphics sang **Software - GLES 2.0**
+- Bật Virtualization trong BIOS (Intel VT-x / AMD-V)
+
+**"adb: device offline"**
+```powershell
+adb kill-server
+adb start-server
+```
+
+**Gradle build chậm**
+- Edit `gradle.properties`:
+  ```properties
+  org.gradle.jvmargs=-Xmx4096m
+  org.gradle.parallel=true
+  org.gradle.caching=true
+  ```
+
+**App crash khi mở**
+- Kiểm tra file `google-services.json`
+- Xem log:
+  ```powershell
+  adb logcat | Select-String "FoodMoodDiary"
+  ```
+
+### Tối ưu hiệu suất
+
+#### Tăng tốc Gradle
+Edit `gradle.properties`:
+```properties
+org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m
+org.gradle.parallel=true
+org.gradle.caching=true
+org.gradle.configureondemand=true
+kotlin.incremental=true
+```
+
+#### Tạo alias PowerShell
+```powershell
+notepad $PROFILE
+```
+Thêm:
+```powershell
+function Start-Emulator {
+    Start-Process -FilePath "$env:ANDROID_HOME\emulator\emulator.exe" -ArgumentList "-avd", "Small_Phone"
+}
+
+function Install-App {
+    .\gradlew installDebug
+    adb shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity
+}
+
+Set-Alias emu Start-Emulator
+Set-Alias run Install-App
+```
+
+Sau đó:
+```powershell
+emu    # Khởi động emulator
+run    # Build và chạy
+```
+
+### Workflow hàng ngày (Windows)
+
+```powershell
+# 1. Mở PowerShell tại thư mục dự án
+cd D:\Projects\FoodMoodDiary_Mobile
+
+# 2. Pull code mới
+git pull origin main
+
+# 3. Khởi động emulator
+Start-Process -FilePath "$env:ANDROID_HOME\emulator\emulator.exe" -ArgumentList "-avd", "Small_Phone"
+
+# 4. Chờ boot và kiểm tra
+Start-Sleep -Seconds 30
+adb devices
+
+# 5. Build và chạy
+.\gradlew installDebug; adb shell am start -n com.haphuongquynh.foodmooddiary/.MainActivity
+```
+
+---

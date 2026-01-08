@@ -48,14 +48,6 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="${GOOGLE_MAPS_API_KEY}" />
 
-        <!-- Content Provider for sharing data -->
-        <provider
-            android:name=".data.provider.FoodEntryProvider"
-            android:authorities="com.haphuongquynh.foodmooddiary.provider"
-            android:exported="true"
-            android:permission="android.permission.READ_EXTERNAL_STORAGE"
-            android:grantUriPermissions="true" />
-
         <!-- FileProvider for sharing files -->
         <provider
             android:name="androidx.core.content.FileProvider"
