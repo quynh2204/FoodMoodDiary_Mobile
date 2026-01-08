@@ -21,27 +21,27 @@ android {
     compileSdk = 36
 
     defaultConfig {
-    applicationId = "com.haphuongquynh.foodmooddiary"
-    minSdk = 26
-    targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
+        applicationId = "com.haphuongquynh.foodmooddiary"
+        minSdk = 26
+        targetSdk = 36
+        versionCode = 1
+        versionName = "1.0"
 
-    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-    // ===== LOAD API KEYS =====
-    val mapsApiKey = localProperties.getProperty("GOOGLE_MAPS_API_KEY", "")
-    manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = mapsApiKey
-    buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$mapsApiKey\"")
+        // ===== LOAD API KEYS =====
+        val mapsApiKey = localProperties.getProperty("GOOGLE_MAPS_API_KEY", "")
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = mapsApiKey
+        buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$mapsApiKey\"")
 
-    val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY", "")
-    buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+        val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY", "")
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
 
-    // Room schema
-    ksp {
-        arg("room.schemaLocation", "$projectDir/schemas")
+        // Room schema
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
     }
-}
 
     buildTypes {
         release {

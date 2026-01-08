@@ -203,9 +203,9 @@ fun ChatScreen() {
                                     })
                                 }
                                 
-                                // Thử v1beta với gemini-2.5-flash (model mới nhất)
+                                // Sử dụng gemini-1.5-flash (model ổn định)
                                 val request = Request.Builder()
-                                    .url("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey")
+                                    .url("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$apiKey")
                                     .post(jsonBody.toString().toRequestBody("application/json".toMediaType()))
                                     .build()
                                 
