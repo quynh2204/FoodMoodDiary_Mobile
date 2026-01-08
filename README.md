@@ -43,8 +43,12 @@ FoodMoodDiary is an Android mobile application that helps users track and discov
 - **Statistics Dashboard:** Comprehensive data visualization
 
 ### 🤖 AI Assistant
-- **Gemini Integration:** Chat with AI for food and mood insights
+- **Gemini 2.5 Flash Integration:** Chat with advanced AI for food and mood insights
 - **Smart Suggestions:** Personalized recommendations based on your data
+- **Friendly Error Messages:** User-friendly error handling with emoji and helpful tips
+  - Network issues: "Mạng internet có vấn đề rồi! 📶"
+  - Server overload (503): "Xin lỗi, AI đang bận quá! 😅"
+  - Rate limiting (429): "Ối, bạn gửi tin nhắn hơi nhanh rồi! 😊"
 
 ### 🍜 Discovery
 - **Vietnamese Meals:** Browse traditional dishes
@@ -71,14 +75,14 @@ FoodMoodDiary is built with modern Android development tools and follows best pr
 - **Dependency Injection:** [Hilt](https://dagger.dev/hilt/) for compile-time dependency injection
 - **Database:** Room (local) + Firebase Firestore (cloud sync)
 - **Authentication:** Firebase Authentication with Google Sign-In
-- **AI Integration:** Google Gemini API 2.0 for chat assistance
+- **AI Integration:** Google Gemini API 2.5 Flash for chat assistance
 - **Image Processing:** CameraX for camera integration, Palette API for color analysis
 - **Async Operations:** Kotlin Coroutines and Flow
 - **Background Tasks:** WorkManager for periodic reminders and sync
 
 ## 📁 Project Structure
 
-The project follows a feature-first directory structure within Clean Architecture framework:
+The project follows Clean Architecture with feature-based organization:
 
 ```
 FoodMoodDiary/
@@ -86,51 +90,109 @@ FoodMoodDiary/
 │   ├── src/
 │   │   ├── main/
 │   │   │   ├── java/com/haphuongquynh/foodmooddiary/
-│   │   │   │   ├── data/                  # Data layer
-│   │   │   │   │   ├── local/            # Room database, DAOs, entities
-│   │   │   │   │   │   ├── dao/         # Data Access Objects
-│   │   │   │   │   │   ├── entity/      # Room entities
-│   │   │   │   │   │   └── preferences/ # DataStore (SessionManager)
-│   │   │   │   │   └── repository/       # Repository implementations
-│   │   │   │   ├── domain/               # Domain layer
-│   │   │   │   │   ├── model/           # Domain models
-│   │   │   │   │   ├── repository/      # Repository interfaces
-│   │   │   │   │   └── usecase/         # Business logic use cases
-│   │   │   │   ├── presentation/        # Presentation layer
-│   │   │   │   │   ├── navigation/      # Navigation setup
-│   │   │   │   │   ├── screens/         # UI screens (Compose)
-│   │   │   │   │   │   ├── auth/       # Login, Register, ForgotPassword, ResetPassword
-│   │   │   │   │   │   ├── camera/     # CameraScreen
-│   │   │   │   │   │   ├── detail/     # EntryDetailScreen, ModernEntryDetailScreen
-│   │   │   │   │   │   ├── discovery/  # DiscoveryScreen
-│   │   │   │   │   │   ├── entry/      # AddEntryScreen, EditEntryScreen
-│   │   │   │   │   │   ├── home/       # SimpleHomeScreen
-│   │   │   │   │   │   ├── profile/    # ModernProfileScreen
-│   │   │   │   │   │   ├── statistics/ # StatisticsScreen with tabs
-│   │   │   │   │   │   ├── ChatScreen.kt # AI Chat
-│   │   │   │   │   │   └── splash/     # SplashScreen
-│   │   │   │   │   └── viewmodel/       # ViewModels
-│   │   │   │   ├── di/                  # Dependency injection modules
-│   │   │   │   ├── ui/                  # UI theme and animations
-│   │   │   │   ├── util/                # Utility classes
-│   │   │   │   │   ├── auth/           # GoogleSignInHelper
-│   │   │   │   │   ├── notification/   # NotificationService
-│   │   │   │   │   └── sensor/         # ShakeDetector
-│   │   │   │   └── worker/              # Background workers
-│   │   │   ├── res/                     # Resources
-│   │   │   └── AndroidManifest.xml
-│   │   ├── test/                        # Unit tests
-│   │   └── androidTest/                 # Instrumentation tests
-│   ├── build.gradle.kts                 # App-level Gradle config
-│   └── google-services.json             # Firebase configuration
-├── gradle/                              # Gradle wrapper
-├── build.gradle.kts                     # Project-level Gradle config
-├── settings.gradle.kts
-├── local.properties                     # Local configuration (API keys)
-├── FEATURES_SUMMARY.md                  # Feature implementation summary
-├── DEEP_LINK_TEST_GUIDE.md             # Deep link testing guide
-└── README.md                           # This file
+│   │   │   │   ├── data/                      # Data Layer
+│   │   │   │   │   ├── local/                # Local data sources
+│   │   │   │   │   │   ├── dao/             # Room DAOs
+│   │   │   │   │   │   ├── entity/          # Room entities
+│   │   │   │   │   │   └── preferences/     # DataStore (SessionManager)
+│   │   │   │   │   └── repository/           # Repository implementations
+│   │   │   │   │
+│   │   │   │   ├── domain/                   # Domain Layer
+│   │   │   │   │   ├── model/               # Domain models
+│   │   │   │   │   ├── repository/          # Repository interfaces
+│   │   │   │   │   ├── service/             # Services (AIInsightsService)
+│   │   │   │   │   └── usecase/             # Business logic use cases
+│   │   │   │   │
+│   │   │   │   ├── presentation/            # Presentation Layer
+│   │   │   │   │   ├── navigation/          # Navigation graphs
+│   │   │   │   │   ├── screens/             # UI Screens (Compose)
+│   │   │   │   │   │   ├── auth/           # LoginScreen, RegisterScreen, 
+│   │   │   │   │   │   │                    # ForgotPasswordScreen, ResetPasswordScreen
+│   │   │   │   │   │   ├── camera/         # CameraScreen (CameraX integration)
+│   │   │   │   │   │   ├── detail/         # EntryDetailScreen, ModernEntryDetailScreen
+│   │   │   │   │   │   ├── discovery/      # DiscoveryScreen (Vietnamese meals)
+│   │   │   │   │   │   ├── entry/          # AddEntryScreen, EditEntryScreen, EntryListScreen
+│   │   │   │   │   │   ├── home/           # SimpleHomeScreen (Main dashboard)
+│   │   │   │   │   │   ├── main/           # MainScreen (Bottom navigation container)
+│   │   │   │   │   │   ├── profile/        # ModernProfileScreen (User settings)
+│   │   │   │   │   │   ├── splash/         # SplashScreen (App launcher)
+│   │   │   │   │   │   ├── statistics/     # StatisticsScreen with 4 tabs:
+│   │   │   │   │   │   │                    # - CalendarTab.kt (Monthly calendar view)
+│   │   │   │   │   │   │                    # - ChartsTab.kt (Mood trends & analytics)
+│   │   │   │   │   │   │                    # - InsightsTab.kt (Data patterns)
+│   │   │   │   │   │   │                    # - AIInsightsTab.kt (Gemini AI insights)
+│   │   │   │   │   │   │                    # Supporting: PieCharts.kt, TopFoodsChart.kt
+│   │   │   │   │   │   └── ChatScreen.kt   # AI Chat with Gemini 2.5 Flash
+│   │   │   │   │   │
+│   │   │   │   │   └── viewmodel/           # ViewModels for each screen
+│   │   │   │   │
+│   │   │   │   ├── di/                      # Dependency Injection (Hilt modules)
+│   │   │   │   ├── ui/                      # UI theme, colors, animations
+│   │   │   │   ├── util/                    # Utility classes
+│   │   │   │   │   ├── auth/               # GoogleSignInHelper
+│   │   │   │   │   ├── color/              # Color analysis utilities
+│   │   │   │   │   ├── common/             # Common helpers
+│   │   │   │   │   ├── export/             # Data export utilities
+│   │   │   │   │   ├── location/           # Location services
+│   │   │   │   │   └── notification/       # Notification handling
+│   │   │   │   │
+│   │   │   │   ├── worker/                  # Background WorkManager tasks
+│   │   │   │   ├── FoodMoodDiaryApp.kt     # Application class
+│   │   │   │   └── MainActivity.kt          # Single activity (Compose)
+│   │   │   │
+│   │   │   ├── res/                         # Android resources
+│   │   │   │   ├── drawable/               # Icons, images
+│   │   │   │   ├── mipmap/                 # App launcher icons
+│   │   │   │   └── values/                 # Strings, colors, themes
+│   │   │   │
+│   │   │   └── AndroidManifest.xml          # App manifest with permissions
+│   │   │
+│   │   ├── test/                            # Unit tests
+│   │   └── androidTest/                     # Instrumentation tests
+│   │
+│   ├── build.gradle.kts                     # App module Gradle config
+│   └── google-services.json                 # Firebase configuration (gitignored)
+│
+├── gradle/                                  # Gradle wrapper
+│   └── libs.versions.toml                   # Centralized dependency versions
+│
+├── build.gradle.kts                         # Root Gradle config
+├── settings.gradle.kts                      # Gradle settings
+├── gradle.properties                        # Gradle properties (Java 17 config)
+├── local.properties                         # Local config (API keys, SDK path)
+├── .vscode/                                 # VS Code tasks and settings
+└── README.md                               # This file
 ```
+
+### Key Directories Explained
+
+**📱 Presentation Layer (`presentation/`)**
+- **screens/**: Each feature has its own screen file(s)
+  - `auth/`: 4 authentication screens
+  - `statistics/`: Complex multi-tab statistics with 7 files
+  - `main/`: Bottom navigation container
+  - Others: Single-file screens
+- **viewmodel/**: ViewModel for each screen managing UI state
+- **navigation/**: Jetpack Compose navigation setup
+
+**💾 Data Layer (`data/`)**
+- **local/dao/**: Room database Data Access Objects
+- **local/entity/**: Database entities (tables)
+- **local/preferences/**: DataStore for session management
+- **repository/**: Implementation of domain repository interfaces
+
+**🎯 Domain Layer (`domain/`)**
+- **model/**: Core business models (independent of Android)
+- **repository/**: Repository interfaces (contracts)
+- **service/**: Business services (e.g., AIInsightsService)
+- **usecase/**: Single-responsibility business logic units
+
+**🔧 Utilities (`util/`)**
+- **auth/**: Google Sign-In integration
+- **color/**: Palette API for food color analysis
+- **export/**: PDF and text export functionality
+- **location/**: GPS and geolocation services
+- **notification/**: Local notifications for reminders
 
 ## 🚀 Getting Started
 
@@ -139,7 +201,9 @@ Follow these instructions to get the project up and running on your local machin
 ### Prerequisites
 
 - Android Studio Ladybug or newer: [Installation Guide](https://developer.android.com/studio)
-- Java 17 LTS: [Download](https://adoptium.net/)
+- **Java 17 LTS (Required):** [Download](https://adoptium.net/)
+  - ⚠️ **Important:** Project is configured to use JDK 17. Using JDK 25 will cause build failures.
+  - Configured in `gradle.properties` with `org.gradle.java.home`
 - Android SDK 26-36
 - Firebase Account: For backend services
 
@@ -175,6 +239,8 @@ Follow these instructions to get the project up and running on your local machin
    ```
    
    Get your Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+   
+   **Model Used:** `gemini-2.5-flash` (Latest version with enhanced capabilities)
 
 4. **Setup Firestore Vietnamese Meals Database (Optional):**
    
@@ -293,18 +359,25 @@ Follow these instructions to get the project up and running on your local machin
 
 ### Common Issues
 
-**Java Version Mismatch**
-- Ensure Java 17 LTS is installed
-- Check version: `java -version`
-- macOS: Set JAVA_HOME in zsh:
-  ```bash
-  export JAVA_HOME=$(/usr/libexec/java_home -v 17)
-  export PATH="$JAVA_HOME/bin:$PATH"
+**Java Version Mismatch (Critical)**
+- ⚠️ **Must use Java 17 LTS** - JDK 25 causes build failures with error "25.0.1"
+- Project is configured in `gradle.properties`:
+  ```properties
+  org.gradle.java.home=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
   ```
-- Windows: Set JAVA_HOME in PowerShell:
-  ```powershell
-  $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-17.x.x"
-  $env:Path += ";$env:JAVA_HOME\bin"
+- Check installed JDK versions:
+  ```bash
+  # macOS
+  /usr/libexec/java_home -V
+  
+  # Windows
+  dir "C:\Program Files\Java"
+  ```
+- If you see build error "25.0.1", uncomment the Java 17 path in `gradle.properties`
+- After changing Java version, restart Gradle daemon:
+  ```bash
+  ./gradlew --stop
+  ./gradlew build
   ```
 
 **SDK Location Not Found**
@@ -317,10 +390,23 @@ Follow these instructions to get the project up and running on your local machin
   sdk.dir=C\:\\Users\\YourUsername\\AppData\\Local\\Android\\Sdk
   ```
 
-**Gemini API 403 Error**
+**Gemini API Errors**
+
+*403 Forbidden:*
 - Your API key may be leaked or expired
 - Generate a new key at [Google AI Studio](https://aistudio.google.com/app/apikey)
 - Update `local.properties` with the new key
+
+*503 Service Unavailable:*
+- Gemini API is temporarily overloaded
+- App now shows friendly message: "Xin lỗi, AI đang bận quá! 😅"
+- Wait a few seconds and try again
+- This is normal during peak usage times
+
+*429 Too Many Requests:*
+- You're sending messages too quickly
+- App shows: "Ối, bạn gửi tin nhắn hơi nhanh rồi! 😊"
+- Wait 1-2 minutes before retrying
 
 **Build Dependency Issues**
 ```bash
@@ -332,6 +418,20 @@ Follow these instructions to get the project up and running on your local machin
 - Verify `google-services.json` is in `app/` directory
 - Check Firebase project settings match your bundle ID
 - Ensure all required Firebase services are enabled
+
+**Emulator Storage Full (INSTALL_FAILED_INSUFFICIENT_STORAGE)**
+```bash
+# Remove unused apps
+adb shell pm list packages -3  # List user apps
+adb shell pm uninstall <package_name>
+
+# Clear cache
+adb shell pm trim-caches 1G
+
+# Or wipe emulator data
+adb emu kill
+emulator -avd <avd_name> -wipe-data
+```
 
 ## Development Notes
 

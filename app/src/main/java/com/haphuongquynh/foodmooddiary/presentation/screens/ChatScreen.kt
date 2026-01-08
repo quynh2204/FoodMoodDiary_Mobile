@@ -227,15 +227,33 @@ fun ChatScreen() {
                                     .getString("text")
                                 messages = messages + (aiText to false)
                             } else {
-                                val errorMsg = "Lỗi API ${result.code}: $responseBody"
-                                android.util.Log.e("ChatScreen", errorMsg)
-                                messages = messages + (errorMsg to false)
+                                android.util.Log.e("ChatScreen", "API Error: ${result.code} - $responseBody")
+                                
+                                // Thông báo lỗi thân thiện dựa trên mã lỗi
+                                val friendlyError = when (result.code) {
+                                    503 -> "Xin lỗi, AI đang bận quá! 😅 Có vẻ nhiều người đang sử dụng cùng lúc. Bạn thử lại sau vài giây nhé?"
+                                    429 -> "Ối, bạn gửi tin nhắn hơi nhanh rồi! 😊 Hãy thở sâu và thử lại sau chút nhé?"
+                                    401 -> "Có lỗi xác thực rồi! 🔑 Bạn thử khởi động lại ứng dụng xem sao?"
+                                    500 -> "Máy chủ đang gặp sự cố nhỏ! 🛠️ Mình thử lại sau nhé?"
+                                    else -> "Hmm, có điều gì đó không ổn! 🤔 Bạn kiểm tra kết nối mạng và thử lại nhé?"
+                                }
+                                messages = messages + (friendlyError to false)
                             }
                         } catch (e: Exception) {
-                            val errorMessage = "Lỗi: ${e.message}"
                             android.util.Log.e("ChatScreen", "API Error", e)
                             e.printStackTrace()
-                            messages = messages + (errorMessage to false)
+                            
+                            // Thông báo lỗi thân thiện cho exception
+                            val friendlyError = when {
+                                e.message?.contains("timeout", ignoreCase = true) == true -> 
+                                    "Kết nối hơi chậm quá! ⏰ Bạn thử lại xem sao?"
+                                e.message?.contains("network", ignoreCase = true) == true || 
+                                e.message?.contains("internet", ignoreCase = true) == true ->
+                                    "Mạng internet có vấn đề rồi! 📶 Bạn kiểm tra kết nối nhé?"
+                                else -> 
+                                    "Ối, có lỗi bất ngờ xảy ra! 🙈 Bạn thử khởi động lại ứng dụng nhé?"
+                            }
+                            messages = messages + (friendlyError to false)
                         } finally {
                             isLoading = false
                         }
