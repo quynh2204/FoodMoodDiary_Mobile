@@ -80,62 +80,93 @@ fun SimpleHomeScreen(
     val streak = calculateStreak(entries)
     val dominantMood = getDominantMood(todayEntries)
     
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BlackPrimary)
-            .verticalScroll(rememberScrollState())
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        // 1. Header Greeting + Streak
-        GreetingHeader(
-            streak = streak,
-            onProfileClick = onProfileClick
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        // 2. Today's Summary
-        TodaySummaryCard(
-            mealsCount = todayEntries.size,
-            dominantMood = dominantMood,
-            onClick = { onNavigateToTab("statistics_tab") }
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // 3. Mood Check-in
-        MoodCheckInSection(
-            selectedMood = quickSelectedMood,
-            onMoodSelected = { mood -> quickSelectedMood = mood },
-            onAddEntry = {
-                // Navigate with mood if selected
-                val route = if (quickSelectedMood != null) {
-                    "${Screen.AddEntry.route}?mood=$quickSelectedMood"
-                } else {
-                    Screen.AddEntry.route
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
+            // Top section with black background
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(BlackPrimary)
+            ) {
+                // 1. Header Greeting
+                GreetingHeader(
+                    streak = streak,
+                    onProfileClick = onProfileClick
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // 2. Today's Summary Card (Green card)
+                TodaySummaryCard(
+                    mealsCount = todayEntries.size,
+                    dominantMood = dominantMood,
+                    onAddEntry = {
+                        val route = if (quickSelectedMood != null) {
+                            "${Screen.AddEntry.route}?mood=$quickSelectedMood"
+                        } else {
+                            Screen.AddEntry.route
+                        }
+                        navController.navigate(route)
+                    }
+                )
+                
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+            
+            // Bottom section with black background and rounded top corners
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .offset(y = (-20).dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
+                        .background(BlackPrimary)
+                        .padding(top = 20.dp)
+                ) {
+                    // 3. Mood Check-in
+                    MoodCheckInSection(
+                        selectedMood = quickSelectedMood,
+                        onMoodSelected = { mood -> quickSelectedMood = mood },
+                        onAddEntry = {
+                            val route = if (quickSelectedMood != null) {
+                                "${Screen.AddEntry.route}?mood=$quickSelectedMood"
+                            } else {
+                                Screen.AddEntry.route
+                            }
+                            navController.navigate(route)
+                        }
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // 4. Mood Statistics Widget
+                    MoodStatisticsCard(
+                        entries = entries
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // 5. Recent Entries Gallery
+                    RecentEntriesGallery(
+                        entries = entries,
+                        onEntryClick = { entry ->
+                            navController.navigate(Screen.EntryDetail.createRoute(entry.id))
+                        }
+                    )
+                    
+                    Spacer(modifier = Modifier.height(100.dp)) // Space for bottom nav
                 }
-                navController.navigate(route)
             }
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // 4. Mood Statistics Widget (restored)
-        MoodStatisticsCard(
-            entries = entries
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // 5. Recent Entries Gallery
-        RecentEntriesGallery(
-            entries = entries,
-            onEntryClick = { entry ->
-                navController.navigate(Screen.EntryDetail.createRoute(entry.id))
-            }
-        )
-        
-        Spacer(modifier = Modifier.height(100.dp)) // Space for bottom nav
+        }
     }
 }
 
@@ -658,7 +689,7 @@ private fun GreetingHeader(
             )
             Text(
                 text = "Happy $dayName!",
-                color = WhiteText,
+                color = PastelGreen,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -708,76 +739,72 @@ private fun GreetingHeader(
 private fun TodaySummaryCard(
     mealsCount: Int,
     dominantMood: String,
-    onClick: () -> Unit = {}
+    onAddEntry: () -> Unit = {}
 ) {
-    val moodEmoji = when {
-        dominantMood.contains("happy", ignoreCase = true) -> "😊"
-        dominantMood.contains("sad", ignoreCase = true) -> "😢"
-        dominantMood.contains("calm", ignoreCase = true) -> "😌"
-        dominantMood.contains("stress", ignoreCase = true) -> "😰"
-        else -> "😐"
-    }
-    
-    val moodText = when {
-        mealsCount == 0 -> "Start your day!"
-        dominantMood.isNotEmpty() -> "Feeling $dominantMood"
-        else -> "How are you?"
-    }
-    
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        color = BlackSecondary,
-        border = BorderStroke(1.dp, PastelGreenLight.copy(alpha = 0.5f))
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = PastelGreen.copy(alpha = 0.29f),
+        border = BorderStroke(1.dp, PastelGreen.copy(alpha = 0.5f))
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.weight(1f)
             ) {
+                // Food icon with green background
                 Surface(
                     shape = CircleShape,
-                    color = PastelGreen.copy(alpha = 0.2f),
-                    modifier = Modifier.size(48.dp)
+                    color = PastelGreen,
+                    modifier = Modifier.size(56.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Text(moodEmoji, fontSize = 24.sp)
+                        Icon(
+                            Icons.Default.Restaurant,
+                            contentDescription = "Food",
+                            tint = BlackPrimary,
+                            modifier = Modifier.size(28.dp)
+                        )
                     }
                 }
                 Column {
                     Text(
                         text = "Today",
-                        color = GrayText,
-                        fontSize = 12.sp
+                        color = WhiteText.copy(alpha = 0.7f),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "$mealsCount meal${if (mealsCount != 1) "s" else ""} logged",
+                        text = "$mealsCount meals logged",
                         color = WhiteText,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
             
+            // "Start your day!" button - green background, white text
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = PastelGreen.copy(alpha = 0.15f)
+                color = PastelGreen
             ) {
                 Text(
-                    text = moodText,
-                    color = PastelGreen,
+                    text = "Start your day!",
+                    color = WhiteText,
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier
+                        .clickable(onClick = onAddEntry)
+                        .padding(horizontal = 16.dp, vertical = 10.dp)
                 )
             }
         }
@@ -803,20 +830,21 @@ private fun MoodCheckInSection(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(16.dp),
-        color = BlackSecondary
+        shape = RoundedCornerShape(20.dp),
+        color = BlackSecondary,
+        border = BorderStroke(1.dp, PastelGreen.copy(alpha = 0.3f))
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(20.dp)
         ) {
             Text(
-                text = "How are you feeling? ✨",
-                color = WhiteText,
+                text = "Bạn đang thấy thế nào?",
+                color = PastelGreen,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
             // Mood selection row
             Row(
@@ -841,39 +869,37 @@ private fun MoodCheckInSection(
                         ) {
                             Text(
                                 text = emoji,
-                                fontSize = 28.sp,
-                                modifier = Modifier.padding(8.dp)
+                                fontSize = 32.sp,
+                                modifier = Modifier.padding(10.dp)
                             )
                         }
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = label,
                             color = if (selectedMood == label) PastelGreen else GrayText,
-                            fontSize = 11.sp
+                            fontSize = 12.sp
                         )
                     }
                 }
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
             // Add entry button
             Button(
                 onClick = onAddEntry,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = PastelGreen
                 )
             ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = null,
-                    tint = BlackPrimary
-                )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Add what you ate",
+                    text = "Thêm món đã ăn",
                     color = BlackPrimary,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -1108,25 +1134,30 @@ private fun MoodStatisticsCard(entries: List<FoodEntry>) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Surface(
-                        shape = CircleShape,
+                        shape = RoundedCornerShape(8.dp),
                         color = PastelGreen.copy(alpha = 0.2f),
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(40.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text("🎭", fontSize = 18.sp)
+                            Icon(
+                                Icons.Default.TrendingUp,
+                                contentDescription = null,
+                                tint = PastelGreen,
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
                     }
                     Column {
                         Text(
                             text = "Thống kê cảm xúc",
                             color = PastelGreen,
-                            fontSize = 14.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = if (totalMoods > 0) "$totalMoods lần ghi nhận" else "Chưa có dữ liệu",
                             color = GrayText,
-                            fontSize = 11.sp
+                            fontSize = 12.sp
                         )
                     }
                 }
@@ -1705,10 +1736,15 @@ private fun RecentEntriesGallery(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("📸", fontSize = 18.sp)
+                Icon(
+                    Icons.Default.PhotoCamera,
+                    contentDescription = null,
+                    tint = PastelGreen,
+                    modifier = Modifier.size(20.dp)
+                )
                 Text(
-                    text = "Recent Uploads",
-                    color = WhiteText,
+                    text = "Tải lên gần đây",
+                    color = PastelGreen,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -1720,7 +1756,7 @@ private fun RecentEntriesGallery(
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = "${entries.size} total",
+                    text = "Tổng ${entries.size}",
                     color = GrayText,
                     fontSize = 12.sp
                 )
@@ -1954,9 +1990,9 @@ private fun RecentEntryCard(
     
     Surface(
         modifier = modifier
-            .aspectRatio(1f)
+            .aspectRatio(0.75f)  // Changed from 1f to 0.75f for vertical rectangle
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         color = BlackSecondary
     ) {
         Box {
@@ -1969,7 +2005,7 @@ private fun RecentEntryCard(
                     contentScale = ContentScale.Crop
                 )
                 
-                // Gradient overlay
+                // Gradient overlay at bottom
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -1977,9 +2013,9 @@ private fun RecentEntryCard(
                             brush = androidx.compose.ui.graphics.Brush.verticalGradient(
                                 colors = listOf(
                                     Color.Transparent,
-                                    Color.Black.copy(alpha = 0.7f)
+                                    Color.Black.copy(alpha = 0.8f)
                                 ),
-                                startY = 100f
+                                startY = 400f  // Adjusted for taller card
                             )
                         )
                 )
@@ -1995,56 +2031,62 @@ private fun RecentEntryCard(
                 }
             }
             
-            // Mood color indicator
-            entry.moodColor?.takeIf { it != 0 }?.let { colorInt ->
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                        .size(12.dp)
-                        .clip(CircleShape)
-                        .background(Color(colorInt))
-                        .border(1.dp, Color.White.copy(alpha = 0.5f), CircleShape)
-                )
-            }
+            // Small green dot indicator at top right
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(12.dp)
+                    .size(12.dp)
+                    .clip(CircleShape)
+                    .background(PastelGreen)
+            )
             
-            // Info overlay at bottom
-            Column(
+            // Info overlay at bottom with green background - only 1/3 height
+            Box(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
-                    .padding(8.dp)
+                    .fillMaxHeight(0.33f)  // Only occupy bottom 1/3 of card
+                    .background(PastelGreen.copy(alpha = 0.29f))
+                    .padding(12.dp)
             ) {
-                Text(
-                    text = entry.foodName ?: "Untitled",
-                    color = WhiteText,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                // Left side: Food name and date
+                Column(
+                    modifier = Modifier.align(Alignment.BottomStart)
                 ) {
                     Text(
-                        text = dateFormat.format(Date(entry.timestamp)),
-                        color = GrayText,
-                        fontSize = 10.sp
+                        text = entry.foodName ?: "Untitled",
+                        color = WhiteText,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
-                    Text("•", color = GrayText, fontSize = 10.sp)
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = timeFormat.format(Date(entry.timestamp)),
-                        color = GrayText,
-                        fontSize = 10.sp
+                        text = "${dateFormat.format(Date(entry.timestamp))} - ${timeFormat.format(Date(entry.timestamp))}",
+                        color = WhiteText.copy(alpha = 0.8f),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Normal
                     )
-                    entry.mood?.let { mood ->
-                        if (mood.isNotEmpty()) {
-                            Text("•", color = GrayText, fontSize = 10.sp)
-                            Text(
-                                text = mood,
-                                color = PastelGreen,
-                                fontSize = 10.sp
-                            )
+                }
+                
+                // Right side: Mood emoji in circle
+                entry.mood?.let { mood ->
+                    if (mood.isNotEmpty()) {
+                        Surface(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .size(40.dp),
+                            shape = CircleShape,
+                            color = Color.Black.copy(alpha = 0.3f)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = mood,
+                                    fontSize = 20.sp
+                                )
+                            }
                         }
                     }
                 }

@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -348,12 +349,23 @@ fun ModernProfileScreen(
                     )
 
                     // Follow Us Section
-                    Text(
-                        "Theo dõi FoodMoodDiary",
-                        color = PastelGreen,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.PowerSettingsNew,
+                            contentDescription = null,
+                            tint = PastelGreen,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            "Theo dõi FoodMoodDiary",
+                            color = PastelGreen,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                     SocialMediaButtons(
                         onTikTokClick = {
                             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.tiktok.com"))
@@ -370,24 +382,46 @@ fun ModernProfileScreen(
                     )
 
                     // Data Management
-                    Text(
-                        "Quản lý dữ liệu",
-                        color = PastelGreen,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Group,
+                            contentDescription = null,
+                            tint = PastelGreen,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            "Quản lý dữ liệu",
+                            color = PastelGreen,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                     OptionButton(
                         text = "Xóa tất cả bài viết",
                         onClick = { showClearDataDialog = true }
                     )
 
                     // Export Data
-                    Text(
-                        "Xuất dữ liệu",
-                        color = PastelGreen,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Upload,
+                            contentDescription = null,
+                            tint = PastelGreen,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            "Xuất dữ liệu",
+                            color = PastelGreen,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                     OptionButton(
                         text = "Xuất dạng CSV",
                         onClick = { dataManagementViewModel.exportToCSV(context) }
@@ -398,12 +432,23 @@ fun ModernProfileScreen(
                     )
 
                     // About
-                    Text(
-                        "Thông tin",
-                        color = PastelGreen,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Info,
+                            contentDescription = null,
+                            tint = PastelGreen,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            "Thông tin",
+                            color = PastelGreen,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                     OptionButton(
                         text = "Điều khoản dịch vụ",
                         onClick = {
@@ -427,13 +472,13 @@ fun ModernProfileScreen(
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = OrangeAccent
+                            containerColor = PastelGreen
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
                             "Đăng xuất",
-                            color = WhiteText,
+                            color = BlackPrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
@@ -467,9 +512,9 @@ private fun OptionButton(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(12.dp),
         color = BlackSecondary,
-        border = BorderStroke(1.dp, BlackTertiary)
+        border = BorderStroke(1.dp, PastelGreen.copy(alpha = 0.5f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -510,11 +555,7 @@ private fun ProfileHeaderSection(
                 modifier = Modifier
                     .matchParentSize()
                     .clip(CircleShape)
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(GoldPrimary, OrangeAccent, GoldSecondary)
-                        )
-                    )
+                    .border(2.dp, PastelGreen, CircleShape)
                     .padding(4.dp)
                     .clip(CircleShape)
                     .background(BlackSecondary)
@@ -607,8 +648,8 @@ private fun ProfileHeaderSection(
 private fun StreakChip(streakDays: Int) {
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = BlackSecondary,
-        border = BorderStroke(1.dp, PastelGreenDark)
+        color = PastelGreen.copy(alpha = 0.2f),
+        border = BorderStroke(1.dp, PastelGreen)
     ) {
         Row(
             modifier = Modifier
@@ -645,35 +686,35 @@ private fun StatsButtonsGrid(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Streak - matches dialog: LocalFireDepartment, StreakOrange
+        // Streak - Orange color
         StatButton(
             modifier = Modifier.weight(1f),
             icon = Icons.Default.LocalFireDepartment,
-            iconTint = StreakOrange,
+            iconTint = Color(0xFFFF9500), // Orange
             hasCircle = true,
             onClick = onStreakClick
         )
-        // Meals - matches dialog: Restaurant, PastelGreen
+        // Meals - White color
         StatButton(
             modifier = Modifier.weight(1f),
             icon = Icons.Default.Restaurant,
-            iconTint = PastelGreen,
+            iconTint = Color.White,
             hasCircle = true,
             onClick = onMealsClick
         )
-        // Top Food - matches dialog: Favorite, OrangeAccent
+        // Top Food - Red color
         StatButton(
             modifier = Modifier.weight(1f),
             icon = Icons.Default.Favorite,
-            iconTint = OrangeAccent,
+            iconTint = Color(0xFFFF3B30), // Red
             hasCircle = true,
             onClick = onTopFoodClick
         )
-        // Mood - matches dialog: Mood, GoldPrimary
+        // Mood - Yellow color
         StatButton(
             modifier = Modifier.weight(1f),
             icon = Icons.Default.Mood,
-            iconTint = GoldPrimary,
+            iconTint = Color(0xFFFFCC00), // Yellow
             hasCircle = true,
             onClick = onMoodClick
         )
@@ -693,7 +734,8 @@ private fun StatButton(
             .aspectRatio(1f)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        color = BlackSecondary
+        color = BlackSecondary,
+        border = BorderStroke(1.dp, PastelGreen.copy(alpha = 0.5f))
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -793,19 +835,19 @@ private fun SocialMediaButtons(
     ) {
         SocialButton(
             modifier = Modifier.weight(1f),
-            icon = Icons.Default.MusicNote,
+            logoRes = com.haphuongquynh.foodmooddiary.R.drawable.tiktok_logo,
             label = "Tiktok",
             onClick = onTikTokClick
         )
         SocialButton(
             modifier = Modifier.weight(1f),
-            icon = Icons.Default.Facebook,
+            logoRes = com.haphuongquynh.foodmooddiary.R.drawable.facebook_logo,
             label = "Facebook",
             onClick = onFacebookClick
         )
         SocialButton(
             modifier = Modifier.weight(1f),
-            icon = Icons.Default.CameraAlt,
+            logoRes = com.haphuongquynh.foodmooddiary.R.drawable.instagram_logo,
             label = "Instagram",
             onClick = onInstagramClick
         )
@@ -815,30 +857,36 @@ private fun SocialMediaButtons(
 @Composable
 private fun SocialButton(
     modifier: Modifier = Modifier,
-    icon: ImageVector,
+    logoRes: Int,
     label: String,
     onClick: () -> Unit
 ) {
     Surface(
         modifier = modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        color = BlackSecondary
+        shape = RoundedCornerShape(12.dp),
+        color = Color(0xFF1E1E1E)
     ) {
         Column(
-            modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(
-                icon,
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(logoRes)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = label,
-                tint = GrayText,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(32.dp),
+                contentScale = ContentScale.Fit
             )
-            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = label,
-                color = GrayText,
+                color = Color.White,
                 fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
             )
         }

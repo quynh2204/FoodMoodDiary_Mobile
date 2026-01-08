@@ -1,5 +1,6 @@
 package com.haphuongquynh.foodmooddiary.presentation.screens.entry
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -232,7 +233,8 @@ fun EntryCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = BorderStroke(1.dp, PastelGreen.copy(alpha = 0.5f))
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -401,7 +403,8 @@ fun EntryGridCard(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF2C2C2E)
-        )
+        ),
+        border = BorderStroke(1.dp, PastelGreen.copy(alpha = 0.5f))
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {
@@ -535,7 +538,8 @@ fun CalendarView(
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF2C2C2E)
         ),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, PastelGreen.copy(alpha = 0.5f))
     ) {
         Column(
             modifier = Modifier.padding(16.dp)

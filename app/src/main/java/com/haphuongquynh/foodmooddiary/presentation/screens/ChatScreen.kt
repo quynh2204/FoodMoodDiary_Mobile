@@ -1,12 +1,17 @@
 package com.haphuongquynh.foodmooddiary.presentation.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,31 +44,82 @@ fun ChatScreen() {
     var inputText by remember { mutableStateOf("") }
     var messages by remember { mutableStateOf(listOf<Pair<String, Boolean>>()) }
     var isLoading by remember { mutableStateOf(false) }
+    var showSettingsDialog by remember { mutableStateOf(false) }
+    var aiTemperature by remember { mutableStateOf(0.7f) }
+    var maxTokens by remember { mutableStateOf(150) }
+    var conversationContext by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
     
     // Test connection khi khởi động
     LaunchedEffect(Unit) {
-        messages = listOf("👋 Xin chào! Mình là trợ lý cảm xúc AI. Hãy chia sẻ cảm xúc của bạn!" to false)
+        messages = listOf("Xin chào! Mình là trợ lý cảm xúc AI. Hãy chia sẻ cảm xúc của bạn!" to false)
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(BlackPrimary)
-            .padding(16.dp)
     ) {
-        Text(
-            text = "Trợ lý Cảm Xúc AI ✨",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = PastelGreen,
+        // Header - single card with green background
+        Surface(
             modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .padding(bottom = 16.dp)
-        )
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFF6B8E7F), // Pastel green background
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Robot icon with black circular background
+                    Surface(
+                        shape = CircleShape,
+                        color = Color.Black,
+                        modifier = Modifier.size(56.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                Icons.Default.SmartToy,
+                                contentDescription = "AI Assistant",
+                                tint = PastelGreen,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
+                    
+                    Text(
+                        text = "Trợ lý AI",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = WhiteText
+                    )
+                }
+                
+                // Settings icon
+                IconButton(onClick = { showSettingsDialog = true }) {
+                    Icon(
+                        Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = WhiteText,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+        }
 
+        // Chat messages
         LazyColumn(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(messages) { (msg, isUser) ->
@@ -91,8 +147,11 @@ fun ChatScreen() {
             }
         }
 
+        // Input area
         Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             OutlinedTextField(
@@ -186,5 +245,142 @@ fun ChatScreen() {
                 Icon(Icons.Default.Send, "Gửi", tint = Color.White)
             }
         }
+    }
+    
+    // Settings Dialog
+    if (showSettingsDialog) {
+        AlertDialog(
+            onDismissRequest = { showSettingsDialog = false },
+            containerColor = BlackSecondary,
+            title = {
+                Text(
+                    text = "Cài đặt Trợ lý AI",
+                    color = PastelGreen,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Temperature setting
+                    Column {
+                        Text(
+                            text = "Độ sáng tạo: ${String.format("%.1f", aiTemperature)}",
+                            color = WhiteText,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = "Cao hơn = phản hồi sáng tạo hơn",
+                            color = GrayText,
+                            fontSize = 12.sp
+                        )
+                        Slider(
+                            value = aiTemperature,
+                            onValueChange = { aiTemperature = it },
+                            valueRange = 0f..1f,
+                            colors = SliderDefaults.colors(
+                                thumbColor = PastelGreen,
+                                activeTrackColor = PastelGreen,
+                                inactiveTrackColor = GrayText
+                            )
+                        )
+                    }
+                    
+                    // Max tokens setting
+                    Column {
+                        Text(
+                            text = "Độ dài phản hồi: $maxTokens tokens",
+                            color = WhiteText,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = "Số lượng từ tối đa trong câu trả lời",
+                            color = GrayText,
+                            fontSize = 12.sp
+                        )
+                        Slider(
+                            value = maxTokens.toFloat(),
+                            onValueChange = { maxTokens = it.toInt() },
+                            valueRange = 50f..500f,
+                            steps = 9,
+                            colors = SliderDefaults.colors(
+                                thumbColor = PastelGreen,
+                                activeTrackColor = PastelGreen,
+                                inactiveTrackColor = GrayText
+                            )
+                        )
+                    }
+                    
+                    // Conversation context toggle
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Nhớ ngữ cảnh",
+                                color = WhiteText,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = "AI nhớ các tin nhắn trước",
+                                color = GrayText,
+                                fontSize = 12.sp
+                            )
+                        }
+                        Switch(
+                            checked = conversationContext,
+                            onCheckedChange = { conversationContext = it },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = PastelGreen,
+                                checkedTrackColor = PastelGreen.copy(alpha = 0.5f),
+                                uncheckedThumbColor = GrayText,
+                                uncheckedTrackColor = GrayText.copy(alpha = 0.3f)
+                            )
+                        )
+                    }
+                    
+                    // Clear conversation button
+                    Button(
+                        onClick = {
+                            messages = listOf("Xin chào! Mình là trợ lý cảm xúc AI. Hãy chia sẻ cảm xúc của bạn!" to false)
+                            showSettingsDialog = false
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = BlackPrimary
+                        ),
+                        border = BorderStroke(1.dp, PastelGreen.copy(alpha = 0.5f)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = PastelGreen,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Xóa lịch sử hội thoại",
+                            color = PastelGreen
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { showSettingsDialog = false }
+                ) {
+                    Text("Đóng", color = PastelGreen)
+                }
+            }
+        )
     }
 }
